@@ -8,12 +8,12 @@ from functools import partial
 from itertools import chain
 from collections import defaultdict, deque
 
-from blaze import error
+from .error import DataShapeTypeError, UnificationError
 from . import transform, tzip
 from .coretypes import (DataShape, Ellipsis, Fixed, CType, Function,
                         TypeVar, int32)
 from .promotion import promote_datashapes
-from ..py2help import reduce
+from .py2help import reduce
 
 #------------------------------------------------------------------------
 # Normalization
@@ -227,7 +227,7 @@ def _normalize_ellipses_datashapes(ds1, ds2):
         # they are disjoint
         [x], [y] = a, b
         if x not in S[y] and y not in S[x]:
-            raise error.BlazeTypeError(
+            raise DataShapeTypeError(
                 "Unable to line up Ellipses in %s and %s" % (ds1, ds2))
 
         if not S[x]:
@@ -285,7 +285,7 @@ def check_ellipsis_consistency(solutions1, solutions2):
         seen_ndim = ellipsis_typevars.get(ellipsis.typevar)
         if seen_ndim is not None and len(dims) != seen_ndim:
             # TODO: Broadcasting?
-            raise error.UnificationError(
+            raise UnificationError(
                 "Differing dimensionality for type variable %s, got %s "
                 "and %s" % (ellipsis.typevar, seen_ndim, len(dims)))
 

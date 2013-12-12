@@ -12,7 +12,7 @@ from functools import partial
 from collections import defaultdict
 from itertools import chain, product
 
-from blaze import error
+from .error import CoercionError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import *
 from . import verify, normalize, Implements, Fixed, Var, Ellipsis, DataShape
@@ -78,7 +78,7 @@ def _coercion_cost(a, b, seen=None):
         try:
             return coercion_cost_table(a, b)
         except KeyError:
-            raise error.CoercionError(a, b)
+            raise CoercionError(a, b)
     elif isinstance(b, TypeVar):
         visited = b not in seen
         seen.add(b)
@@ -87,7 +87,7 @@ def _coercion_cost(a, b, seen=None):
         if a in b.typeset:
             return 0.1  - (0.1 / len(b.typeset.types))
         else:
-            raise error.CoercionError(a, b)
+            raise CoercionError(a, b)
     elif isinstance(b, Fixed):
         if isinstance(a, Var):
             return 0.1 # broadcasting penalty

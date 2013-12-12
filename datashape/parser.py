@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os
-import sys
 import ast
 
 from collections import namedtuple
@@ -10,11 +9,11 @@ from collections import namedtuple
 # TODO: Ideally this module creates a simple AST that is mapped into the type
 #       domain by coretypes.py
 from . import coretypes as T
-from .typesets import registry, lookup
+from .typesets import registry
 
 from ply import lex, yacc
-from blaze.plyhacks import yaccfrom, lexfrom
-from blaze.error import CustomSyntaxError, BlazeTypeError
+from .plyhacks import yaccfrom, lexfrom
+from .error import CustomSyntaxError, DataShapeTypeError
 
 #------------------------------------------------------------------------
 # Errors
@@ -251,7 +250,7 @@ def p_rhs_expression_list__contrained(p):
     try:
         typeset = registry[p[3]]
     except KeyError:
-        raise BlazeTypeError("No typeset '%s' registered" % (p[3],))
+        raise DataShapeTypeError("No typeset '%s' registered" % (p[3],))
     p[0] = (T.Implements(typevar, typeset),)
 
 def p_rhs_expression_list__number(p):
@@ -573,7 +572,7 @@ if __name__ == '__main__':
             except EOFError:
                 break
 
-if int(os.environ.get('BLAZE_REBUILD_PARSER', 0)):
+if int(os.environ.get('DATASHAPE_REBUILD_PARSER', 0)):
     # Rebuild the parser before it is used anywhere
     rebuild()
     # Exit immediately with success

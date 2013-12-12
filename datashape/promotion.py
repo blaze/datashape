@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Type promotion.
 """
@@ -7,22 +6,20 @@ Type promotion.
 from itertools import product
 from functools import reduce
 
-from blaze import error
-from blaze.util import gensym
-from blaze.datashape import (DataShape, CType, Fixed, Var, to_numpy,
-                             TypeSet, TypeVar, TypeConstructor, verify)
-
 import numpy as np
 
-#------------------------------------------------------------------------
-# Type unit promotion
-#------------------------------------------------------------------------
+from .error import UnificationError
+from .util import gensym
+from . import (DataShape, CType, Fixed, Var, to_numpy,
+               TypeSet, TypeVar, TypeConstructor, verify)
+
 
 def promote_units(*units):
     """
     Promote unit types, which are either CTypes or Constants.
     """
     return reduce(promote, units)
+
 
 def promote(a, b):
     """Promote two blaze types"""
@@ -38,7 +35,7 @@ def promote(a, b):
                 return a
             else:
                 if a != b:
-                    raise error.UnificationError(
+                    raise UnificationError(
                         "Cannot unify differing fixed dimensions "
                         "%s and %s" % (a, b))
                 return a
@@ -74,7 +71,7 @@ def promote(a, b):
 
     elif isinstance(a, TypeSet):
         if b not in a.types:
-            raise error.UnificationError(
+            raise UnificationError(
                 "Type %s does not belong to typeset %s" % (b, a))
         return b
 
@@ -107,12 +104,14 @@ def eq(a, b):
         return True
     return a == b
 
+
 def promote_scalars(a, b):
     """Promote two CTypes"""
     try:
         return CType.from_numpy_dtype(np.result_type(to_numpy(a), to_numpy(b)))
     except TypeError, e:
         raise TypeError("Cannot promote %s and %s: %s" % (a, b, e))
+
 
 def promote_datashapes(a, b):
     """Promote two DataShapes"""
@@ -132,6 +131,7 @@ def promote_datashapes(a, b):
     assert result1 == result2
     return result1
 
+
 def promote_type_constructor(a, b):
     """Promote two generic type constructors"""
     # Verify type constructor equality
@@ -144,7 +144,7 @@ def promote_type_constructor(a, b):
             result = promote(t1, t2)
         else:
             if t1 != t2:
-                raise error.UnificationError(
+                raise UnificationError(
                     "Got differing types %s and %s for unpromotable type "
                     "parameter in constructors %s and %s" % (t1, t2, a, b))
             result = t1

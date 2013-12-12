@@ -16,7 +16,7 @@ setup(
     description = ("A data description language."),
     license = "BSD",
     keywords = "data language",
-    url = "http://packages.python.org/an_example_pypi_project",
+    url = "http://packages.python.org/datashape",
     packages = find_packages(),
     long_description = read('README.md'),
     classifiers = [

@@ -5,6 +5,7 @@ import inspect
 import operator
 import itertools
 import ctypes
+import collections
 import sys
 
 from blaze import error
@@ -489,3 +490,30 @@ def to_numba(ds):
     s = str(ds)
     s = {'cfloat32':'complex64', 'cfloat64':'complex128', 'bool':'bool_'}.get(s, s)
     return getattr(numba, s)
+
+
+#------------------------------------------------------------------------
+# Temporary names
+#------------------------------------------------------------------------
+
+def make_temper():
+    """Return a function that returns temporary names"""
+    temps = collections.defaultdict(int)
+
+    def temper(name=""):
+        varname = name.rstrip(string.digits)
+        count = temps[varname]
+        temps[varname] += 1
+        if varname and count == 0:
+            return varname
+        return varname + str(count)
+
+    return temper
+
+def make_stream(seq, _temp=make_temper()):
+    """Create a stream of temporaries seeded by seq"""
+    while 1:
+        for x in seq:
+            yield _temp(x)
+
+gensym = partial(next, make_stream(string.ascii_uppercase))
