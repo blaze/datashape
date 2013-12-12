@@ -6,29 +6,24 @@ This defines the DataShape type system, with unified
 shape and data type.
 """
 
-import sys
 import ctypes
-import operator
 import datetime
-
-import blaze
-from ..py2help import _inttypes, _strtypes, unicode
 
 import numpy as np
 
-#------------------------------------------------------------------------
-# Type Metaclass
-#------------------------------------------------------------------------
+from .py2help import _inttypes, _strtypes, unicode
+
 
 # Classes of unit types.
 DIMENSION = 1
-MEASURE   = 2
+MEASURE = 2
+
 
 class Type(type):
     _registry = {}
 
     def __new__(meta, name, bases, dct):
-        cls = type(name, bases, dct)
+        cls = type(name, bases, dctgit s)
         # Don't register abstract classes
         if not dct.get('abstract'):
             Type._registry[name] = cls
@@ -47,9 +42,6 @@ class Type(type):
     def lookup_type(cls, name):
         return cls._registry[name]
 
-#------------------------------------------------------------------------
-# Primitives
-#------------------------------------------------------------------------
 
 class Mono(object):
     """
@@ -57,7 +49,7 @@ class Mono(object):
 
     Each type must be reconstructable using its parameters:
 
-        type(blaze_type)(*type.parameters)
+        type(datashape_type)(*type.parameters)
     """
     composite = False
     __metaclass__ = Type
@@ -103,14 +95,12 @@ class Mono(object):
         else:
             return self
 
+
 class Unit(Mono):
     """
     Unit type that does not need to be reconstructed.
     """
 
-#------------------------------------------------------------------------
-# Parse Types
-#------------------------------------------------------------------------
 
 class Ellipsis(Mono):
     """
@@ -140,12 +130,14 @@ class Ellipsis(Mono):
     def __hash__(self):
         return hash('...')
 
+
 class Null(Unit):
     """
     The null datashape.
     """
     def __str__(self):
         return expr_string('null', None)
+
 
 class IntegerConstant(Unit):
     """
@@ -178,6 +170,7 @@ class IntegerConstant(Unit):
     def __hash__(self):
         return hash(self.val)
 
+
 class StringConstant(Unit):
     """
     Strings at the level of the constructor.
@@ -205,6 +198,7 @@ class StringConstant(Unit):
     def __hash__(self):
         return hash(self.val)
 
+
 class Bytes(Unit):
     """ Bytes type """
     cls = MEASURE
@@ -215,9 +209,6 @@ class Bytes(Unit):
     def __eq__(self, other):
         return isinstance(other, Bytes)
 
-#------------------------------------------------------------------------
-# String Type
-#------------------------------------------------------------------------
 
 _canonical_string_encodings = {
     u'A' : u'A',
@@ -235,6 +226,7 @@ _canonical_string_encodings = {
     u'utf_32' : u'U32',
     u'utf32' : u'U32'
 }
+
 
 class String(Unit):
     """ String container """
@@ -309,9 +301,6 @@ class String(Unit):
     def __hash__(self):
         return hash((self.fixlen, self.encoding))
 
-#------------------------------------------------------------------------
-# Base Types
-#------------------------------------------------------------------------
 
 class DataShape(Mono):
     """The Datashape class, implementation for generic composite
@@ -411,9 +400,6 @@ class DataShape(Mono):
         else:
             return DataShape(*self.parameters[leading:])
 
-#------------------------------------------------------------------------
-# Categorical
-#------------------------------------------------------------------------
 
 class Enum(DataShape):
 
@@ -437,9 +423,6 @@ class Enum(DataShape):
     def __hash__(self):
         raise NotImplementedError
 
-#------------------------------------------------------------------------
-# Missing
-#------------------------------------------------------------------------
 
 class Option(DataShape):
     """
@@ -463,9 +446,6 @@ class Option(DataShape):
     def __repr__(self):
         return str(self)
 
-#------------------------------------------------------------------------
-# CType
-#------------------------------------------------------------------------
 
 class CType(Unit):
     """
@@ -485,7 +465,7 @@ class CType(Unit):
         """
         From Numpy dtype.
 
-        >>> from blaze.datashape import CType
+        >>> from datashape import CType
         >>> from numpy import dtype
         >>> CType.from_numpy_dtype(dtype('int32'))
         ctype("int32")
@@ -534,9 +514,6 @@ class CType(Unit):
     def __hash__(self):
         return hash(self.name)
 
-#------------------------------------------------------------------------
-# Dimensions
-#------------------------------------------------------------------------
 
 class Fixed(Unit):
     """
@@ -573,6 +550,7 @@ class Fixed(Unit):
     def __str__(self):
         return str(self.val)
 
+
 class Var(Unit):
     """ Variable dimension """
     cls = DIMENSION
@@ -586,9 +564,6 @@ class Var(Unit):
     def __hash__(self):
         return id(Var)
 
-#------------------------------------------------------------------------
-# Variable
-#------------------------------------------------------------------------
 
 class TypeVar(Unit):
     """
@@ -707,9 +682,6 @@ class Range(Mono):
     def __str__(self):
         return expr_string('Range', [self.lower, self.upper])
 
-#------------------------------------------------------------------------
-# Function signatures
-#------------------------------------------------------------------------
 
 class Function(Mono):
     """
@@ -739,9 +711,6 @@ class Function(Mono):
     def __str__(self):
         return " -> ".join(map(str, self.parameters))
 
-#------------------------------------------------------------------------
-# Record Types
-#------------------------------------------------------------------------
 
 class Record(Mono):
     """
@@ -803,9 +772,6 @@ class Record(Mono):
     def __repr__(self):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
 
-#------------------------------------------------------------------------
-# JSON
-#------------------------------------------------------------------------
 
 class JSON(Mono):
     """ JSON measure """
@@ -820,9 +786,6 @@ class JSON(Mono):
     def __eq__(self, other):
         return isinstance(other, JSON)
 
-#------------------------------------------------------------------------
-# Generic type constructors
-#------------------------------------------------------------------------
 
 class TypeConstructor(type):
     """
@@ -889,29 +852,26 @@ class TypeConstructor(type):
     def __hash__(cls):
         return hash((cls.name, cls.n))
 
-#------------------------------------------------------------------------
-# Unit Types
-#------------------------------------------------------------------------
 
-bool_      = CType('bool', 1, 1)
-char       = CType('char', 1, 1)
+bool_ = CType('bool', 1, 1)
+char = CType('char', 1, 1)
 
-int8       = CType('int8', 1, 1)
-int16      = CType('int16', 2, ctypes.alignment(ctypes.c_int16))
-int32      = CType('int32', 4, ctypes.alignment(ctypes.c_int32))
-int64      = CType('int64', 8, ctypes.alignment(ctypes.c_int64))
+int8 = CType('int8', 1, 1)
+int16 = CType('int16', 2, ctypes.alignment(ctypes.c_int16))
+int32 = CType('int32', 4, ctypes.alignment(ctypes.c_int32))
+int64 = CType('int64', 8, ctypes.alignment(ctypes.c_int64))
 
-uint8      = CType('uint8', 1, 1)
-uint16     = CType('uint16', 2, ctypes.alignment(ctypes.c_uint16))
-uint32     = CType('uint32', 4, ctypes.alignment(ctypes.c_uint32))
-uint64     = CType('uint64', 8, ctypes.alignment(ctypes.c_uint64))
+uint8 = CType('uint8', 1, 1)
+uint16 = CType('uint16', 2, ctypes.alignment(ctypes.c_uint16))
+uint32 = CType('uint32', 4, ctypes.alignment(ctypes.c_uint32))
+uint64 = CType('uint64', 8, ctypes.alignment(ctypes.c_uint64))
 
-float16    = CType('float16', 2, ctypes.alignment(ctypes.c_uint16))
-float32    = CType('float32', 4, ctypes.alignment(ctypes.c_float))
-float64    = CType('float64', 8, ctypes.alignment(ctypes.c_double))
-#float128   = CType('float128', 16)
+float16 = CType('float16', 2, ctypes.alignment(ctypes.c_uint16))
+float32 = CType('float32', 4, ctypes.alignment(ctypes.c_float))
+float64 = CType('float64', 8, ctypes.alignment(ctypes.c_double))
+#float128 = CType('float128', 16)
 
-cfloat32  = CType('cfloat32', 8, ctypes.alignment(ctypes.c_float))
+cfloat32 = CType('cfloat32', 8, ctypes.alignment(ctypes.c_float))
 cfloat64 = CType('cfloat64', 16, ctypes.alignment(ctypes.c_double))
 Type.register('complex64', cfloat32)
 complex64  = cfloat32
@@ -980,9 +940,6 @@ Type.register('bytes', bytes_)
 
 Type.register('string', String())
 
-#------------------------------------------------------------------------
-# NumPy Compatibility
-#------------------------------------------------------------------------
 
 class NotNumpyCompatible(Exception):
     """
@@ -1001,7 +958,7 @@ def to_numpy(ds):
     Downcast a datashape object into a Numpy (shape, dtype) tuple if
     possible.
 
-    >>> from blaze.datashape import dshape, to_numpy
+    >>> from datashape import dshape, to_numpy
     >>> to_numpy(dshape('5, 5, int32'))
     ((5, 5), dtype('int32'))
     """
@@ -1043,7 +1000,7 @@ def from_numpy(shape, dt):
     """
     Upcast a (shape, dtype) tuple if possible.
 
-    >>> from blaze.datashape import from_numpy
+    >>> from datashape import from_numpy
     >>> from numpy import dtype
     >>> from_numpy((5,5), dtype('int32'))
     dshape("5, 5, int32")
@@ -1065,15 +1022,12 @@ def from_numpy(shape, dt):
     else:
         return DataShape(*tuple(map(Fixed, shape))+(measure,))
 
-#------------------------------------------------------------------------
-# Python Compatibility
-#------------------------------------------------------------------------
 
 def typeof(obj):
     """
     Return a datashape ctype for a python scalar.
     """
-    if isinstance(obj, blaze.Array):
+    if hasattr(obj, "dshape") and isinstance(obj, DataShape):
         return obj.dshape
     elif isinstance(obj, np.ndarray):
         return from_numpy(obj.shape, obj.dtype)
@@ -1092,9 +1046,6 @@ def typeof(obj):
     else:
         return DataShape(pyobj)
 
-#------------------------------------------------------------------------
-# Printing
-#------------------------------------------------------------------------
 
 def expr_string(spine, const_args, outer=None):
     if not outer:
@@ -1104,6 +1055,7 @@ def expr_string(spine, const_args, outer=None):
         return str(spine) + outer[0] + ','.join(map(str,const_args)) + outer[1]
     else:
         return str(spine)
+
 
 def record_string(fields, values):
     # Prints out something like this:
@@ -1118,13 +1070,10 @@ def record_string(fields, values):
             body += '%s : %s; ' % (k,v)
     return '{ ' + body + ' }'
 
-#------------------------------------------------------------------------
-# Type variables
-#------------------------------------------------------------------------
 
 def free(ds):
     """
-    Return the free variables (TypeVar) of a blaze type (Mono).
+    Return the free variables (TypeVar) of a datashape type (Mono).
     """
     if isinstance(ds, TypeVar):
         return [ds]
@@ -1136,9 +1085,10 @@ def free(ds):
     else:
         return []
 
+
 def type_constructor(ds):
     """
-    Get the type constructor for the blaze type (Mono).
+    Get the type constructor for the datashape type (Mono).
     The type constructor indicates how types unify (see unification.py).
     """
     return type(ds)
