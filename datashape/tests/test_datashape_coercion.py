@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
-from blaze import error
+from datashape import error
 from blaze.tests import common
 from blaze.datashape import unify, dshapes, coercion_cost, normalize
 
