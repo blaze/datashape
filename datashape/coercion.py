@@ -1,21 +1,22 @@
-# -*- coding: utf-8 -*-
-
-"""
-This module implements type coercion rules for data shapes.
+"""Implements type coercion rules for data shapes.
 
 Note that transitive coercions could be supported, but we decide not to since
 it may involve calling a whole bunch of functions with a whole bunch of types
 to figure out whether this is possible in the face of polymorphic overloads.
 """
 
-from functools import partial
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import defaultdict
 from itertools import chain, product
 
 from .error import CoercionError
 from .coretypes import CType, TypeVar, Mono
-from .typesets import *
+from .typesets import boolean, complexes, floating, integral, signed, unsigned
 from . import verify, normalize, Implements, Fixed, Var, Ellipsis, DataShape
+
 
 class CoercionTable(object):
     """Table to hold coercion rules"""
@@ -53,6 +54,7 @@ coercion_cost_table = _table.coercion_cost
 # Coercion function
 #------------------------------------------------------------------------
 
+
 def coercion_cost(a, b, seen=None):
     """
     Determine a coercion cost from type `a` to type `b`.
@@ -85,7 +87,7 @@ def _coercion_cost(a, b, seen=None):
         return 0.1 * visited
     elif isinstance(b, Implements):
         if a in b.typeset:
-            return 0.1  - (0.1 / len(b.typeset.types))
+            return 0.1 - (0.1 / len(b.typeset.types))
         else:
             raise CoercionError(a, b)
     elif isinstance(b, Fixed):
@@ -109,11 +111,13 @@ def _coercion_cost(a, b, seen=None):
         return sum([_coercion_cost(x, y, seen) for x, y in zip(a.parameters,
                                                                b.parameters)])
 
+
 def termsize(term):
     """Determine the size of a type term"""
     if isinstance(term, Mono):
         return sum(termsize(p) for p in term.parameters) + 1
     return 0
+
 
 def coerce_datashape(a, b, seen):
     # Penalize broadcasting
@@ -144,14 +148,15 @@ def reflexivity(a, table=_table):
     if (a, a) not in table.table:
         table.add_coercion(a, a, 0)
 
+
 def transitivity(a, b, table=_table):
     """Enforce coercion rule transitivity"""
-    # (src, a) ∈ R and (a, b) ∈ R => (src, b) ∈ R
+    # (src, a) in R and (a, b) in R => (src, b) in R
     for src in table.srcs[a]:
         table.add_coercion(src, b, table.coercion_cost(src, a) +
                                    table.coercion_cost(a, b))
 
-    # (a, b) ∈ R and (b, dst) ∈ R => (a, dst) ∈ R
+    # (a, b) in R and (b, dst) in R => (a, dst) in R
     for dst in table.dsts[b]:
         table.add_coercion(a, dst, table.coercion_cost(a, b) +
                                    table.coercion_cost(b, dst))
@@ -161,6 +166,7 @@ def transitivity(a, b, table=_table):
 #------------------------------------------------------------------------
 
 _order = list(chain(boolean, integral, floating, complexes))
+
 
 def add_numeric_rule(typeset1, typeset2, transitive=True):
     for a, b in product(typeset1, typeset2):

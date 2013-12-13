@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Type promotion.
-"""
+"""Type promotion."""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from itertools import product
 from functools import reduce
@@ -109,7 +110,7 @@ def promote_scalars(a, b):
     """Promote two CTypes"""
     try:
         return CType.from_numpy_dtype(np.result_type(to_numpy(a), to_numpy(b)))
-    except TypeError, e:
+    except TypeError as e:
         raise TypeError("Cannot promote %s and %s: %s" % (a, b, e))
 
 

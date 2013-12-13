@@ -1,17 +1,21 @@
-# -*- coding: utf-8 -*-
-
 """
 Type visitor that reconstructs types.
 """
 
-from __future__ import print_function, division, absolute_import
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from itertools import starmap
 
-from blaze.datashape.coretypes import Mono, Unit, type_constructor
+from .coretypes import Mono, Unit, type_constructor
+
 
 def descend(t):
     """Determine whether to descend down the given term (which is a type)"""
     return isinstance(t, Mono) and not isinstance(t, Unit)
+
 
 def transform(visitor, t, descend=descend):
     """
@@ -27,6 +31,7 @@ def transform(visitor, t, descend=descend):
 
     return t
 
+
 def tmap(f, t, descend=descend):
     """
     Map f over t, calling `f` with type `t`. Reconstructs a new type with
@@ -36,6 +41,7 @@ def tmap(f, t, descend=descend):
         tcon = type_constructor(t)
         t = tcon(*[tmap(f, p) for p in t.parameters])
     return f(t)
+
 
 def tzip(f, a, b, descend=descend):
     """Map f over two types zip-wise"""

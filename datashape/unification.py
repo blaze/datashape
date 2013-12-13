@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+"""Unification of datashapes
 
-"""
-This module implements unification of datashapes. Unification is a general
-problem that solves a system of equations between terms. In our case, the
-terms are types (datashapes).
+Unification is a general problem that solves a system of equations between
+terms. In our case, the terms are types (datashapes).
 
 A difference with conventional unification is that our equations are not
 necessarily looking for equality, they must account for coercions and
@@ -16,17 +14,20 @@ accompanied by a set of constraints but must hold for the free variables in
 that type.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import logging
 from collections import deque
 from itertools import chain
 
-from blaze import error
-from blaze.py2help import dict_iteritems, _strtypes
-from blaze.util import IdentityDict, IdentitySet
-from blaze.datashape import (promote_units, normalize, simplify, tmap,
-                             dshape, verify)
-from blaze.datashape.coretypes import (TypeVar, Mono, free, TypeConstructor,
-                MEASURE)
+from .error import UnificationError
+from .py2help import dict_iteritems, _strtypes
+from .util import IdentityDict, IdentitySet
+from . import (promote_units, normalize, simplify, tmap, dshape, verify)
+from .coretypes import (TypeVar, Mono, free, TypeConstructor,
+                        MEASURE)
 
 logger = logging.getLogger(__name__)
 
@@ -129,12 +130,12 @@ def unify_single(t1, t2, solution, remaining):
         remaining.append((t1, t2))
     elif isinstance(t1, TypeVar):
         if t1 in free(t2):
-            raise error.UnificationError("Cannot unify recursive types")
+            raise UnificationError("Cannot unify recursive types")
         solution[t1].add(t2)
         remaining.append((t1, t2))
     elif isinstance(t2, TypeVar):
         if t2 in free(t1):
-            raise error.UnificationError("Cannot unify recursive types")
+            raise UnificationError("Cannot unify recursive types")
         solution[t2].add(t1)
     elif isinstance(t1, TypeConstructor):
         verify(t1, t2)
@@ -170,7 +171,7 @@ def merge_typevar_sets(constraints, solution):
 
         x, y, z = dshapes('A, B, int32', 'C, D, float32', 'X, Y, float32')
 
-    with x ⊆ z and y ⊆ z:
+    with x in z and y in z:
 
         >>> A, B, C, D, X, Y = map(TypeVar, 'ABCDXY')
         >>> constraints = [(A, X), (C, X), (B, Y), (D, Y)]

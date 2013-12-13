@@ -600,3 +600,22 @@ class IdentityDict(MutableMapping):
         for key in iterable:
             d[key] = value
         return d
+
+
+class IdentitySet(set):
+    def __init__(self, it=()):
+        self.d = IdentityDict()
+        self.update(it)
+
+    def add(self, x):
+        self.d[x] = None
+
+    def remove(self, x):
+        del self.d[x]
+
+    def update(self, it):
+        for x in it:
+            self.add(x)
+
+    def __contains__(self, key):
+        return key in self.d

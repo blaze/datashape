@@ -1,11 +1,12 @@
 """
-Blaze traits constituting sets of types.
+Traits constituting sets of types.
 """
 
 from itertools import chain
 
-from blaze import error
-from .coretypes import *
+from .error import DataShapeTypeError
+from .coretypes import (Unit, int8, int16, int32, int64, uint8, uint16, uint32, uint64,
+                        float32, float64, complex64, complex128, bool_)
 
 __all__ = ['TypeSet', 'matches_typeset', 'signed', 'unsigned', 'integral',
            'floating', 'complexes', 'boolean', 'numeric', 'scalar']
@@ -64,7 +65,6 @@ def matches_typeset(types, signature):
             break
     return match
 
-#------------------------------------------------------------------------
 
 class TypesetRegistry(object):
     def __init__(self):
@@ -73,7 +73,7 @@ class TypesetRegistry(object):
 
     def register_typeset(self, name, typeset):
         if name in typeset:
-            raise error.BlazeTypeError("TypeSet %s already defined" % name)
+            raise DataShapeTypeError("TypeSet %s already defined" % name)
         self.registry[name] = typeset
         return typeset
 

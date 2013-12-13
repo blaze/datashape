@@ -3,13 +3,9 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
-from datashape import error
-from blaze.tests import common
-from blaze.datashape import unify, dshapes, coercion_cost, normalize
+from datashape import coercion_cost, dshapes, error
+from datashape.tests import common
 
-#------------------------------------------------------------------------
-# Tests
-#------------------------------------------------------------------------
 
 class TestCoercion(common.BTestCase):
 
@@ -66,5 +62,4 @@ class TestCoercionErrors(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # TestCoercion('test_coerce_src_ellipsis').debug()
     unittest.main()
