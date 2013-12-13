@@ -6,12 +6,18 @@ import operator
 import itertools
 import ctypes
 import collections
+import string
 import sys
+from functools import partial
 
-from blaze import error
-from blaze.datashape.coretypes import TypeConstructor
-from blaze.util import IdentityDict, gensym
+try:
+    from collections import MutableMapping
+except ImportError as e:
+    # Python 3
+    from UserDict import DictMixin as MutableMapping
+
 from . import parser
+from .error import UnificationError
 from .validation import validate
 from .coretypes import (DataShape, Fixed, TypeVar, Record, Ellipsis, String,
                uint8, uint16, uint32, uint64, CType, Mono, JSON,
@@ -19,7 +25,8 @@ from .coretypes import (DataShape, Fixed, TypeVar, Record, Ellipsis, String,
                float32, float64, complex64, complex128,
                Type, free, type_constructor)
 from .traversal import tmap
-from blaze.datashape.typesets import TypeSet
+from .typesets import TypeSet
+
 
 __all__ = ['dopen', 'dshape', 'dshapes', 'cat_dshapes', 'broadcastable',
            'dummy_signature', 'verify',
@@ -28,6 +35,10 @@ __all__ = ['dopen', 'dshape', 'dshapes', 'cat_dshapes', 'broadcastable',
 
 
 PY3 = (sys.version_info[:2] >= (3,0))
+
+# Legacy from blaze.compute.llvm_array. Putting here to just depend on llvmpy
+SCALAR = 0
+POINTER = 1
 
 #------------------------------------------------------------------------
 # Utility Functions for DataShapes
@@ -142,18 +153,18 @@ def verify(t1, t2):
     """Verify that two immediate type constructors are valid for unification"""
     if not isinstance(t1, Mono) or not isinstance(t2, Mono):
         if t1 != t2:
-            raise error.UnificationError("%s != %s" % (t1, t2))
+            raise UnificationError("%s != %s" % (t1, t2))
         return
 
     args1, args2 = t1.parameters, t2.parameters
     tcon1, tcon2 = type_constructor(t1), type_constructor(t2)
 
     if tcon1 != tcon2:
-        raise error.UnificationError(
+        raise UnificationError(
             "Got differing type constructors %s and %s" % (tcon1, tcon2))
 
     if len(args1) != len(args2):
-        raise error.UnificationError("%s got %d and %d arguments" % (
+        raise UnificationError("%s got %d and %d arguments" % (
             tcon1, len(args1), len(args2)))
 
 
@@ -202,10 +213,10 @@ def broadcastable(dslist, ranks=None, rankconnect=[]):
 
     return tuple(Fixed(s) for s in outshape)
 
+
 #------------------------------------------------------------------------
 # DataShape Conversion
 #------------------------------------------------------------------------
-
 def _from_cffi_internal(ffi, ctype):
     k = ctype.kind
     if k == 'struct':
@@ -388,7 +399,6 @@ def PointerDshape(object):
     def __init__(self, dshape):
         self.dshape = dshape
 
-from ..compute.llvm_array import SCALAR, POINTER
 
 def from_llvm(typ, argkind=SCALAR):
     """
@@ -396,7 +406,7 @@ def from_llvm(typ, argkind=SCALAR):
 
     argkind is SCALAR, POINTER, or a tuple of (arrkind, nd, el_type) for Arrays
     """
-    from ..compute.llvm_array import check_array
+    from llvm_array import check_array
     import llvm.core
 
     kind = typ.kind
@@ -517,3 +527,76 @@ def make_stream(seq, _temp=make_temper()):
             yield _temp(x)
 
 gensym = partial(next, make_stream(string.ascii_uppercase))
+
+
+#------------------------------------------------------------------------
+# Data Structures
+#------------------------------------------------------------------------
+class IdentityDict(MutableMapping):
+    """
+    Map mapping objects on identity to values
+
+        >>> d = IdentityDict({'a': 2, 'b': 3})
+        >>> sorted(d.items())
+        [('a', 2), ('b', 3)]
+
+        >>> class AlwaysEqual(object):
+        ...     def __eq__(self, other):
+        ...         return True
+        ...     def __repr__(self):
+        ...         return "eq"
+        ...
+        >>> x, y = AlwaysEqual(), AlwaysEqual()
+        >>> d[x] = 4 ; d[y] = 5
+        >>> sorted(d.items())
+        [('a', 2), ('b', 3), (eq, 4), (eq, 5)]
+    """
+
+    def __init__(self, d=None):
+        self.data = {}          # id(key) -> value
+        self.ks = []            # [key]
+        self.update(d or [])
+
+    def __getitem__(self, key):
+        try:
+            return self.data[id(key)]
+        except KeyError:
+            raise KeyError(key)
+
+    def __setitem__(self, key, value):
+        if id(key) not in self.data:
+            self.ks.append(key)
+        self.data[id(key)] = value
+
+    def __delitem__(self, key):
+        self.ks.remove(key)
+        del self.data[id(key)]
+
+    def __contains__(self, item):
+        try:
+            self[item]
+        except KeyError:
+            return False
+        else:
+            return True
+
+    def __repr__(self):
+        # This is not correctly implemented in DictMixin for us, since it takes
+        # the dict() of iteritems(), merging back equal keys
+        return "{ %s }" % ", ".join("%r: %r" % (k, self[k]) for k in self.keys())
+
+    def __iter__(self):
+        return iter(self.ks)
+
+    def __len__(self):
+        return len(self.ks)
+
+    def keys(self):
+        return list(self.ks)
+
+    @classmethod
+    def fromkeys(cls, iterable, value=None):
+        d = cls()
+        for key in iterable:
+            d[key] = value
+        return d

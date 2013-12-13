@@ -23,7 +23,7 @@ class Type(type):
     _registry = {}
 
     def __new__(meta, name, bases, dct):
-        cls = type(name, bases, dctgit s)
+        cls = type(name, bases, dct)
         # Don't register abstract classes
         if not dct.get('abstract'):
             Type._registry[name] = cls
