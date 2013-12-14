@@ -2,7 +2,6 @@
 Type visitor that reconstructs types.
 """
 
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -45,7 +44,7 @@ def tmap(f, t, descend=descend):
 
 def tzip(f, a, b, descend=descend):
     """Map f over two types zip-wise"""
-    from blaze.datashape import verify # TODO: remove circularity
+    from . import verify # TODO: remove circularity
 
     if not descend(a) or not descend(b):
         return a, b

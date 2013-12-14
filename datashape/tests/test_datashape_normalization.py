@@ -1,12 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import unittest
 
-from blaze import error
-from blaze import dshape
-from blaze.util import IdentityDict
-from blaze.datashape import normalize_ellipses, numeric, normalize, simplify
+from datashape.error import DataShapeTypeError
+from datashape import dshape, normalize_ellipses, numeric, normalize, simplify
+from datashape.util import IdentityDict
+
 
 class TestNormalization(unittest.TestCase):
 
@@ -68,12 +69,12 @@ class TestNormalization(unittest.TestCase):
     def test_normalize_ellipses_2_ellipses3_error(self):
         ds1 = dshape('A, ..., int32')
         ds2 = dshape('..., B, float32')
-        self.assertRaises(error.BlazeTypeError, normalize_ellipses, ds1, ds2)
+        self.assertRaises(DataShapeTypeError, normalize_ellipses, ds1, ds2)
 
     def test_normalize_ellipses_2_ellipses4_error(self):
         ds1 = dshape('..., A, int32')
         ds2 = dshape('B, ..., float32')
-        self.assertRaises(error.BlazeTypeError, normalize_ellipses, ds1, ds2)
+        self.assertRaises(DataShapeTypeError, normalize_ellipses, ds1, ds2)
 
 
 class TestSimplification(unittest.TestCase):
@@ -92,5 +93,4 @@ class TestSimplification(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # TestSimplification('test_simplify_implements').debug()
     unittest.main()
