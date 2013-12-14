@@ -1,8 +1,8 @@
 import unittest
 
-import blaze
-from blaze import datashape
-from blaze import dshape
+import datashape
+from datashape import dshape
+
 
 class TestDataShapeStr(unittest.TestCase):
     def test_primitive_measure_str(self):
@@ -51,6 +51,7 @@ class TestDataShapeStr(unittest.TestCase):
     def test_array_repr(self):
         self.assertEqual(repr(dshape('3,5,int16')),
                         'dshape("3, 5, int16")')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,11 +1,11 @@
 import unittest
 
-import blaze
-from blaze import error, datashape
-from blaze.tests import common
-from blaze.datashape.parser import parse
-from blaze.datashape.coretypes import Enum, Option, Function
-from blaze.datashape.typesets import integral
+import datashape
+from datashape.tests import common
+from datashape.parser import parse
+from datashape.coretypes import Enum, Option, Function
+from datashape.typesets import integral
+
 
 class TestDatashapeParser(common.BTestCase):
 
@@ -197,15 +197,16 @@ class TestDatashapeParser(common.BTestCase):
 class TestCategorical(common.BTestCase):
 
     def test_categorical_single(self):
-        res = blaze.dshape('Categorical(Foo)')
+        res = datashape.dshape('Categorical(Foo)')
 
         assert isinstance(res, Enum)
 
     def test_categorical_multi(self):
-        res = blaze.dshape('Categorical(Foo, Bar)')
+        res = datashape.dshape('Categorical(Foo, Bar)')
 
         assert isinstance(res, Enum)
 
+    @unittest.skip("data typemod no longer valid")
     def test_categorical_module(self):
         source = """
         data Day = Monday | Tuesday | Wednesday | Thursday | Friday
@@ -214,21 +215,23 @@ class TestCategorical(common.BTestCase):
             days : Day;
         }
         """
-        res = blaze.dshape(source, multi=True)
+        res = datashape.dshape(source, multi=True)
 
         assert isinstance(res[0], Enum)
+
 
 class TestOption(common.BTestCase):
 
     def test_categorical_single(self):
-        res = blaze.dshape('Option(int32)')
+        res = datashape.dshape('Option(int32)')
 
         assert isinstance(res, Option)
 
     def test_categorical_multi(self):
-        res = blaze.dshape('2, 3, Option(int32)')
+        res = datashape.dshape('2, 3, Option(int32)')
 
         assert isinstance(res[2], Option)
+
 
 class TestFunction(common.BTestCase):
 
@@ -236,6 +239,7 @@ class TestFunction(common.BTestCase):
         res = parse("A, int32 -> B, float64 -> T, T, X")
         self.assertIsInstance(res, Function)
         self.assertEqual(str(res), 'A, int32 -> B, float64 -> T, T, X')
+
 
 if __name__ == '__main__':
     unittest.main()

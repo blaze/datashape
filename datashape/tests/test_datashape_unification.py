@@ -1,15 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import unittest
 
-from blaze import error
-from blaze import dshape
-from blaze.datashape import unify, unify_simple, dshapes, coretypes as T
+from datashape import dshape, dshapes, error, unify, unify_simple
 
-#------------------------------------------------------------------------
-# Tests
-#------------------------------------------------------------------------
 
 class TestUnification(unittest.TestCase):
 
@@ -117,6 +113,7 @@ class TestUnification(unittest.TestCase):
         self.assertEqual(str(res), '10, int32')
         self.assertFalse(constraints)
 
+
 class TestUnificationErrors(unittest.TestCase):
 
     def test_unify_datashape_bad_unifications(self):
@@ -143,5 +140,4 @@ class TestUnificationErrors(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    #TestUnification('test_unify_ellipsis_to_scalar').debug()
     unittest.main(verbosity=2)

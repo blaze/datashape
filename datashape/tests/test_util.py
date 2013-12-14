@@ -1,8 +1,8 @@
 import unittest
 
-import blaze
-from blaze import datashape
-from blaze import dshape
+import datashape
+from datashape import dshape
+
 
 class TestDataShapeUtil(unittest.TestCase):
     def test_cat_dshapes(self):

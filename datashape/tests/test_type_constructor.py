@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import unittest
 
-from blaze import error
-from blaze.tests import common
-from blaze.datashape import unify_simple, promote, coercion_cost, dshape, coretypes as T
+from datashape import coretypes as T, coercion_cost, dshape, error, promote, unify_simple
+from datashape.tests import common
 
-#------------------------------------------------------------------------
-# Test data
-#------------------------------------------------------------------------
 
 Complex = T.TypeConstructor('Complex', 1, [{'coercible': True}])
 t1 = Complex(T.int64)
@@ -21,9 +18,6 @@ rt1 = RigidComplex(T.int64)
 rt2 = RigidComplex(T.int64)
 rt3 = RigidComplex(T.int32)
 
-#------------------------------------------------------------------------
-# Tests
-#------------------------------------------------------------------------
 
 class TestTypeConstructors(common.BTestCase):
 
