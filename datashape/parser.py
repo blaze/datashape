@@ -76,6 +76,7 @@ bits = set([
     'string',
     'datetime64',
     'timedelta64',
+    'date',
 ])
 
 t_EQUALS    = r'='
