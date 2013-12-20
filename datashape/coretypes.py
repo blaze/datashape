@@ -1027,7 +1027,7 @@ def typeof(obj):
     """
     Return a datashape ctype for a python scalar.
     """
-    if hasattr(obj, "dshape") and isinstance(obj, DataShape):
+    if hasattr(obj, "dshape"):
         return obj.dshape
     elif isinstance(obj, np.ndarray):
         return from_numpy(obj.shape, obj.dtype)
