@@ -16,6 +16,7 @@ except ImportError as e:
     # Python 3
     from UserDict import DictMixin as MutableMapping
 
+from . import py2help
 from . import parser
 from .error import UnificationError
 from .validation import validate
@@ -85,7 +86,7 @@ def dshape(o, multi=False):
 def _dshape(o, multi=False):
     if multi:
         return list(parser.parse_mod(o))
-    if isinstance(o, str):
+    if isinstance(o, py2help._strtypes):
         return parser.parse(o)
     elif isinstance(o, Mono):
         return o
