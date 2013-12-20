@@ -32,7 +32,8 @@ from .typesets import TypeSet
 __all__ = ['dopen', 'dshape', 'dshapes', 'cat_dshapes', 'broadcastable',
            'dummy_signature', 'verify',
            'from_ctypes', 'from_cffi', 'to_ctypes', 'from_llvm',
-           'to_numba', 'from_numba_str']
+           'to_numba', 'from_numba_str',
+           'IdentityDict', 'IdentitySet', 'gensym']
 
 
 PY3 = (sys.version_info[:2] >= (3,0))

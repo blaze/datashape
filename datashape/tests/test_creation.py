@@ -1,8 +1,8 @@
 import ctypes
 import unittest
 
-from datashape import dshape, error
 import datashape
+from datashape import dshape, error
 
 
 class TestDatashapeCreation(unittest.TestCase):

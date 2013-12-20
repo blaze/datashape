@@ -10,9 +10,9 @@ from functools import reduce
 import numpy as np
 
 from .error import UnificationError
-from .util import gensym
+from .util import gensym, verify
 from . import (DataShape, CType, Fixed, Var, to_numpy,
-               TypeSet, TypeVar, TypeConstructor, verify)
+               TypeSet, TypeVar, TypeConstructor)
 
 
 def promote_units(*units):
