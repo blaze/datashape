@@ -500,7 +500,7 @@ def to_numba(ds):
     import numba
     # Fixup the complex type to how numba does it
     s = str(ds)
-    s = {'cfloat32':'complex64', 'cfloat64':'complex128', 'bool':'bool_'}.get(s, s)
+    s = {'complex[float32]':'complex64', 'complex[float64]':'complex128', 'bool':'bool_'}.get(s, s)
     return getattr(numba, s)
 
 

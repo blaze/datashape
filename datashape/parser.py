@@ -69,8 +69,6 @@ bits = set([
     'float32',
     'float64',
     'float128',
-    'cfloat32',
-    'cfloat64',
     'complex64',
     'complex128',
     'string',
@@ -375,6 +373,16 @@ def p_ctor(p):
 
     name = p[1]
     args = p[3]
+
+    # TODO: The type constructor stuff needs cleaning up. In the
+    #       meantime, this hack is here to support "complex[float##]"
+    if name == 'complex' and len(args) == 1:
+        if args[0] == T.float32:
+            p[0] = T.complex_float32
+            return
+        elif args[0] == T.float64:
+            p[0] = T.complex_float64
+            return
 
     n = len(args)
     is_vararg = False
