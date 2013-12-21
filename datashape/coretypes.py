@@ -493,7 +493,8 @@ class CType(Unit):
         """
         # Fixup the complex type to how numpy does it
         s = self.name
-        s = {'cfloat32':'complex64', 'cfloat64':'complex128'}.get(s, s)
+        s = {'complex[float32]':'complex64',
+             'complex[float64]':'complex128'}.get(s, s)
         return np.dtype(s)
 
     def __str__(self):
@@ -872,12 +873,12 @@ float32 = CType('float32', 4, ctypes.alignment(ctypes.c_float))
 float64 = CType('float64', 8, ctypes.alignment(ctypes.c_double))
 #float128 = CType('float128', 16)
 
-cfloat32 = CType('cfloat32', 8, ctypes.alignment(ctypes.c_float))
-cfloat64 = CType('cfloat64', 16, ctypes.alignment(ctypes.c_double))
-Type.register('complex64', cfloat32)
-complex64  = cfloat32
-Type.register('complex128', cfloat64)
-complex128 = cfloat64
+complex_float32 = CType('complex[float32]', 8, ctypes.alignment(ctypes.c_float))
+complex_float64 = CType('complex[float64]', 16, ctypes.alignment(ctypes.c_double))
+Type.register('complex64', complex_float32)
+complex64  = complex_float32
+Type.register('complex128', complex_float64)
+complex128 = complex_float64
 #complex256 = CType('complex256', 32)
 
 timedelta64 = CType('timedelta64', 8, ctypes.alignment(ctypes.c_int64))
