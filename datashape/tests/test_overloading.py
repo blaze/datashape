@@ -5,7 +5,7 @@ import unittest
 from datashape import dshape, unify_simple
 
 from datashape.overloading import best_match, overload
-from blaze import py2help
+from datashape import py2help
 
 
 #f
