@@ -32,6 +32,15 @@ def g(a, b):
 def g(a, b):
     return a
 
+# h
+
+@overload('A..., int64 -> A..., int64')
+def h(a):
+    return a
+
+@overload('A..., uint64 -> A..., uint64')
+def h(a):
+    return a
 
 class TestOverloading(unittest.TestCase):
 
@@ -63,6 +72,18 @@ class TestOverloading(unittest.TestCase):
         self.assertEqual(str(match.sig), 'X, Y, float32 -> ..., float32 -> X, int32')
         self.assertEqual(str(match.resolved_sig),
                          '10, T1, float32 -> ..., float32 -> 10, int32')
+
+    def test_best_match_signed_vs_unsigned(self):
+        d1 = dshape('10, 3, int64')
+        match = best_match(h, [d1])
+        self.assertEqual(str(match.sig), 'A..., int64 -> A..., int64')
+        self.assertEqual(str(match.resolved_sig),
+                         '10, 3, int64 -> 10, 3, int64')
+        d1 = dshape('4, 5, uint64')
+        match = best_match(h, [d1])
+        self.assertEqual(str(match.sig), 'A..., uint64 -> A..., uint64')
+        self.assertEqual(str(match.resolved_sig),
+                         '10, 3, uint64 -> 10, 3, uint64')
 
 
 if __name__ == '__main__':
