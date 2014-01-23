@@ -26,18 +26,24 @@ class CoercionTable(object):
         self.srcs = defaultdict(set)
         self.dsts = defaultdict(set)
 
+    def _reflexivity(self, a):
+        if (a, a) not in self.table:
+            self.table[a, a] = 0
+
     def add_coercion(self, src, dst, cost, transitive=True):
         """
         Add a coercion rule
         """
+        assert cost >= 0, 'Raw coercion costs must be nonnegative'
         if (src, dst) not in self.table:
-            self.table[src, dst] = cost
             self.srcs[dst].add(src)
             self.dsts[src].add(dst)
-            reflexivity(src, self)
-            reflexivity(dst, self)
-            if transitive:
-                transitivity(src, dst, self)
+            self._reflexivity(src)
+            self._reflexivity(dst)
+            if src != dst:
+                self.table[src, dst] = cost
+                if transitive:
+                    transitivity(src, dst, self)
 
     def coercion_cost(self, src, dst):
         """
@@ -143,12 +149,6 @@ def coerce_datashape(a, b, seen):
 # Coercion invariants
 #------------------------------------------------------------------------
 
-def reflexivity(a, table=_table):
-    """Enforce coercion rule reflexivity"""
-    if (a, a) not in table.table:
-        table.add_coercion(a, a, 0)
-
-
 def transitivity(a, b, table=_table):
     """Enforce coercion rule transitivity"""
     # (src, a) in R and (a, b) in R => (src, b) in R
@@ -171,7 +171,7 @@ _order = list(chain(boolean, integral, floating, complexes))
 def add_numeric_rule(typeset1, typeset2, transitive=True):
     for a, b in product(typeset1, typeset2):
         if a.itemsize <= b.itemsize:
-            cost = _order.index(b) - _order.index(a)
+            cost = abs(_order.index(b) - _order.index(a))
             add_coercion(a, b, cost, transitive=transitive)
 
 add_numeric_rule(integral, integral)

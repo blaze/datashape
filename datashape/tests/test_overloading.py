@@ -83,7 +83,7 @@ class TestOverloading(unittest.TestCase):
         match = best_match(h, [d1])
         self.assertEqual(str(match.sig), 'A..., uint64 -> A..., uint64')
         self.assertEqual(str(match.resolved_sig),
-                         '10, 3, uint64 -> 10, 3, uint64')
+                         '4, 5, uint64 -> 4, 5, uint64')
 
 
 if __name__ == '__main__':
