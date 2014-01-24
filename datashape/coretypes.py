@@ -8,6 +8,7 @@ shape and data type.
 
 import ctypes
 import datetime
+import operator
 
 import numpy as np
 
@@ -523,7 +524,8 @@ class Fixed(Unit):
     cls = DIMENSION
 
     def __init__(self, i):
-        assert isinstance(i, _inttypes)
+        # Use operator.index, so Python integers, numpy int scalars, etc work
+        i = operator.index(i)
 
         if i < 0:
             raise ValueError('Fixed dimensions must be positive')
