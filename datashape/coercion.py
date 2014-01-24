@@ -12,6 +12,7 @@ from __future__ import print_function
 from collections import defaultdict
 from itertools import chain, product
 
+import datashape
 from .error import CoercionError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import boolean, complexes, floating, integral, signed, unsigned
@@ -44,6 +45,9 @@ class CoercionTable(object):
                 self.table[src, dst] = cost
                 if transitive:
                     transitivity(src, dst, self)
+        else:
+            # Add the cost for the shortest path for the coercion
+            self.table[src, dst] = min(self.table[src, dst], cost)
 
     def coercion_cost(self, src, dst):
         """
@@ -55,6 +59,22 @@ class CoercionTable(object):
 _table = CoercionTable()
 add_coercion = _table.add_coercion
 coercion_cost_table = _table.coercion_cost
+
+#------------------------------------------------------------------------
+# Coercion invariants
+#------------------------------------------------------------------------
+
+def transitivity(a, b, table=_table):
+    """Enforce coercion rule transitivity"""
+    # (src, a) in R and (a, b) in R => (src, b) in R
+    for src in table.srcs[a]:
+        table.add_coercion(src, b, table.coercion_cost(src, a) +
+                                   table.coercion_cost(a, b))
+
+    # (a, b) in R and (b, dst) in R => (a, dst) in R
+    for dst in table.dsts[b]:
+        table.add_coercion(a, dst, table.coercion_cost(a, b) +
+                                   table.coercion_cost(b, dst))
 
 #------------------------------------------------------------------------
 # Coercion function
@@ -146,39 +166,49 @@ def coerce_datashape(a, b, seen):
 
 
 #------------------------------------------------------------------------
-# Coercion invariants
-#------------------------------------------------------------------------
-
-def transitivity(a, b, table=_table):
-    """Enforce coercion rule transitivity"""
-    # (src, a) in R and (a, b) in R => (src, b) in R
-    for src in table.srcs[a]:
-        table.add_coercion(src, b, table.coercion_cost(src, a) +
-                                   table.coercion_cost(a, b))
-
-    # (a, b) in R and (b, dst) in R => (a, dst) in R
-    for dst in table.dsts[b]:
-        table.add_coercion(a, dst, table.coercion_cost(a, b) +
-                                   table.coercion_cost(b, dst))
-
-#------------------------------------------------------------------------
 # Default coercion rules
 #------------------------------------------------------------------------
 
-_order = list(chain(boolean, integral, floating, complexes))
+def add_numeric_rule(types):
+    types = list(types)
+    for src, dst in zip(types[:-1], types[1:]):
+        add_coercion(src, dst, 1)
 
+promotable_unsigned = [datashape.uint8, datashape.uint16, datashape.uint32]
+promoted_signed     = [datashape.int16, datashape.int32, datashape.int64]
 
-def add_numeric_rule(typeset1, typeset2, transitive=True):
-    for a, b in product(typeset1, typeset2):
-        if a.itemsize <= b.itemsize:
-            cost = abs(_order.index(b) - _order.index(a))
-            add_coercion(a, b, cost, transitive=transitive)
+add_numeric_rule(signed)
+add_numeric_rule(unsigned)
+add_numeric_rule(floating)
+add_numeric_rule(complexes)
 
-add_numeric_rule(integral, integral)
-add_numeric_rule(floating, floating)
-add_numeric_rule(complexes, complexes)
+add_numeric_rule([datashape.bool_, datashape.int8])
+add_numeric_rule([datashape.uint8, datashape.int16])
+add_numeric_rule([datashape.uint16, datashape.int32])
+add_numeric_rule([datashape.uint32, datashape.int64])
 
-add_numeric_rule(boolean, signed, transitive=False)
-add_numeric_rule(unsigned, signed)
-add_numeric_rule(integral, floating)
-add_numeric_rule(floating, complexes)
+add_numeric_rule([datashape.int16, datashape.float32])
+add_numeric_rule([datashape.int32, datashape.float64])
+add_numeric_rule([datashape.float32, datashape.complex64])
+add_numeric_rule([datashape.float64, datashape.complex128])
+
+# Potentially lossy conversions
+
+# unsigned -> signed
+add_numeric_rule([datashape.uint8, datashape.int8])
+add_numeric_rule([datashape.uint16, datashape.int16])
+add_numeric_rule([datashape.uint32, datashape.int32])
+add_numeric_rule([datashape.uint64, datashape.int64])
+
+# signed -> unsigned
+add_numeric_rule([datashape.int8, datashape.uint8])
+add_numeric_rule([datashape.int16, datashape.uint16])
+add_numeric_rule([datashape.int32, datashape.uint32])
+add_numeric_rule([datashape.int64, datashape.uint64])
+
+# int -> float
+add_numeric_rule([datashape.int32, datashape.float32])
+add_numeric_rule([datashape.int64, datashape.float64])
+
+# float -> complex
+add_numeric_rule([datashape.float64, datashape.complex64])
