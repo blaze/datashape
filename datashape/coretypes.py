@@ -1019,7 +1019,8 @@ def from_numpy(shape, dt):
     elif dtype.kind == 'U':
         measure = String(dtype.itemsize / 4, 'U8')
     elif dtype.fields:
-        rec = [(a,CType.from_numpy_dtype(b[0])) for a,b in dtype.fields.items()]
+        field_items = [(name, dtype.fields[name]) for name in dtype.names]
+        rec = [(a,CType.from_numpy_dtype(b[0])) for a,b in field_items]
         measure = Record(rec)
     else:
         measure = CType.from_numpy_dtype(dtype)

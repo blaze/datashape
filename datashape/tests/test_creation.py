@@ -81,5 +81,13 @@ class TestDatashapeCreation(unittest.TestCase):
     def test_ragged_array(self):
         self.assertTrue(isinstance(dshape('3, var, int32')[1], datashape.Var))
 
+    def test_numpy_fields(self):
+        import numpy as np
+        dt = np.dtype('i4,i8,f8')
+        ds = datashape.from_numpy((), dt)
+        self.assertEqual(ds.names, ['f0', 'f1', 'f2'])
+        self.assertEqual(ds.types,
+                         [datashape.int32, datashape.int64, datashape.float64])
+
 if __name__ == '__main__':
     unittest.main()
