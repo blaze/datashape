@@ -52,6 +52,16 @@ def j(a, b):
 def j(a, b):
     return a
 
+# k
+
+@overload('A..., float32 -> A..., float32')
+def k(a):
+    return a
+
+@overload('A..., float64 -> A..., float64')
+def k(a):
+    return a
+
 class TestOverloading(unittest.TestCase):
 
     def test_best_match(self):
@@ -101,6 +111,13 @@ class TestOverloading(unittest.TestCase):
         self.assertEqual(str(match.sig), 'A..., float64 -> A..., float64 -> A..., float64')
         self.assertEqual(str(match.resolved_sig),
                          '3, float64 -> float64 -> 3, float64')
+
+    def test_best_match_int_float32_vs_float64(self):
+        d1 = dshape('3, int32')
+        match = best_match(k, [d1])
+        self.assertEqual(str(match.sig), 'A..., float64 -> A..., float64')
+        self.assertEqual(str(match.resolved_sig),
+                         '3, float64 -> 3, float64')
 
 if __name__ == '__main__':
     #TestOverloading('test_best_match_broadcasting').debug()
