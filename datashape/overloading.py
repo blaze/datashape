@@ -154,8 +154,9 @@ def best_match(func, argtypes, constraints=None):
     candidates = matches[min(matches)]
     if len(candidates) > 1:
         raise OverloadError(
-            "Ambiguous overload for function %s with inputs (%s): \n%s" % (
-                func, ", ".join(map(str, argtypes)),
+            "Ambiguous overload for function %s with\ninput types:\n%s\nambiguous candidates:\n%s" % (
+                func.f.__name__,
+                "    " + "; ".join(map(str, argtypes)),
                 "\n".join("    %s" % (overload.resolved_sig,) for overload in candidates)))
     else:
         return candidates[0]
