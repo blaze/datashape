@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
-from datashape import dshape, unify_simple
+from datashape import dshape, dshapes, unify_simple
 
 from datashape.overloading import best_match, overload
 from datashape import py2help
@@ -40,6 +40,16 @@ def h(a):
 
 @overload('A..., uint64 -> A..., uint64')
 def h(a):
+    return a
+
+# j
+
+@overload('A..., float64 -> A..., float64 -> A..., float64')
+def j(a, b):
+    return a
+
+@overload('A..., complex[float32] -> A..., complex[float32] -> A..., complex[float32]')
+def j(a, b):
     return a
 
 class TestOverloading(unittest.TestCase):
@@ -85,6 +95,12 @@ class TestOverloading(unittest.TestCase):
         self.assertEqual(str(match.resolved_sig),
                          '4, 5, uint64 -> 4, 5, uint64')
 
+    def test_best_match_float_int_complex(self):
+        d1, d2 = dshapes('3, float64', 'int32')
+        match = best_match(j, [d1, d2])
+        self.assertEqual(str(match.sig), 'A..., float64 -> A..., float64 -> A..., float64')
+        self.assertEqual(str(match.resolved_sig),
+                         '3, float64 -> float64 -> 3, float64')
 
 if __name__ == '__main__':
     #TestOverloading('test_best_match_broadcasting').debug()

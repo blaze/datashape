@@ -16,6 +16,19 @@ class TestCoercion(common.BTestCase):
         self.assertLess(coercion_cost(a, b), coercion_cost(a, c))
         a, b, c = dshapes('int64', 'int64', 'uint64')
         self.assertLess(coercion_cost(a, b), coercion_cost(a, c))
+        a, b, c = dshapes('float64', 'float64', 'complex[float32]')
+        self.assertLess(coercion_cost(a, b), coercion_cost(a, c))
+
+    def test_coerce_ctype_float_vs_complex(self):
+        # int -> float32 is preferred over int -> complex[float32]
+        a, b, c = dshapes('int32', 'float32', 'complex[float32]')
+        self.assertLess(coercion_cost(a, b), coercion_cost(a, c))
+        # int -> float64 is preferred over int -> complex[float64]
+        a, b, c = dshapes('int32', 'float64', 'complex[float64]')
+        self.assertLess(coercion_cost(a, b), coercion_cost(a, c))
+        # int -> float64 is preferred over int -> complex[float32]
+        a, b, c = dshapes('int32', 'float64', 'complex[float32]')
+        self.assertLess(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_numeric(self):
         a, b = dshapes('float32', 'float64')
