@@ -756,7 +756,9 @@ class Record(Mono):
         """
         dk = self.__fnames
         dv = map(to_numpy_dtype, self.__ftypes)
-        return np.dtype(zip(dk, dv))
+        # Need to cast to a list for python 3,
+        # because zip returns an iterator
+        return np.dtype(list(zip(dk, dv)))
 
     def __getitem__(self, key):
         return self.__fdict[key]
