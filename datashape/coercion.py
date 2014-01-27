@@ -169,10 +169,10 @@ def coerce_datashape(a, b, seen):
 # Default coercion rules
 #------------------------------------------------------------------------
 
-def add_numeric_rule(types):
+def add_numeric_rule(types, distance=1):
     types = list(types)
     for src, dst in zip(types[:-1], types[1:]):
-        add_coercion(src, dst, 1)
+        add_coercion(src, dst, distance)
 
 promotable_unsigned = [datashape.uint8, datashape.uint16, datashape.uint32]
 promoted_signed     = [datashape.int16, datashape.int32, datashape.int64]
@@ -195,20 +195,20 @@ add_numeric_rule([datashape.float64, datashape.complex128])
 # Potentially lossy conversions
 
 # unsigned -> signed
-add_numeric_rule([datashape.uint8, datashape.int8])
-add_numeric_rule([datashape.uint16, datashape.int16])
-add_numeric_rule([datashape.uint32, datashape.int32])
-add_numeric_rule([datashape.uint64, datashape.int64])
+add_numeric_rule([datashape.uint8, datashape.int8], 1.5)
+add_numeric_rule([datashape.uint16, datashape.int16], 1.5)
+add_numeric_rule([datashape.uint32, datashape.int32], 1.5)
+add_numeric_rule([datashape.uint64, datashape.int64], 1.5)
 
 # signed -> unsigned
-add_numeric_rule([datashape.int8, datashape.uint8])
-add_numeric_rule([datashape.int16, datashape.uint16])
-add_numeric_rule([datashape.int32, datashape.uint32])
-add_numeric_rule([datashape.int64, datashape.uint64])
+add_numeric_rule([datashape.int8, datashape.uint8], 1.5)
+add_numeric_rule([datashape.int16, datashape.uint16], 1.5)
+add_numeric_rule([datashape.int32, datashape.uint32], 1.5)
+add_numeric_rule([datashape.int64, datashape.uint64], 1.5)
 
 # int -> float
-add_numeric_rule([datashape.int32, datashape.float32])
-add_numeric_rule([datashape.int64, datashape.float64])
+add_numeric_rule([datashape.int32, datashape.float32], 1.5)
+add_numeric_rule([datashape.int64, datashape.float64], 1.5)
 
 # float -> complex
-add_numeric_rule([datashape.float64, datashape.complex64])
+add_numeric_rule([datashape.float64, datashape.complex64], 1.5)
