@@ -134,7 +134,7 @@ def _coercion_cost(a, b, seen=None):
         return coerce_datashape(a, b, seen)
     else:
         verify(a, b)
-        return sum([_coercion_cost(x, y, seen) for x, y in zip(a.parameters,
+        return max([_coercion_cost(x, y, seen) for x, y in zip(a.parameters,
                                                                b.parameters)])
 
 
