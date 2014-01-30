@@ -62,6 +62,17 @@ def k(a):
 def k(a):
     return a
 
+# Define the test function 'm'
+@overload('A..., int32 -> A..., int32 -> A..., int32')
+def m(a):
+    return a
+@overload('A..., float32 -> A..., float32 -> A..., float32')
+def m(a):
+    return a
+@overload('A..., float64 -> A..., float64 -> A..., float64')
+def m(a):
+    return a
+
 class TestOverloading(unittest.TestCase):
 
     def test_best_match(self):
@@ -118,6 +129,13 @@ class TestOverloading(unittest.TestCase):
         self.assertEqual(str(match.sig), 'A..., float64 -> A..., float64')
         self.assertEqual(str(match.resolved_sig),
                          '3, float64 -> 3, float64')
+
+    def test_best_match_int32_float32_ufunc_promotion(self):
+        d1, d2 = dshapes('3, int32', '3, float32')
+        match = best_match(m, [d1, d2])
+        self.assertEqual(str(match.sig), 'A..., float64 -> A..., float64 -> A..., float64')
+        self.assertEqual(str(match.resolved_sig),
+                         '3, float64 -> 3, float64 -> 3, float64')
 
 if __name__ == '__main__':
     #TestOverloading('test_best_match_broadcasting').debug()

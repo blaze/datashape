@@ -169,10 +169,10 @@ def coerce_datashape(a, b, seen):
 # Default coercion rules
 #------------------------------------------------------------------------
 
-def add_numeric_rule(types, distance=1):
+def add_numeric_rule(types, cost=1):
     types = list(types)
     for src, dst in zip(types[:-1], types[1:]):
-        add_coercion(src, dst, distance)
+        add_coercion(src, dst, cost)
 
 promotable_unsigned = [datashape.uint8, datashape.uint16, datashape.uint32]
 promoted_signed     = [datashape.int16, datashape.int32, datashape.int64]
