@@ -187,10 +187,10 @@ add_numeric_rule([datashape.uint8, datashape.int16])
 add_numeric_rule([datashape.uint16, datashape.int32])
 add_numeric_rule([datashape.uint32, datashape.int64])
 
-add_numeric_rule([datashape.int16, datashape.float32])
-add_numeric_rule([datashape.int32, datashape.float64])
-add_numeric_rule([datashape.float32, datashape.complex64])
-add_numeric_rule([datashape.float64, datashape.complex128])
+add_numeric_rule([datashape.int16, datashape.float32], 1.2)
+add_numeric_rule([datashape.int32, datashape.float64], 1.2)
+add_numeric_rule([datashape.float32, datashape.complex64], 1.2)
+add_numeric_rule([datashape.float64, datashape.complex128], 1.2)
 
 # Potentially lossy conversions
 
