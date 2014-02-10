@@ -11,7 +11,7 @@ import numpy as np
 
 from .error import UnificationError
 from .util import gensym, verify
-from . import (DataShape, CType, Fixed, Var, to_numpy,
+from . import (DataShape, CType, Fixed, Var, to_numpy, to_numpy_dtype,
                TypeSet, TypeVar, TypeConstructor)
 
 
@@ -112,7 +112,7 @@ def eq(a, b):
 def promote_scalars(a, b):
     """Promote two CTypes"""
     try:
-        return CType.from_numpy_dtype(np.result_type(to_numpy(a), to_numpy(b)))
+        return CType.from_numpy_dtype(np.result_type(to_numpy_dtype(a), to_numpy_dtype(b)))
     except TypeError as e:
         raise TypeError("Cannot promote %s and %s: %s" % (a, b, e))
 
