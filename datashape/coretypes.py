@@ -958,7 +958,7 @@ class NotNumpyCompatible(Exception):
 def to_numpy_dtype(ds):
     """ Throw away the shape information and just return the
     measure as NumPy dtype instance."""
-    return to_numpy(ds[-1])
+    return to_numpy(ds)[1]
 
 def to_numpy(ds):
     """
@@ -970,27 +970,28 @@ def to_numpy(ds):
     ((5, 5), dtype('int32'))
     """
 
-    if isinstance(ds, CType):
-        return ds.to_numpy_dtype()
-
     shape = tuple()
     dtype = None
 
     #assert isinstance(ds, DataShape)
 
-    # The datashape dimensions
-    for dim in ds[:-1]:
-        if isinstance(dim, IntegerConstant):
-            shape += (dim,)
-        elif isinstance(dim, Fixed):
-            shape += (dim.val,)
-        elif isinstance(dim, TypeVar):
-            shape += (-1,)
-        else:
-            raise NotNumpyCompatible('Datashape dimension %s is not NumPy-compatible' % dim)
+    if isinstance(ds, DataShape):
+        # The datashape dimensions
+        for dim in ds[:-1]:
+            if isinstance(dim, IntegerConstant):
+                shape += (dim,)
+            elif isinstance(dim, Fixed):
+                shape += (dim.val,)
+            elif isinstance(dim, TypeVar):
+                shape += (-1,)
+            else:
+                raise NotNumpyCompatible('Datashape dimension %s is not NumPy-compatible' % dim)
 
-    # The datashape measure
-    msr = ds[-1]
+        # The datashape measure
+        msr = ds[-1]
+    else:
+        msr = ds
+
     if isinstance(msr, CType):
         dtype = msr.to_numpy_dtype()
     elif isinstance(msr, Record):
