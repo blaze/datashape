@@ -5,7 +5,6 @@ import unittest
 from datashape import dshape, dshapes, unify_simple
 
 from datashape.overloading import best_match, overload
-from datashape import py2help
 
 
 #f
@@ -86,7 +85,6 @@ class TestOverloading(unittest.TestCase):
         self.assertEqual(str(unify_simple(input, match.resolved_sig)),
                          '10, 1, float32 -> 10, 1, float32 -> 10, 1, float32')
 
-    @py2help.skip
     def test_best_match_broadcasting(self):
         d1 = dshape('10, complex64')
         d2 = dshape('10, float32')
