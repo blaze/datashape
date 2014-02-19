@@ -12,7 +12,7 @@ from .promotion import promote, promote_units
 from .unification import unify, unify_simple, substitute
 from .coercion import coercion_cost
 
-__version__ = '0.1.1'
+__version__ = '0.1.1-dev'
 
 def test(verbosity=1, xunitfile=None, exit=False):
     """
