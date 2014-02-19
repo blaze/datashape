@@ -419,7 +419,7 @@ class Option(DataShape):
         self.ty = params[0]
 
     def __str__(self):
-        return 'Option(%s)' % str(self.ty)
+        return 'option(%s)' % str(self.ty)
 
     def __repr__(self):
         return str(self)

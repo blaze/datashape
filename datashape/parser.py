@@ -469,7 +469,7 @@ def p_error(p):
 reserved = {
     'Record'      : T.Record,
     'Range'       : T.Range,
-    'Option'      : T.Option,
+    'option'      : T.Option,
     #'Either'   : T.Either,
     #'Union'    : T.Union,
     'string'   : T.String, # String type per proposal
