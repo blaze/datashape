@@ -304,7 +304,7 @@ def p_rhs_signature2(p):
 #------------------------------------------------------------------------
 
 def p_typevar(p):
-    "typevar : name"
+    "typevar : NAME_LEADING_UPPER"
     p[0] = T.TypeVar(p[1])
 
 #------------------------------------------------------------------------
@@ -352,12 +352,13 @@ def p_appl_args(p):
 #------------------------------------------------------------------------
 
 def p_appl(p):
-    """appl : name '(' appl_args ')'
+    """appl : NAME_LEADING_LOWER '(' appl_args ')'
             | BIT '(' appl_args ')'""" # BIT is here for 'string(...)'
 
     if p[1] in reserved:
-        # The appl_args part of the grammar already produces
+        # The appl_args part of the grammar has already
         # TypeVar/IntegerConstant/StringConstant values
+        # as needed for the type constructor object.
         p[0] = reserved[p[1]](*p[3])
     else:
         raise NameError('Cannot use the name %s for type application' % repr(p[1]))
