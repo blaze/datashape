@@ -303,7 +303,7 @@ class String(Unit):
 
 
 class DataShape(Mono):
-    """The Datashape class, implementation for generic composite
+    """The DataShape class, implementation for generic composite
     datashape objects"""
 
     __metaclass__ = Type
@@ -891,7 +891,7 @@ def to_numpy(ds):
             elif isinstance(dim, TypeVar):
                 shape += (-1,)
             else:
-                raise NotNumpyCompatible('Datashape dimension %s is not NumPy-compatible' % dim)
+                raise NotNumpyCompatible('DataShape dimension %s is not NumPy-compatible' % dim)
 
         # The datashape measure
         msr = ds[-1]
@@ -903,7 +903,7 @@ def to_numpy(ds):
     elif isinstance(msr, Record):
         dtype = msr.to_numpy_dtype()
     else:
-        raise NotNumpyCompatible('Datashape measure %s is not NumPy-compatible' % msr)
+        raise NotNumpyCompatible('DataShape measure %s is not NumPy-compatible' % msr)
 
     if type(dtype) != np.dtype:
         raise NotNumpyCompatible('Internal Error: Failed to produce NumPy dtype')

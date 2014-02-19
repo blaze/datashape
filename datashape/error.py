@@ -56,8 +56,11 @@ class CustomSyntaxError(DataShapeException):
 # Typing errors
 #------------------------------------------------------------------------
 
+class DataShapeSyntaxError(CustomSyntaxError):
+    pass
+
 class DataShapeTypeError(DataShapeException):
-    "Some typing error"
+    "Raised when there is an error with a datashape type"
 
 class DataShapeError(DataShapeTypeError):
     """Raised for malformed datashape types"""

@@ -15,14 +15,7 @@ from .typesets import registry
 
 from ply import lex, yacc
 from .plyhacks import yaccfrom, lexfrom
-from .error import CustomSyntaxError, DataShapeTypeError
-
-#------------------------------------------------------------------------
-# Errors
-#------------------------------------------------------------------------
-
-class DatashapeSyntaxError(CustomSyntaxError):
-    pass
+from .error import CustomSyntaxError, DataShapeSyntaxError, DataShapeTypeError
 
 #------------------------------------------------------------------------
 # Lexer
@@ -450,13 +443,13 @@ def p_empty(t):
 
 def p_error(p):
     if p:
-        raise DatashapeSyntaxError(
+        raise DataShapeSyntaxError(
             p.lexpos,
             '<stdin>',
             p.lexer.lexdata,
         )
     else:
-        raise DatashapeSyntaxError(
+        raise DataShapeSyntaxError(
             0,
             '<stdin>',
             '',
@@ -547,11 +540,11 @@ def parse(pattern):
         if ds.lhs.nargs == 0:
             ds = ds.rhs
         else:
-            raise TypeError('building a simple dshape with '
+            raise DataShapeTypeError('building a simple dshape with '
                             'type parameters is not supported')
     # Require that the type be concrete, not parameterized
     if isinstance(ds, (T.Fixed, T.Var)):
-        raise TypeError(('Only a measure can appear on the last '
+        raise DataShapeTypeError(('Only a measure can appear on the last '
                         'position of a datashape, not %s') % repr(ds))
     return ds
 

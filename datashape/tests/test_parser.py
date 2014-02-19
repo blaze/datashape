@@ -7,7 +7,7 @@ from datashape.coretypes import Option, Function
 from datashape.typesets import integral
 
 
-class TestDatashapeParser(common.BTestCase):
+class TestDataShapeParser(common.BTestCase):
 
     def test_simple_parse(self):
         x = parse('2, 3, int32')
