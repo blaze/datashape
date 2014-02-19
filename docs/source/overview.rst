@@ -380,44 +380,6 @@ Records.
 
 .. _range:
 
-Range
-~~~~~
-
-Ranges are sum types over intervals of Fixed dimensions types.
-
-Ranges are heterogeneously fixed dimensions within a lower and upper
-bound.
-
-Example 1::
-
-    Range(1,5)
-
-A single argument to range is assumes a lower bound of 0.
-
-The set of values of integer arrays with dimension less than or equal to
-1000 x 1000 is given by the datashape::
-
-    Range(1000), Range(1000), int32
-
-The lower bound must be greater than 0. The upper bound must be
-greater than the lower, but may also be unbounded ( i.e. ``inf`` ).
-
-..
-    (1 + 1 + 1 .. + 1)
-
-Stream
-~~~~~~
-
-Ranges are sum types over shape instead of data.
-
-A case where a ``Range`` has no upper bound signifies a potentially infinite
-**stream** of values. Specialized kernels are needed to deal with data
-of this type.
-
-..
-    (1 + 1 + ...)
-
-
 FAQ
 ---
 

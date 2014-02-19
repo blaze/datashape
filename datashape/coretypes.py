@@ -147,7 +147,6 @@ class IntegerConstant(Unit):
 
     ::
         1, int32   # 1 is Fixed
-        Range(1,5) # 1 is IntegerConstant
 
     """
     cls = None
@@ -591,76 +590,6 @@ class Implements(Mono):
 
     def __repr__(self):
         return '%s : %s' % (self.typevar, self.typeset.name)
-
-
-class Range(Mono):
-    """
-    Range type representing a bound or unbound interval of
-    of possible Fixed dimensions.
-    """
-    cls = DIMENSION
-
-    def __init__(self, a, b=False):
-        if isinstance(a, _inttypes):
-            self.a = a
-        elif isinstance(a, IntegerConstant):
-            self.a = a.val
-        else:
-            raise TypeError('Expected integer for parameter a, not %s' % type(a))
-
-        if isinstance(b, _inttypes):
-            self.b = b
-        elif b is False or b is None:
-            self.b = b
-        elif isinstance(b, IntegerConstant):
-            self.b = b.val
-        else:
-            raise TypeError('Expected integer for parameter b, not %s' % type(b))
-
-        if a and b:
-            assert self.a < self.b, 'Must have upper < lower'
-        self.parameters = (self.a, self.b)
-
-    @property
-    def upper(self):
-        # Just upper bound
-        if self.b == False:
-            return self.a
-
-        # No upper bound case
-        elif self.b == None:
-            return float('inf')
-
-        # Lower and upper bound
-        else:
-            return self.b
-
-    @property
-    def lower(self):
-        # Just upper bound
-        if self.b == False:
-            return 0
-
-        # No upper bound case
-        elif self.b == None:
-            return self.a
-
-        # Lower and upper bound
-        else:
-            return self.a
-
-    def __eq__(self, other):
-        if not isinstance(other, Range):
-            raise TypeError("Cannot compare type %s to type %s" % (type(self), type(other)))
-
-        else:
-            return self.a == other.a and self.b == other.b
-
-    def __hash__(self):
-        return hash((self.a, self.b))
-
-    def __str__(self):
-        return expr_string('Range', [self.lower, self.upper])
 
 
 class Function(Mono):

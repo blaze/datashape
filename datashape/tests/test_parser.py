@@ -51,12 +51,6 @@ class TestDatashapeParser(common.BTestCase):
 
         assert x == y
 
-    def test_parse_vars(self):
-        x = parse('Range(1,2), int32')
-
-        assert x[0].lower == 1
-        assert x[0].upper == 2
-
     def test_constraints(self):
         x = parse('A, B : numeric')
         assert type(x.parameters[0]) == datashape.TypeVar
