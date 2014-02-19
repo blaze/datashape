@@ -467,11 +467,8 @@ def p_error(p):
 #------------------------------------------------------------------------
 
 reserved = {
-    'Record'      : T.Record,
     'option'      : T.Option,
-    #'Either'   : T.Either,
-    #'Union'    : T.Union,
-    'string'   : T.String, # String type per proposal
+    'string'   : T.String,
 }
 
 def debug_parse(data, lexer, parser):
