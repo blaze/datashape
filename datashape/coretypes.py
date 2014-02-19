@@ -402,29 +402,6 @@ class DataShape(Mono):
             return DataShape(*self.parameters[leading:])
 
 
-class Enum(DataShape):
-
-    def __init__(self, name, *elts):
-        self.parameters = (name,) + elts
-        self.name = name
-        self.elts = elts
-
-    def __str__(self):
-        if self.name:
-            return 'Enum(%s, %s)' % (self.name, ','.join(map(str, self.elts)))
-        else:
-            return 'Enum(%s)' % ','.join(map(str, self.elts))
-
-    def __repr__(self):
-        return str(self)
-
-    def __eq__(self, other):
-        raise NotImplementedError
-
-    def __hash__(self):
-        raise NotImplementedError
-
-
 class Option(DataShape):
     """
     Measure types which may or may not hold data. Makes no
