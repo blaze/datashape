@@ -15,23 +15,17 @@ from .typesets import registry
 
 from ply import lex, yacc
 from .plyhacks import yaccfrom, lexfrom
-from .error import CustomSyntaxError, DataShapeTypeError
-
-#------------------------------------------------------------------------
-# Errors
-#------------------------------------------------------------------------
-
-class DatashapeSyntaxError(CustomSyntaxError):
-    pass
+from .error import CustomSyntaxError, DataShapeSyntaxError, DataShapeTypeError
 
 #------------------------------------------------------------------------
 # Lexer
 #------------------------------------------------------------------------
 
 tokens = (
-    'TYPE', 'NAME', 'NUMBER', 'STRING', 'ELLIPSIS', 'EQUALS',
+    'TYPE', 'NAME_LEADING_UPPER', 'NAME_LEADING_LOWER', 'NUMBER',
+    'STRING', 'ELLIPSIS', 'EQUALS',
     'COMMA', 'COLON', 'LBRACE', 'RBRACE', 'SEMI', 'BIT',
-    'VAR', 'JSON', 'DATA', 'ARROW', 'LBRACK', 'RBRACK',
+    'VAR', 'JSON', 'ARROW', 'LBRACK', 'RBRACK',
 )
 
 literals = [
@@ -107,8 +101,12 @@ def t_VAR(t):
     r'var'
     return t
 
-def t_NAME(t):
-    r'[a-zA-Z_][a-zA-Z0-9_]*'
+def t_NAME_LEADING_UPPER(t):
+    r'[A-Z][a-zA-Z0-9_]*'
+    return t
+
+def t_NAME_LEADING_LOWER(t):
+    r'[a-z_][a-zA-Z0-9_]*'
     if t.value in bits:
         t.type = 'BIT'
     return t
@@ -144,7 +142,6 @@ precedence = (
     ('right' , 'COMMA'),
 )
 
-dtdecl = namedtuple('dtdecl', 'name, elts')
 tydecl = namedtuple('tydecl', 'lhs, rhs')
 simpletype = namedtuple('simpletype', 'nargs, tycon, tyvars')
 
@@ -164,9 +161,15 @@ def p_decl2(p):
 
 #------------------------------------------------------------------------
 
-def p_data_assign(p):
-    'stmt : DATA NAME EQUALS data'
-    p[0] = dtdecl(p[2], p[4])
+def p_name_leading_lower(p):
+    'name : NAME_LEADING_LOWER'
+    p[0] = p[1]
+
+def p_name_leading_upper(p):
+    'name : NAME_LEADING_UPPER'
+    p[0] = p[1]
+
+#------------------------------------------------------------------------
 
 def p_statement_assign(p):
     'stmt : TYPE lhs_expression EQUALS rhs_expression'
@@ -190,14 +193,6 @@ def p_statement_expr(p):
     'stmt : rhs_expression'
     p[0] = p[1]
 
-def p_enum_def1(p):
-    "data : data '|' data"
-    p[0] = p[1] + p[3]
-
-def p_enum_def3(p):
-    'data : NAME'
-    p[0] = [p[1]]
-
 #------------------------------------------------------------------------
 
 def p_lhs_expression(p):
@@ -205,8 +200,12 @@ def p_lhs_expression(p):
     # tuple addition
     p[0] = p[1] + p[2]
 
-def p_lhs_expression_node(p):
-    'lhs_expression : NAME'
+def p_lhs_expression_node1(p):
+    'lhs_expression : NAME_LEADING_UPPER'
+    p[0] = (p[1],)
+
+def p_lhs_expression_node2(p):
+    'lhs_expression : NAME_LEADING_LOWER'
     p[0] = (p[1],)
 
 #------------------------------------------------------------------------
@@ -245,7 +244,7 @@ def p_rhs_expression_list__name(p):
     p[0] = (p[1],)
 
 def p_rhs_expression_list__contrained(p):
-    '''rhs_expression_list : typevar COLON NAME'''
+    '''rhs_expression_list : typevar COLON name'''
     # Note: This syntax is constrained to type variables only
     typevar = p[1]
     try:
@@ -298,7 +297,7 @@ def p_rhs_signature2(p):
 #------------------------------------------------------------------------
 
 def p_typevar(p):
-    "typevar : NAME"
+    "typevar : NAME_LEADING_UPPER"
     p[0] = T.TypeVar(p[1])
 
 #------------------------------------------------------------------------
@@ -346,17 +345,13 @@ def p_appl_args(p):
 #------------------------------------------------------------------------
 
 def p_appl(p):
-    """appl : NAME '(' appl_args ')'
+    """appl : NAME_LEADING_LOWER '(' appl_args ')'
             | BIT '(' appl_args ')'""" # BIT is here for 'string(...)'
 
-    if p[1] == 'Categorical': # TODO: don't hardcode
-        if not all(isinstance(x, T.TypeVar) for x in p[3]):
-            raise Exception('Invalid categorical definition')
-
-        p[0] = T.Enum(None, *p[3])
     if p[1] in reserved:
-        # The appl_args part of the grammar already produces
+        # The appl_args part of the grammar has already
         # TypeVar/IntegerConstant/StringConstant values
+        # as needed for the type constructor object.
         p[0] = reserved[p[1]](*p[3])
     else:
         raise NameError('Cannot use the name %s for type application' % repr(p[1]))
@@ -364,7 +359,7 @@ def p_appl(p):
 #------------------------------------------------------------------------
 
 def p_ctor(p):
-    """ctor : NAME LBRACK rhs_expression RBRACK"""
+    """ctor : name LBRACK rhs_expression RBRACK"""
 
     # Application of a type constructor. Square brackets are more apt for
     # type constructor application than parentheses when types are implemented
@@ -397,7 +392,7 @@ def p_ctor(p):
     p[0] = ctor(*args)
 
 def p_ctor_empty(p):
-    """ctor : NAME LBRACK RBRACK"""
+    """ctor : name LBRACK RBRACK"""
 
     # Application of a type constructor with no parameters
 
@@ -425,7 +420,7 @@ def p_record_opt3(p):
     p[0] = []
 
 def p_record_name(p):
-    '''record_name : NAME
+    '''record_name : name
                    | BIT
                    | TYPE
                    | JSON
@@ -448,13 +443,13 @@ def p_empty(t):
 
 def p_error(p):
     if p:
-        raise DatashapeSyntaxError(
+        raise DataShapeSyntaxError(
             p.lexpos,
             '<stdin>',
             p.lexer.lexdata,
         )
     else:
-        raise DatashapeSyntaxError(
+        raise DataShapeSyntaxError(
             0,
             '<stdin>',
             '',
@@ -465,13 +460,8 @@ def p_error(p):
 #------------------------------------------------------------------------
 
 reserved = {
-    'Record'      : T.Record,
-    'Range'       : T.Range,
-    'Categorical' : T.Enum,
-    'Option'      : T.Option,
-    #'Either'   : T.Either,
-    #'Union'    : T.Union,
-    'string'   : T.String, # String type per proposal
+    'option'      : T.Option,
+    'string'   : T.String,
 }
 
 def debug_parse(data, lexer, parser):
@@ -541,25 +531,20 @@ def parse_mod(pattern):
     for ds in dss:
         if isinstance(ds, tydecl):
             yield ds.rhs
-        elif isinstance(ds, dtdecl):
-            yield T.Enum(ds.name, ds.elts)
 
 def parse(pattern):
     ds = _parse(pattern)
-
-    if isinstance(ds, dtdecl):
-        raise TypeError('Predeclared categorical types are not allowed inline')
 
     # Just take the type from "type X = Y" statements
     if isinstance(ds, tydecl):
         if ds.lhs.nargs == 0:
             ds = ds.rhs
         else:
-            raise TypeError('building a simple dshape with '
+            raise DataShapeTypeError('building a simple dshape with '
                             'type parameters is not supported')
     # Require that the type be concrete, not parameterized
     if isinstance(ds, (T.Fixed, T.Var)):
-        raise TypeError(('Only a measure can appear on the last '
+        raise DataShapeTypeError(('Only a measure can appear on the last '
                         'position of a datashape, not %s') % repr(ds))
     return ds
 

@@ -5,18 +5,18 @@ import datashape
 from datashape import dshape, error
 
 
-class TestDatashapeCreation(unittest.TestCase):
+class TestDataShapeCreation(unittest.TestCase):
 
     def test_raise_on_bad_input(self):
         # Make sure it raises exceptions on a few nonsense inputs
         self.assertRaises(TypeError, dshape, None)
         self.assertRaises(TypeError, dshape, lambda x: x+1)
         # Check issue 11
-        self.assertRaises(datashape.parser.DatashapeSyntaxError, dshape, '1,')
+        self.assertRaises(datashape.parser.DataShapeSyntaxError, dshape, '1,')
 
-    def test_reserved_future_int(self):
-        # The "int" datashape is reserved for a future big integer type
-        self.assertRaises(Exception, dshape, "int")
+    def test_reserved_future_bigint(self):
+        # The "bigint" datashape is reserved for a future big integer type
+        self.assertRaises(Exception, dshape, "bigint")
 
     def test_atom_shapes(self):
         self.assertEqual(dshape('bool'), dshape(datashape.bool_))
@@ -41,13 +41,11 @@ class TestDatashapeCreation(unittest.TestCase):
             self.assertEqual(dshape('intptr'), dshape(datashape.int64))
             self.assertEqual(dshape('uintptr'), dshape(datashape.uint64))
 
-    @unittest.skip("undefined string reverting to typevars. TODO revert to ocaml ' or single char ")
     def test_atom_shape_errors(self):
-        self.assertRaises(TypeError, dshape, 'boot')
-        self.assertRaises(TypeError, dshape, 'int33')
-        self.assertRaises(TypeError, dshape, '12')
-        self.assertRaises(TypeError, dshape, 'var')
-        self.assertRaises(TypeError, dshape, 'N')
+        self.assertRaises(error.DataShapeSyntaxError, dshape, 'boot')
+        self.assertRaises(error.DataShapeSyntaxError, dshape, 'int33')
+        self.assertRaises(error.DataShapeTypeError, dshape, '12')
+        self.assertRaises(error.DataShapeTypeError, dshape, 'var')
 
     def test_constraints_error(self):
         self.assertRaises(error.DataShapeTypeError, dshape,
@@ -57,7 +55,7 @@ class TestDatashapeCreation(unittest.TestCase):
         self.assertRaises(error.DataShapeTypeError, dshape, 'T, ...')
 
     def test_type_decl(self):
-        self.assertRaises(TypeError, dshape, 'type X T = 3, T')
+        self.assertRaises(error.DataShapeTypeError, dshape, 'type X T = 3, T')
         self.assertEqual(dshape('3, int32'), dshape('type X = 3, int32'))
 
     def test_string_atom(self):

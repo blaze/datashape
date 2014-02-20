@@ -3,11 +3,11 @@ import unittest
 import datashape
 from datashape.tests import common
 from datashape.parser import parse
-from datashape.coretypes import Enum, Option, Function
+from datashape.coretypes import Option, Function
 from datashape.typesets import integral
 
 
-class TestDatashapeParser(common.BTestCase):
+class TestDataShapeParser(common.BTestCase):
 
     def test_simple_parse(self):
         x = parse('2, 3, int32')
@@ -50,12 +50,6 @@ class TestDatashapeParser(common.BTestCase):
         y = parse('800, 600, int64')
 
         assert x == y
-
-    def test_parse_vars(self):
-        x = parse('Range(1,2), int32')
-
-        assert x[0].lower == 1
-        assert x[0].upper == 2
 
     def test_constraints(self):
         x = parse('A, B : numeric')
@@ -193,42 +187,15 @@ class TestDatashapeParser(common.BTestCase):
             }
         """)
 
-
-class TestCategorical(common.BTestCase):
-
-    def test_categorical_single(self):
-        res = datashape.dshape('Categorical(Foo)')
-
-        assert isinstance(res, Enum)
-
-    def test_categorical_multi(self):
-        res = datashape.dshape('Categorical(Foo, Bar)')
-
-        assert isinstance(res, Enum)
-
-    @unittest.skip("data typemod no longer valid")
-    def test_categorical_module(self):
-        source = """
-        data Day = Monday | Tuesday | Wednesday | Thursday | Friday
-
-        type Person = {
-            days : Day;
-        }
-        """
-        res = datashape.dshape(source, multi=True)
-
-        assert isinstance(res[0], Enum)
-
-
 class TestOption(common.BTestCase):
 
-    def test_categorical_single(self):
-        res = datashape.dshape('Option(int32)')
+    def test_option_single(self):
+        res = datashape.dshape('option(int32)')
 
         assert isinstance(res, Option)
 
-    def test_categorical_multi(self):
-        res = datashape.dshape('2, 3, Option(int32)')
+    def test_option_multi(self):
+        res = datashape.dshape('2, 3, option(int32)')
 
         assert isinstance(res[2], Option)
 
