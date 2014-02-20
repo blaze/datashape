@@ -13,6 +13,8 @@ Some of the basic features include:
 * Types and Typevars are distinguished by the capitalization of the leading
   character. Lowercase for types, and uppercase for typevars.
 * Type constructors operate using square brackets.
+* In multi-line datashape strings or files, comments start from
+  # characters to the end of the line.
 
 Some Simple Examples
 --------------------
@@ -41,51 +43,88 @@ Here are some simple examples to motivate the idea::
         };
     }
 
+    # Structure of Arrays
+    {
+        x: 100, 100, float32;
+        y: 100, 100, float32;
+        u: 100, 100, float32;
+        v: 100, 100, float32;
+    }
+
+    # List of Tuples
+    20, (int32; float64)
 
 The DataShape Grammar
 ---------------------
 
 Dimension Type Symbol Table::
 
-    var : variable dimension
+    # Variable-sized dimension
+    var
 
 Data Type Symbol Table::
 
     # Numeric
     bool
+    # Two's complement binary integers
     int8
     int16
     int32
     int64
     int128
+    # Unsigned binary integers
     uint8
     uint16
     uint32
     uint64
     uint128
+    # IEEE 754-2008 binary### floating point binary numbers
     float16
     float32
     float64
     float128
+    # IEEE 754-2008 decimal### floating point decimal numbers
+    decimal32
+    decimal64
+    decimal128
+    # Arbitrary precision integer
+    bigint
+    # Alias for int32
+    int
+    # Alias for int32 or int64 depending on platform
+    intptr
+    # Alias for uint32 or uint64 depending on platform
+    uintptr
 
-    # Other
+    # A unicode string
     string
+    # A single unicode code point
+    char
+    # A blob of bytes
     bytes
+    # A date
     date
+    # A string containing JSON
     json
+    # No data
+    void
 
 Data Type Constructor Symbol Table::
 
-    # complex[float32], complex[float64]
+    # complex[float32], complex[type=float64]
     complex
-    # string[ascii], string[cp949]
+    # string[ascii], string[enc=cp949]
     string
-    # bytes[4;2]
+    # bytes[size=4;align=2]
     bytes
-    # datetime[minutes;CST]
+    # datetime[unit=minutes;tz=CST]
     datetime
-    # categorical[string; ['low', 'medium', 'high']]
+    # categorical[type=string; values=['low', 'medium', 'high']]
     categorical
+    # option[float64]
+    option
+    # pointer[target=3, int32]
+    pointer
 
 Tokens::
 
@@ -94,6 +133,7 @@ Tokens::
     NAME_OTHER : _[a-zA-Z0-9_]*
     COMMA : ,
     SEMI : ;
+    EQUAL : =
     ELLIPSIS : \.\.\.
     LBRACKET : \[
     RBRACKET : \]
@@ -137,14 +177,22 @@ Grammar::
     type_constr : NAME_LOWER LBRACKET type_arg_list RBRACKET
 
     # Type Constructor: list of arguments
-    type_arg_list : type_arg COMMA type_arg_list
+    type_arg_list : type_arg SEMI type_arg_list
+                  | type_kwarg_list
                   | type_arg
+
+    # Type Constructor: list of arguments
+    type_kwarg_list : type_kwarg SEMI type_kwarg_list
+                    | type_kwarg
 
     # Type Constructor : single argument
     type_arg : datashape
              | INTEGER
              | STRING
              | list_type_arg
+
+    # Type Constructor : single keyword argument
+    type_kwarg : NAME_LOWER EQUAL type_arg
 
     # Type Constructor : single list argument
     list_type_arg : empty_list
