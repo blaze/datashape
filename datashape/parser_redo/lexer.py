@@ -6,6 +6,10 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
+# This is updated to include all the token names from _tokens,
+# where e.g. _tokens[NAME_LOWER-1] is the entry for NAME_LOWER
+__all__ = ['DataShapeLexer']
+
 # A list of the token names and corresponding regex
 _tokens = [
     ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*'),
@@ -26,6 +30,10 @@ _tokens = [
     ('STRING',     r'(?:"(?:[^"\n\r\\]|(?:\\x[0-9a-fA-F]{2})|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*")|(?:\'(?:[^\'\n\r\\]|(?:\\x[0-9a-fA-F]+)|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*\')'),
 ]
 
+# Dynamically add all the token indices to globals() and __all__
+__all__.extend(tok[0] for tok in _tokens)
+globals().update((tok[0], i) for i, tok in enumerate(_tokens, 1))
+
 # Regex for skipping whitespace and comments
 _whitespace = r'(?:\s|(?:#.*$))*'
 
@@ -35,12 +43,29 @@ _tokens_re = re.compile('|'.join('(' + tok[1] + ')' for tok in _tokens),
 _whitespace_re = re.compile(_whitespace, re.MULTILINE)
 
 class DataShapeLexer(object):
+    """A lexer which converts a string output into a stream
+    of tokens.
+
+    Example
+    -------
+
+        s = '   -> ... A... Blah _eil(#'
+        print('lexing %r' % s)
+        lex = DataShapeLexer(s)
+        while lex.token:
+            print(lex.token, lex.token_name, lex.token_range, lex.token_str)
+            lex.advance()
+
+    """
     def __init__(self, ds_str):
         self.ds_str = ds_str
         self.pos = 0
         self.advance()
 
     def advance(self):
+        """Advances the lexer to the next token. This updates
+        self.token, self.token_name, and self.token_range.
+        """
         # Skip whitespace
         m = _whitespace_re.match(self.ds_str, self.pos)
         if m:
@@ -48,14 +73,16 @@ class DataShapeLexer(object):
         # Try to match a token
         m = _tokens_re.match(self.ds_str, self.pos)
         if m:
-            self.token_index = m.lastindex - 1
-            self.token = _tokens[self.token_index][0]
+            # m.lastindex gives us which group was matched, which
+            # is one greater than the index into the _tokens list.
+            self.token = m.lastindex
+            self.token_name = _tokens[self.token - 1][0]
             self.token_range = m.span()
             self.pos = m.end()
         else:
             if self.pos == len(self.ds_str):
-                self.token_index = -1
                 self.token = None
+                self.token_name = None
                 self.token_range = None
             else:
                 # TODO: custom lexing exception
@@ -71,5 +98,5 @@ if __name__ == '__main__':
     print('lexing %r' % s)
     lex = DataShapeLexer(s)
     while lex.token:
-        print(lex.token, lex.token_index, lex.token_range, lex.token_str)
+        print(lex.token, lex.token_name, lex.token_range, lex.token_str)
         lex.advance()

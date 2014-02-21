@@ -17,7 +17,9 @@ setup(
     license = "BSD",
     keywords = "data language",
     url = "http://packages.python.org/datashape",
-    packages = ["datashape", "datashape.tests"],
+    packages = ["datashape",
+                "datashape.parser_redo",
+                "datashape.tests"],
     long_description = read('README.md'),
     classifiers = [
         "Development Status :: 3 - Alpha",
