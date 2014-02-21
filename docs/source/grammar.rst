@@ -8,7 +8,7 @@ syntax for describing structured data.
 
 Some of the basic features include:
 
-* Dimensions are separated by asterisks (\*).
+* Dimensions are separated by asterisks.
 * Lists of types are separated by commas.
 * Types and Typevars are distinguished by the capitalization of the leading
   character. Lowercase for types, and uppercase for typevars.
@@ -146,15 +146,17 @@ Tokens::
     NAME_LOWER : [a-z][a-zA-Z0-9_]*
     NAME_UPPER : [A-Z][a-zA-Z0-9_]*
     NAME_OTHER : _[a-zA-Z0-9_]*
-    ASTER : \*
+    ASTERISK : \*
     COMMA : ,
-    RARROW : ->
     EQUAL : =
-    ELLIPSIS : \.\.\.
     LBRACKET : \[
     RBRACKET : \]
     LBRACE : \{
     RBRACE : \}
+    LPAREN : \(
+    RPAREN : \)
+    ELLIPSIS : \.\.\.
+    RARROW : ->
     INTEGER : 0|[1-9][0-9]*
     STRING : (?:"(?:[^"\n\r\\]|(?:\\x[0-9a-fA-F]{2})|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*")|(?:\'(?:[^\'\n\r\\]|(?:\\x[0-9a-fA-F]+)|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*\')
 
@@ -162,7 +164,7 @@ Tokens::
 Grammar::
 
     # Comma-separated list of dimensions, followed by data type
-    datashape : dim ASTER datashape
+    datashape : dim ASTERISK datashape
               | dtype
 
     # Dimension Type (from the dimension type symbol table)
