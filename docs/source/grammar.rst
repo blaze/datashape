@@ -8,8 +8,8 @@ syntax for describing structured data.
 
 Some of the basic features include:
 
-* Dimensions are separated by commas.
-* Lists of types are separated by semicolons.
+* Dimensions are separated by asterisks (\*).
+* Lists of types are separated by commas.
 * Types and Typevars are distinguished by the capitalization of the leading
   character. Lowercase for types, and uppercase for typevars.
 * Type constructors operate using square brackets.
