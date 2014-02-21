@@ -13,6 +13,10 @@ Some of the basic features include:
 * Types and Typevars are distinguished by the capitalization of the leading
   character. Lowercase for types, and uppercase for typevars.
 * Type constructors operate using square brackets.
+* Type constructors accept positional and keyword arguments,
+  and their arguments may be:
+  * datashape, string, integer, list of datashape, list of string,
+    list of integer
 * In multi-line datashape strings or files, comments start from
   # characters to the end of the line.
 
@@ -27,32 +31,39 @@ Here are some simple examples to motivate the idea::
     float64
 
     # Arrays
-    3, 4, int32
-    10, var, float64
-    3, complex[float64]
+    3 * 4 * int32
+    3 * 4 * int32
+    10 * var * float64
+    3 * complex[float64]
 
     # Array of Structures
-    100, {
-        name: string;
-        birthday: date;
+    100 * {
+        name: string,
+        birthday: date,
         address: {
-            street: string;
-            city: string;
-            postalcode: string;
-            country: string;
-        };
+            street: string,
+            city: string,
+            postalcode: string,
+            country: string
+        }
     }
 
     # Structure of Arrays
     {
-        x: 100, 100, float32;
-        y: 100, 100, float32;
-        u: 100, 100, float32;
-        v: 100, 100, float32;
+        x: 100 * 100 * float32,
+        y: 100 * 100 * float32,
+        u: 100 * 100 * float32,
+        v: 100 * 100 * float32,
     }
 
     # List of Tuples
-    20, (int32; float64)
+    20 * (int32, float64)
+
+    # Function prototype
+    (3 * int32, float64) -> 3 * float64
+
+    # Function prototype with broadcasting dimensions
+    (A... * int32, A... * int32) -> A... * int32
 
 The DataShape Grammar
 ---------------------
@@ -91,6 +102,10 @@ Data Type Symbol Table::
     bigint
     # Alias for int32
     int
+    # Alias for float64
+    real
+    # Alias for complex[float64]
+    complex
     # Alias for int32 or int64 depending on platform
     intptr
     # Alias for uint32 or uint64 depending on platform
@@ -113,17 +128,17 @@ Data Type Constructor Symbol Table::
 
     # complex[float32], complex[type=float64]
     complex
-    # string[ascii], string[enc=cp949]
+    # string['ascii'], string[enc='cp949']
     string
-    # bytes[size=4;align=2]
+    # bytes[size=4,align=2]
     bytes
-    # datetime[unit=minutes;tz=CST]
+    # datetime[unit='minutes',tz='CST']
     datetime
-    # categorical[type=string; values=['low', 'medium', 'high']]
+    # categorical[type=string, values=['low', 'medium', 'high']]
     categorical
     # option[float64]
     option
-    # pointer[target=3, int32]
+    # pointer[target=2 * 3 * int32]
     pointer
 
 Tokens::
@@ -131,8 +146,9 @@ Tokens::
     NAME_LOWER : [a-z][a-zA-Z0-9_]*
     NAME_UPPER : [A-Z][a-zA-Z0-9_]*
     NAME_OTHER : _[a-zA-Z0-9_]*
+    ASTER : \*
     COMMA : ,
-    SEMI : ;
+    RARROW : ->
     EQUAL : =
     ELLIPSIS : \.\.\.
     LBRACKET : \[
@@ -146,7 +162,7 @@ Tokens::
 Grammar::
 
     # Comma-separated list of dimensions, followed by data type
-    datashape : dim COMMA datashape
+    datashape : dim ASTER datashape
               | dtype
 
     # Dimension Type (from the dimension type symbol table)
@@ -158,6 +174,7 @@ Grammar::
     # Data Type (from the data type symbol table)
     dtype : symbol_type
           | struct_type
+          | funcproto_or_tuple_type
 
     # A type defined by a symbol
     symbol_type : typevar
@@ -177,12 +194,12 @@ Grammar::
     type_constr : NAME_LOWER LBRACKET type_arg_list RBRACKET
 
     # Type Constructor: list of arguments
-    type_arg_list : type_arg SEMI type_arg_list
+    type_arg_list : type_arg COMMA type_arg_list
                   | type_kwarg_list
                   | type_arg
 
     # Type Constructor: list of arguments
-    type_kwarg_list : type_kwarg SEMI type_kwarg_list
+    type_kwarg_list : type_kwarg COMMA type_kwarg_list
                     | type_kwarg
 
     # Type Constructor : single argument
@@ -202,20 +219,21 @@ Grammar::
 
     empty_list : LBRACKET RBRACKET
 
-    datashape_list : datashape SEMI datashape_list
+    datashape_list : datashape COMMA datashape_list
                    | datashape
 
-    integer_list : INTEGER SEMI integer_list
+    integer_list : INTEGER COMMA integer_list
                  | INTEGER
 
-    string_list : STRING SEMI string_list
+    string_list : STRING COMMA string_list
                 | STRING
 
 
-    # Struct/Record type
+    # Struct/Record type (allowing for a trailing comma)
     struct_type : LBRACE struct_field_list RBRACE
+                | LBRACE struct_field_list COMMA RBRACE
 
-    struct_field_list : struct_field SEMI struct_field_list
+    struct_field_list : struct_field COMMA struct_field_list
                       | struct_field
 
     struct_field : struct_field_name COLON datashape
@@ -223,5 +241,15 @@ Grammar::
     struct_field_name : NAME_LOWER
                       | NAME_UPPER
                       | NAME_OTHER
-    
 
+    # Function prototype is a tuple with an arrow to the output type
+    funcproto_or_tuple_type : tuple_type RARROW datashape
+                            | tuple_type
+    
+    # Tuple type (allowing for a trailing comma)
+    tuple_type : LPAREN tuple_item_list RPAREN
+               | LPAREN tuple_item_list COMMA RPAREN
+               | LPAREN RPAREN
+
+    tuple_item_list : datashape COMMA tuple_item_list
+                    | datashape
