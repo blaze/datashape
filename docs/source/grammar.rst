@@ -149,6 +149,7 @@ Tokens::
     ASTERISK : \*
     COMMA : ,
     EQUAL : =
+    COLON : :
     LBRACKET : \[
     RBRACKET : \]
     LBRACE : \{

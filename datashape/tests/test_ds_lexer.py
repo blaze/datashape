@@ -32,6 +32,7 @@ class TestDataShapeLexer(unittest.TestCase):
         self.check_isolated_token('ASTERISK', '*')
         self.check_isolated_token('COMMA', ',')
         self.check_isolated_token('EQUAL', '=')
+        self.check_isolated_token('COLON', ':')
         self.check_isolated_token('LBRACKET', '[')
         self.check_isolated_token('RBRACKET', ']')
         self.check_isolated_token('LBRACE', '{')
@@ -44,6 +45,32 @@ class TestDataShapeLexer(unittest.TestCase):
         self.check_isolated_token('INTEGER', '32102')
         self.check_isolated_token('RARROW', '->')
         self.check_isolated_token('STRING', '"testing"')
+
+    def check_failing_token(self, ds_str):
+        # Creating the lexer will fail, because the error is
+        # in the first token.
+        self.assertRaises(datashape.DataShapeSyntaxError, parser.DataShapeLexer, ds_str)
+
+    def test_failing_tokens(self):
+        self.check_failing_token('~')
+        self.check_failing_token('`')
+        self.check_failing_token('!')
+        self.check_failing_token('@')
+        self.check_failing_token('$')
+        self.check_failing_token('%')
+        self.check_failing_token('^')
+        self.check_failing_token('&')
+        self.check_failing_token('-')
+        self.check_failing_token('+')
+        self.check_failing_token(';')
+        self.check_failing_token('<')
+        self.check_failing_token('>')
+        self.check_failing_token('.')
+        self.check_failing_token('..')
+        self.check_failing_token('?')
+        self.check_failing_token('/')
+        self.check_failing_token('|')
+        self.check_failing_token('\\')
 
 if __name__ == '__main__':
     unittest.main()

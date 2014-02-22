@@ -11,6 +11,7 @@ from .validation import validate
 from .promotion import promote, promote_units
 from .unification import unify, unify_simple, substitute
 from .coercion import coercion_cost
+from .error import DataShapeSyntaxError
 
 __version__ = '0.1.1-dev'
 

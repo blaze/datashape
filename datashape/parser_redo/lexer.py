@@ -5,6 +5,7 @@ Lexer for the datashape grammar.
 from __future__ import absolute_import, division, print_function
 
 import re
+from .. import error
 
 # This is updated to include all the token names from _tokens,
 # where e.g. _tokens[NAME_LOWER-1] is the entry for NAME_LOWER
@@ -18,6 +19,7 @@ _tokens = [
     ('ASTERISK',   r'\*'),
     ('COMMA',      r','),
     ('EQUAL',      r'='),
+    ('COLON',      r':'),
     ('LBRACKET',   r'\['),
     ('RBRACKET',   r'\]'),
     ('LBRACE',     r'\{'),
@@ -27,7 +29,8 @@ _tokens = [
     ('ELLIPSIS',   r'\.\.\.'),
     ('RARROW',     r'->'),
     ('INTEGER',    r'0|[1-9][0-9]*'),
-    ('STRING',     r'(?:"(?:[^"\n\r\\]|(?:\\x[0-9a-fA-F]{2})|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*")|(?:\'(?:[^\'\n\r\\]|(?:\\x[0-9a-fA-F]+)|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*\')'),
+    ('STRING',    (r'(?:"(?:[^"\n\r\\]|(?:\\x[0-9a-fA-F]{2})|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*")' +
+                   r'|(?:\'(?:[^\'\n\r\\]|(?:\\x[0-9a-fA-F]+)|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*\')')),
 ]
 
 # Dynamically add all the token indices to globals() and __all__
@@ -85,8 +88,9 @@ class DataShapeLexer(object):
                 self.token_name = None
                 self.token_range = None
             else:
-                # TODO: custom lexing exception
-                raise RuntimeError('Failed to lex at position %d' % self.pos)
+                raise error.DataShapeSyntaxError(self.pos, '<nofile>',
+                                                 self.ds_str,
+                                                 'Invalid DataShape token')
 
     @property
     def token_str(self):
