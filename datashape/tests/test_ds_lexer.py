@@ -79,7 +79,26 @@ class TestDataShapeLexer(unittest.TestCase):
         self.check_failing_token('090')
 
     def test_string(self):
-        TODO
+        # Trivial strings
+        self.check_isolated_token('STRING', '""')
+        self.check_isolated_token('STRING', "''")
+        self.check_isolated_token('STRING', '"test"')
+        self.check_isolated_token('STRING', "'test'")
+        # Valid escaped characters
+        self.check_isolated_token('STRING', r'"\"\b\f\n\r\t\ub155"')
+        self.check_isolated_token('STRING', r"'\'\b\f\n\r\t\ub155'")
+        # A sampling of invalid escaped characters
+        self.check_failing_token(r'''"\'"''')
+        self.check_failing_token(r"""'\"'""")
+        self.check_failing_token(r"'\a'")
+        self.check_failing_token(r"'\s'")
+        self.check_failing_token(r"'\R'")
+        self.check_failing_token(r"'\N'")
+        self.check_failing_token(r"'\U'")
+        self.check_failing_token(r"'\u123g'")
+        self.check_failing_token(r"'\u123'")
+        # Some unescaped unicode characters
+        self.check_isolated_token('STRING', u'"\uc548\ub155"')
 
     def test_failing_tokens(self):
         self.check_failing_token('~')
