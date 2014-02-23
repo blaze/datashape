@@ -7,21 +7,21 @@ from __future__ import absolute_import, division, print_function
 import unittest
 
 import datashape
-from datashape import parser_redo as parser
+from datashape.parser_redo import lexer
 
 class TestDataShapeLexer(unittest.TestCase):
 
     def check_isolated_token(self, ds_str, tname, val=None):
         # The token name should be a property in parser
-        tid = getattr(parser, tname)
+        tid = getattr(lexer, tname)
         # Lexing should produce a single token matching the specification
-        self.assertEqual(list(parser.lex(ds_str)),
-                         [parser.Token(tid, tname, (0, len(ds_str)), val)])
+        self.assertEqual(list(lexer.lex(ds_str)),
+                         [lexer.Token(tid, tname, (0, len(ds_str)), val)])
 
     def check_failing_token(self, ds_str):
         # Creating the lexer will fail, because the error is
         # in the first token.
-        self.assertRaises(datashape.DataShapeSyntaxError, list, parser.lex(ds_str))
+        self.assertRaises(datashape.DataShapeSyntaxError, list, lexer.lex(ds_str))
 
     def test_isolated_tokens(self):
         self.check_isolated_token('testing', 'NAME_LOWER', 'testing')
@@ -118,27 +118,27 @@ class TestDataShapeLexer(unittest.TestCase):
         self.check_failing_token('\\')
 
     def test_whitespace(self):
-        expected_idval = [(parser.COLON, None),
-                          (parser.STRING, 'a'),
-                          (parser.INTEGER, 12345),
-                          (parser.RARROW, None),
-                          (parser.EQUAL, None),
-                          (parser.ASTERISK, None),
-                          (parser.NAME_OTHER, '_b')]
+        expected_idval = [(lexer.COLON, None),
+                          (lexer.STRING, 'a'),
+                          (lexer.INTEGER, 12345),
+                          (lexer.RARROW, None),
+                          (lexer.EQUAL, None),
+                          (lexer.ASTERISK, None),
+                          (lexer.NAME_OTHER, '_b')]
         # With minimal whitespace
-        toks = list(parser.lex(':"a"12345->=*_b'))
+        toks = list(lexer.lex(':"a"12345->=*_b'))
         self.assertEqual([(tok.id, tok.val) for tok in toks], expected_idval)
         # With spaces
-        toks = list(parser.lex(' : "a" 12345 -> = * _b '))
+        toks = list(lexer.lex(' : "a" 12345 -> = * _b '))
         self.assertEqual([(tok.id, tok.val) for tok in toks], expected_idval)
         # With tabs
-        toks = list(parser.lex('\t:\t"a"\t12345\t->\t=\t*\t_b\t'))
+        toks = list(lexer.lex('\t:\t"a"\t12345\t->\t=\t*\t_b\t'))
         self.assertEqual([(tok.id, tok.val) for tok in toks], expected_idval)
         # With newlines
-        toks = list(parser.lex('\n:\n"a"\n12345\n->\n=\n*\n_b\n'))
+        toks = list(lexer.lex('\n:\n"a"\n12345\n->\n=\n*\n_b\n'))
         self.assertEqual([(tok.id, tok.val) for tok in toks], expected_idval)
         # With spaces, tabs, newlines and comments
-        toks = list(parser.lex('# comment\n' +
+        toks = list(lexer.lex('# comment\n' +
                                ': # X\n' +
                                ' "a" # "b"\t\n' +
                                '\t12345\n\n' +
