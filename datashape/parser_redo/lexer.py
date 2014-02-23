@@ -16,10 +16,10 @@ __all__ = ['lex', 'Token']
 
 def _str_val(s):
     # Use the Python parser via the ast module to parse the string,
-    # since neither the string_escape nor unicode_escape do the right thing
+    # since the string_escape and unicode_escape codecs do the wrong thing
     return ast.parse('u' + s).body[0].value.s
 
-# A list of the token names and corresponding regex
+# A list of the token names, corresponding regex, and value extraction function
 _tokens = [
     ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*', lambda x : x),
     ('NAME_UPPER', r'[A-Z][a-zA-Z0-9_]*', lambda x : x),
@@ -68,7 +68,6 @@ def lex(ds_str):
         print('lexing %r' % s)
         for tok in datashape.parser.lex(s):
             print(tok.id, tok.name, tok.span, repr(tok.val))
-
     """
     pos = 0
     # Skip whitespace
