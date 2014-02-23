@@ -169,20 +169,18 @@ Grammar::
               | dtype
 
     # Dimension Type (from the dimension type symbol table)
-    dim : symbol_type
+    dim : typevar
         | ellipsis_typevar
+        | type
+        | type_constr
         | INTEGER
 
-
     # Data Type (from the data type symbol table)
-    dtype : symbol_type
+    dtype : typevar
+          | type
+          | type_constr
           | struct_type
           | funcproto_or_tuple_type
-
-    # A type defined by a symbol
-    symbol_type : typevar
-                | type
-                | type_constr
 
     # A type variable
     typevar : NAME_UPPER

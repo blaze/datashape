@@ -4,7 +4,7 @@ Parser for the datashape grammar.
 
 from __future__ import absolute_import, division, print_function
 
-from .. import error
+from .. import error, coretypes
 from . import lexer
 
 __all__ = ['parse']
@@ -51,13 +51,91 @@ class DataShapeParser(object):
         return self.tokens[self.pos]
 
     def parse_datashape(self):
+        """
+        datashape : dim ASTERISK datashape
+                  | dtype
+
+        Returns a datashape object.
+        """
         tok = self.tok
         if tok.id:
-            return None
+            # Parse zero or more "dim ASTERISK" repetitions
+            dims = []
+            dim = True
+            while dim:
+                saved_pos = self.pos
+                # Parse the dim
+                dim = self.parse_dim()
+                if dim:
+                    if self.tok.id == lexer.ASTERISK:
+                        # If an asterisk is next, we're good
+                        self.advance_tok()
+                        dims.append(dim)
+                    else:
+                        # Otherwise try a dtype
+                        dim = None
+                        self.pos = saved_pos
+            # Parse the dtype
+            dtype = self.parse_dtype()
+            if not dtype:
+                raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                                 self.ds_str,
+                                                 'Expected a dim or a dtype')
+            return coretypes.DataShape(*(dims + [dtype]))
         else:
             raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
                                              self.ds_str,
                                              'Expected a datashape')
+
+    def parse_dim(self):
+        """
+        dim : typevar
+            | ellipsis_typevar
+            | type
+            | type_constr
+            | INTEGER
+        typevar : NAME_UPPER
+        ellipsis_typevar : NAME_UPPER ELLIPSIS
+        type : NAME_LOWER
+        type_constr : NAME_LOWER LBRACKET type_arg_list RBRACKET
+
+        Returns a the dim object, or None.
+        TODO: Support type constructors
+        """
+        tok = self.tok
+        if tok.id == lexer.NAME_UPPER:
+            tvar = coretypes.TypeVar(tok.val)
+            self.advance_tok()
+            if self.tok.id == lexer.ELLIPSIS:
+                self.advance_tok()
+                return coretypes.Ellipsis(tvar)
+            else:
+                return tvar
+        elif tok.id == lexer.NAME_LOWER:
+            saved_pos = self.pos
+            name = tok.val
+            self.advance_tok()
+            if self.tok.id == lexer.LBRACKET:
+                self.advance_tok()
+                args = self.parse_type_arg_list()
+                if self.tok.id == lexer.RBRACKET:
+                    self.advance_tok()
+                else:
+                    raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                                     ds_str,
+                                                     'Expected closing ]')
+                raise RuntimeError('dim type constructors not actually supported yet')
+            else:
+                dim = self.sym.dim.get(name)
+                if dim:
+                    return dim
+                else:
+                    self.pos = saved_pos
+                    return None
+        elif tok.id == lexer.INTEGER:
+            return coretypes.Fixed(tok.val)
+        else:
+            return None
 
 def parse(ds_str, sym):
     """Parses a single datashape from a string.
