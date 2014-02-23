@@ -5,17 +5,25 @@ Lexer for the datashape grammar.
 from __future__ import absolute_import, division, print_function
 
 import re
+import ast
+import collections
+
 from .. import error
 
 # This is updated to include all the token names from _tokens,
 # where e.g. _tokens[NAME_LOWER-1] is the entry for NAME_LOWER
-__all__ = ['DataShapeLexer']
+__all__ = ['lex', 'Token']
+
+def _str_val(s):
+    # Use the Python parser via the ast module to parse the string,
+    # since neither the string_escape nor unicode_escape do the right thing
+    return ast.parse('u' + s).body[0].value.s
 
 # A list of the token names and corresponding regex
 _tokens = [
-    ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*'),
-    ('NAME_UPPER', r'[A-Z][a-zA-Z0-9_]*'),
-    ('NAME_OTHER', r'_[a-zA-Z0-9_]*'),
+    ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*', lambda x : x),
+    ('NAME_UPPER', r'[A-Z][a-zA-Z0-9_]*', lambda x : x),
+    ('NAME_OTHER', r'_[a-zA-Z0-9_]*', lambda x : x),
     ('ASTERISK',   r'\*'),
     ('COMMA',      r','),
     ('EQUAL',      r'='),
@@ -28,9 +36,10 @@ _tokens = [
     ('RPAREN',     r'\)'),
     ('ELLIPSIS',   r'\.\.\.'),
     ('RARROW',     r'->'),
-    ('INTEGER',    r'0(?![0-9])|[1-9][0-9]*'),
+    ('INTEGER',    r'0(?![0-9])|[1-9][0-9]*', int),
     ('STRING', (r"""(?:"(?:[^"\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\["bfnrt]))*")|""" +
-                r"""(?:'(?:[^'\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\['bfnrt]))*')""")),
+                r"""(?:'(?:[^'\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\['bfnrt]))*')"""),
+                _str_val),
 ]
 
 # Dynamically add all the token indices to globals() and __all__
@@ -45,62 +54,49 @@ _tokens_re = re.compile('|'.join('(' + tok[1] + ')' for tok in _tokens),
                         re.MULTILINE)
 _whitespace_re = re.compile(_whitespace, re.MULTILINE)
 
-class DataShapeLexer(object):
-    """A lexer which converts a string output into a stream
-    of tokens.
+Token = collections.namedtuple('Token', 'id, name, span, val')
+
+def lex(ds_str):
+    """A generator which lexes a datashape string into a
+    sequence of tokens.
 
     Example
     -------
 
-        s = '   -> ... A... Blah _eil(#'
+        import datashape
+        s = '   -> ... A... "string" 1234 Blah _eil(# comment'
         print('lexing %r' % s)
-        lex = DataShapeLexer(s)
-        while lex.token:
-            print(lex.token, lex.token_name, lex.token_range, lex.token_str)
-            lex.advance()
+        for tok in datashape.parser.lex(s):
+            print(tok.id, tok.name, tok.span, repr(tok.val))
 
     """
-    def __init__(self, ds_str):
-        self.ds_str = ds_str
-        self.pos = 0
-        self.advance()
-
-    def advance(self):
-        """Advances the lexer to the next token. This updates
-        self.token, self.token_name, and self.token_range.
-        """
-        # Skip whitespace
-        m = _whitespace_re.match(self.ds_str, self.pos)
-        if m:
-            self.pos = m.end()
+    pos = 0
+    # Skip whitespace
+    m = _whitespace_re.match(ds_str, pos)
+    if m:
+        pos = m.end()
+    while pos < len(ds_str):
         # Try to match a token
-        m = _tokens_re.match(self.ds_str, self.pos)
+        m = _tokens_re.match(ds_str, pos)
         if m:
             # m.lastindex gives us which group was matched, which
             # is one greater than the index into the _tokens list.
-            self.token = m.lastindex
-            self.token_name = _tokens[self.token - 1][0]
-            self.token_range = m.span()
-            self.pos = m.end()
-        else:
-            if self.pos == len(self.ds_str):
-                self.token = None
-                self.token_name = None
-                self.token_range = None
+            id = m.lastindex
+            tokinfo = _tokens[id - 1]
+            name = tokinfo[0]
+            span = m.span()
+            if len(tokinfo) > 2:
+                val = tokinfo[2](ds_str[span[0]:span[1]])
             else:
-                raise error.DataShapeSyntaxError(self.pos, '<nofile>',
-                                                 self.ds_str,
-                                                 'Invalid DataShape token')
+                val = None
+            pos = m.end()
+            yield Token(id, name, span, val)
+        else:
+            raise error.DataShapeSyntaxError(pos, '<nofile>',
+                                             ds_str,
+                                             'Invalid DataShape token')
+        # Skip whitespace
+        m = _whitespace_re.match(ds_str, pos)
+        if m:
+            pos = m.end()
 
-    @property
-    def token_str(self):
-        tr = self.token_range
-        return self.ds_str[tr[0]:tr[1]]
-
-if __name__ == '__main__':
-    s = '   -> ... A... Blah _eil(#'
-    print('lexing %r' % s)
-    lex = DataShapeLexer(s)
-    while lex.token:
-        print(lex.token, lex.token_name, lex.token_range, lex.token_str)
-        lex.advance()
