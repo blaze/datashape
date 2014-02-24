@@ -5,6 +5,7 @@ from . import parser_redo
 from .traversal import transform, tmap, tzip, traverse
 from .coretypes import *
 from .typesets import *
+from .type_symbol_table import *
 from .util import *
 from .normalization import (normalize, simplify,
                             normalize_ellipses, normalize_broadcasting)

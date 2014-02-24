@@ -773,6 +773,9 @@ int16 = CType('int16', 2, ctypes.alignment(ctypes.c_int16))
 int32 = CType('int32', 4, ctypes.alignment(ctypes.c_int32))
 int64 = CType('int64', 8, ctypes.alignment(ctypes.c_int64))
 
+# int is an alias for int32
+int_ = int32
+
 uint8 = CType('uint8', 1, 1)
 uint16 = CType('uint16', 2, ctypes.alignment(ctypes.c_uint16))
 uint32 = CType('uint32', 4, ctypes.alignment(ctypes.c_uint32))
@@ -783,6 +786,9 @@ float32 = CType('float32', 4, ctypes.alignment(ctypes.c_float))
 float64 = CType('float64', 8, ctypes.alignment(ctypes.c_double))
 #float128 = CType('float128', 16)
 
+# real is an alias for float64
+real = float64
+
 complex_float32 = CType('complex[float32]', 8, ctypes.alignment(ctypes.c_float))
 complex_float64 = CType('complex[float64]', 16, ctypes.alignment(ctypes.c_double))
 Type.register('complex64', complex_float32)
@@ -790,6 +796,9 @@ complex64  = complex_float32
 Type.register('complex128', complex_float64)
 complex128 = complex_float64
 #complex256 = CType('complex256', 32)
+
+# complex is an alias for complex[float64]
+complex_ = complex_float64
 
 timedelta64 = CType('timedelta64', 8, ctypes.alignment(ctypes.c_int64))
 datetime64 = CType('datetime64', 8, ctypes.alignment(ctypes.c_int64))
@@ -829,10 +838,6 @@ c_double = float64
 half = float16
 single = float32
 double = float64
-
-# TODO: the semantics of these are still being discussed
-int_ = int32
-float_ = float32
 
 void = CType('void', 0, 1)
 object_ = pyobj = CType('object',

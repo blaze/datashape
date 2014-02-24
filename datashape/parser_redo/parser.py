@@ -56,6 +56,7 @@ class DataShapeParser(object):
 
         Returns a datashape object.
         """
+        print('parse_datashape', self.tok)
         tok = self.tok
         if tok.id:
             # Parse zero or more "dim ASTERISK" repetitions
@@ -76,11 +77,12 @@ class DataShapeParser(object):
                         self.pos = saved_pos
             # Parse the dtype
             dtype = self.parse_dtype()
-            if not dtype:
+            if dtype:
+                return coretypes.DataShape(*(dims + [dtype]))
+            else:
                 raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
                                                  self.ds_str,
                                                  'Expected a dim or a dtype')
-            return coretypes.DataShape(*(dims + [dtype]))
         else:
             raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
                                              self.ds_str,
@@ -101,6 +103,7 @@ class DataShapeParser(object):
         Returns a the dim object, or None.
         TODO: Support type constructors
         """
+        print('parse_dim', self.tok)
         tok = self.tok
         if tok.id == lexer.NAME_UPPER:
             tvar = coretypes.TypeVar(tok.val)
@@ -136,6 +139,57 @@ class DataShapeParser(object):
         else:
             return None
 
+    def parse_dtype(self):
+        """
+        dtype : typevar
+              | type
+              | type_constr
+              | struct_type
+              | funcproto_or_tuple_type
+        typevar : NAME_UPPER
+        ellipsis_typevar : NAME_UPPER ELLIPSIS
+        type : NAME_LOWER
+        type_constr : NAME_LOWER LBRACKET type_arg_list RBRACKET
+        struct_type : LBRACE ...
+        funcproto_or_tuple_type : LPAREN ...
+
+        Returns a the dtype object, or None.
+        """
+        print('parse_dtype', self.tok)
+        tok = self.tok
+        if tok.id == lexer.NAME_UPPER:
+            tvar = coretypes.TypeVar(tok.val)
+            self.advance_tok()
+            return tvar
+        elif tok.id == lexer.NAME_LOWER:
+            saved_pos = self.pos
+            name = tok.val
+            self.advance_tok()
+            if self.tok.id == lexer.LBRACKET:
+                self.advance_tok()
+                args = self.parse_type_arg_list()
+                if self.tok.id == lexer.RBRACKET:
+                    self.advance_tok()
+                    dtype_constr = self.sym.dtype_constr.get(name)
+                    if dtype_constr:
+                        return dtype_constr(*args)
+                    else:
+                        self.pos = saved_pos
+                        return None
+                else:
+                    raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                                     ds_str,
+                                                     'Expected an argument or a closing ]')
+            else:
+                dtype = self.sym.dtype.get(name)
+                if dtype:
+                    return dtype
+                else:
+                    self.pos = saved_pos
+                    return None
+        else:
+            return None
+
 def parse(ds_str, sym):
     """Parses a single datashape from a string.
 
@@ -143,7 +197,7 @@ def parse(ds_str, sym):
     ----------
     ds_str : string
         The datashape string to parse.
-    sym : TypeSymTable
+    sym : TypeSymbolTable
         The symbol tables of dimensions, dtypes, and type constructors for each.
 
     """
