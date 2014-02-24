@@ -8,7 +8,7 @@ import re
 import ast
 import collections
 
-from .. import error
+from . import error
 
 # This is updated to include all the token names from _tokens,
 # where e.g. _tokens[NAME_LOWER-1] is the entry for NAME_LOWER

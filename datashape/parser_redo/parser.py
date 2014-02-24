@@ -4,8 +4,7 @@ Parser for the datashape grammar.
 
 from __future__ import absolute_import, division, print_function
 
-from .. import error, coretypes
-from . import lexer
+from .. import error, coretypes, lexer
 
 __all__ = ['parse']
 

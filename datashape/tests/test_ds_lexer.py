@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 import unittest
 
 import datashape
-from datashape.parser_redo import lexer
+from datashape import lexer
 
 class TestDataShapeLexer(unittest.TestCase):
 
