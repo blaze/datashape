@@ -12,6 +12,14 @@ from . import coretypes as T
 
 _is_64bit = (ctypes.sizeof(ctypes.c_void_p) == 8)
 
+def _complex(tp):
+    """Simple temporary type constructor for complex"""
+    if tp == T.DataShape(T.float32):
+        return T.complex_float32
+    elif tp == T.DataShape(T.float64):
+        return T.complex_float64
+    else:
+        raise TypeError('Cannot contruct a complex type with real component %s' % tp)
 
 class TypeSymbolTable(object):
     """
@@ -59,3 +67,5 @@ class TypeSymbolTable(object):
                            ('float64', T.float64),
                            ('real', T.float64),
                            ('complex', T.complex_float64)])
+        # data types with a type constructor
+        self.dtype_constr.update([('complex', _complex)])

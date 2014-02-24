@@ -213,12 +213,10 @@ Grammar::
     type_kwarg : NAME_LOWER EQUAL type_arg
 
     # Type Constructor : single list argument
-    list_type_arg : empty_list
+    list_type_arg : LBRACKET RBRACKET
                   | LBRACKET datashape_list RBRACKET
                   | LBRACKET integer_list RBRACKET
                   | LBRACKET string_list RBRACKET
-
-    empty_list : LBRACKET RBRACKET
 
     datashape_list : datashape COMMA datashape_list
                    | datashape
