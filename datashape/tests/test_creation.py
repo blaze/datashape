@@ -14,7 +14,7 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertRaises(TypeError, dshape, None)
         self.assertRaises(TypeError, dshape, lambda x: x+1)
         # Check issue 11
-        self.assertRaises(datashape.parser.DataShapeSyntaxError, dshape, '1,')
+        self.assertRaises(datashape.DataShapeSyntaxError, dshape, '1,')
 
     def test_reserved_future_bigint(self):
         # The "bigint" datashape is reserved for a future big integer type

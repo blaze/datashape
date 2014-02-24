@@ -66,7 +66,7 @@ def lex(ds_str):
         import datashape
         s = '   -> ... A... "string" 1234 Blah _eil(# comment'
         print('lexing %r' % s)
-        for tok in datashape.parser.lex(s):
+        for tok in datashape.lexer.lex(s):
             print(tok.id, tok.name, tok.span, repr(tok.val))
     """
     pos = 0

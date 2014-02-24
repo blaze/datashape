@@ -2,7 +2,7 @@ import unittest
 
 import datashape
 from datashape.tests import common
-from datashape.parser import parse
+from datashape.old_parser import parse
 from datashape.coretypes import Option, Function
 from datashape.typesets import integral
 

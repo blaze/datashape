@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from . import parser
+from . import old_parser
 from . import parser_redo
 from .traversal import transform, tmap, tzip, traverse
 from .coretypes import *

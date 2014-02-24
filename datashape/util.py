@@ -17,7 +17,7 @@ except ImportError as e:
     from UserDict import DictMixin as MutableMapping
 
 from . import py2help
-from . import parser
+from . import old_parser
 from .error import UnificationError
 from .validation import validate
 from .coretypes import (DataShape, Fixed, TypeVar, Record, Ellipsis, String,
@@ -48,7 +48,7 @@ POINTER = 1
 
 def dopen(fname):
     contents = open(fname).read()
-    return parser.parse_extern(contents)
+    return old_parser.parse_extern(contents)
 
 def dshapes(*args):
     """
@@ -86,15 +86,15 @@ def dshape(o, multi=False):
 
 def _dshape(o, multi=False):
     if multi:
-        return list(parser.parse_mod(o))
+        return list(old_parser.parse_mod(o))
     if isinstance(o, py2help._strtypes):
-        return parser.parse(o)
+        return old_parser.parse(o)
     elif isinstance(o, Mono):
         return o
     elif isinstance(o, (CType, String, Record, JSON)):
         return DataShape(o)
     elif hasattr(o, 'read'):
-        return list(parser.parse_mod(o.read()))
+        return list(old_parser.parse_mod(o.read()))
     else:
         raise TypeError('Cannot create dshape from object of type %s' % type(o))
 
