@@ -4,7 +4,10 @@ Parser for the datashape grammar.
 
 from __future__ import absolute_import, division, print_function
 
-from .. import coretypes, lexer, error
+from . import lexer, error
+# TODO: Remove coretypes dependency, make 100% of interaction through
+#       the type symbol table
+from . import coretypes
 
 __all__ = ['parse']
 

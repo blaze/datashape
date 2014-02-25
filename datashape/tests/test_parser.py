@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 import unittest
 
 import datashape
-from datashape.parser_redo import parse
+from datashape.parser import parse
 from datashape import coretypes as T
 from datashape import DataShapeSyntaxError
 from datashape.py2help import skip
