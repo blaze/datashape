@@ -96,6 +96,8 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         sym.dtype['int8'] = T.int8
         sym.dtype['uint16'] = T.uint16
         sym.dtype['float64'] = T.float64
+        # TypeVar type constructor
+        sym.dtype_constr['typevar'] = T.TypeVar
         # Unary dtype constructor that asserts on the argument value
         expected_blah = [None]
         def _unary_type_constr(blah):
@@ -167,6 +169,8 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         sym.dtype['int8'] = T.int8
         sym.dtype['uint16'] = T.uint16
         sym.dtype['float64'] = T.float64
+        # TypeVar type constructor
+        sym.dtype_constr['typevar'] = T.TypeVar
         # Binary dtype constructor that asserts on the argument values
         expected_arg = [None, None]
         def _binary_type_constr(a, b):

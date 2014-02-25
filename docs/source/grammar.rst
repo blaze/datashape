@@ -68,13 +68,20 @@ Here are some simple examples to motivate the idea::
 Syntactic Sugar
 ---------------
 
-Integer dimensions, structures, tuples, and function prototypes are
-syntactic sugar for particular type constructors as follows::
+Many syntax elements in datashape are syntax sugar for particular
+type constructors. For dtypes, this is::
 
-    3 * int32                 =>   fixed[3] * int32
     {x : int32; y : int16     =>   struct[['x', 'y'], [int32, int16]]
     (int64, float32)          =>   tuple[[int64, float32]]
     (int64, float32) -> bool  =>   funcproto[[int64, float32], bool]
+    DTypeVar                  =>   typevar['DTypeVar']
+
+For dims, this is::
+
+    3 * int32                 =>   fixed[3] * int32
+    DimVar * int32            =>   typevar['DimVar'] * int32
+    ... * int32               =>   ellipsis * int32
+    DimVar... * int32         =>   ellipsis['DimVar'] * int32
 
 The DataShape Grammar
 ---------------------
@@ -185,6 +192,7 @@ Grammar::
         | type
         | type_constr
         | INTEGER
+        | ELLIPSIS
 
     # Data Type (from the data type symbol table)
     dtype : typevar

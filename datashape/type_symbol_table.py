@@ -29,6 +29,18 @@ def _funcproto(args, ret):
     """Simple temporary type constructor for funcproto"""
     return T.Function(*(args + [ret]))
 
+def _typevar_dim(name):
+    """Simple temporary type constructor for typevar as a dim"""
+    # Note: Presently no difference between dim and dtype typevar
+    return T.TypeVar(name)
+
+def _typevar_dtype(name):
+    """Simple temporary type constructor for typevar as a dtype"""
+    # Note: Presently no difference between dim and dtype typevar
+    return T.TypeVar(name)
+
+def _ellipsis(name):
+    return T.Ellipsis(T.TypeVar(name))
 
 class TypeSymbolTable(object):
     """
@@ -86,8 +98,12 @@ class TypeSymbolTable(object):
                                   ('string', T.String),
                                   ('struct', _struct),
                                   ('tuple', T.Tuple),
-                                  ('funcproto', _funcproto)])
+                                  ('funcproto', _funcproto),
+                                  ('typevar', _typevar_dtype)])
         # dim types with no type constructor
-        self.dim.update([('var', T.Var())])
+        self.dim.update([('var', T.Var()),
+                         ('ellipsis', T.Ellipsis())])
         # dim types with a type constructor
-        self.dim_constr.update([('fixed', T.Fixed)])
+        self.dim_constr.update([('fixed', T.Fixed),
+                                ('typevar', _typevar_dim),
+                                ('ellipsis', _ellipsis)])

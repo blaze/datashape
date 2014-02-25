@@ -4,8 +4,7 @@ Parser for the datashape grammar.
 
 from __future__ import absolute_import, division, print_function
 
-from .. import coretypes, lexer
-from ..error import DataShapeSyntaxError
+from .. import coretypes, lexer, error
 
 __all__ = ['parse']
 
@@ -51,8 +50,8 @@ class DataShapeParser(object):
         return self.tokens[self.pos]
 
     def raise_error(self, errmsg):
-        raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                   self.ds_str, errmsg)
+        raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                         self.ds_str, errmsg)
 
     def parse_homogeneous_list(self, parse_item, sep_tok_id, errmsg,
                                trailing_sep=False):
@@ -89,6 +88,34 @@ class DataShapeParser(object):
                 else:
                     self.pos = saved_pos
                     return None
+
+    def syntactic_sugar(self, symdict, name, dshapemsg, error_pos=None):
+        """
+        Looks up a symbol in the provided symbol table dictionary for
+        syntactic sugar, raising a standard error message if the symbol
+        is missing.
+
+        Parameters
+        ----------
+        symdict : symbol table dictionary
+            One of self.sym.dtype, self.sym.dim,
+            self.sym.dtype_constr, or self.sym.dim_constr.
+        name : str
+            The name of the symbol to look up.
+        dshapemsg : str
+            The datashape construct this lookup is for, e.g.
+            '{...} dtype constructor'.
+        error_pos : int, optional
+            The position in the token stream at which to flag the error.
+        """
+        entry = symdict.get(name)
+        if entry is not None:
+            return entry
+        else:
+            if error_pos is not None:
+                self.pos = error_pos
+            self.raise_error(('Symbol table missing "%s" ' +
+                             'entry for %s') % (name, dshapemsg))
 
     def parse_datashape(self):
         """
@@ -135,6 +162,7 @@ class DataShapeParser(object):
             | type
             | type_constr
             | INTEGER
+            | ELLIPSIS
         typevar : NAME_UPPER
         ellipsis_typevar : NAME_UPPER ELLIPSIS
         type : NAME_LOWER
@@ -143,17 +171,32 @@ class DataShapeParser(object):
         Returns a the dim object, or None.
         TODO: Support type constructors
         """
+        saved_pos = self.pos
         tok = self.tok
         if tok.id == lexer.NAME_UPPER:
-            tvar = coretypes.TypeVar(tok.val)
+            val = tok.val
             self.advance_tok()
             if self.tok.id == lexer.ELLIPSIS:
                 self.advance_tok()
-                return coretypes.Ellipsis(tvar)
+                # TypeVars ellipses are treated as the "ellipsis" dim
+                tconstr = self.syntactic_sugar(self.sym.dim_constr, 'ellipsis',
+                                               'TypeVar... dim constructor',
+                                               saved_pos)
+                return tconstr(val)
+            elif self.tok.id == lexer.ASTERISK:
+                # Using a lookahead check for '*' after the TypeVar, so that
+                # the error message would be about a dtype problem instead
+                # of a dim problem when 'typevar' isn't in the symbol table
+                #
+                # TypeVars are treated as the "typevar" dim
+                tconstr = self.syntactic_sugar(self.sym.dim_constr, 'typevar',
+                                               'TypeVar dim constructor',
+                                               saved_pos)
+                return tconstr(val)
             else:
-                return tvar
+                self.pos = saved_pos
+                return None
         elif tok.id == lexer.NAME_LOWER:
-            saved_pos = self.pos
             name = tok.val
             self.advance_tok()
             if self.tok.id == lexer.LBRACKET:
@@ -176,7 +219,6 @@ class DataShapeParser(object):
                     self.pos = saved_pos
                     return None
         elif tok.id == lexer.INTEGER:
-            saved_pos = self.pos
             val = tok.val
             self.advance_tok()
             # If the token after the INTEGER is not ASTERISK,
@@ -184,14 +226,17 @@ class DataShapeParser(object):
             if self.tok.id != lexer.ASTERISK:
                 self.pos = saved_pos
                 return None
-            # Integers are treated as "fixed" dimensions, so
-            # look up the fixed type constructor
-            tconstr = self.sym.dim_constr.get('fixed')
-            if tconstr is not None:
-                return tconstr(val)
-            else:
-                self.raise_error('Symbol table missing "fixed" dim ' +
-                                 'constructor for integer dimensions')
+            # Integers are treated as "fixed" dimensions
+            tconstr = self.syntactic_sugar(self.sym.dim_constr, 'fixed',
+                                           'integer dimensions')
+            return tconstr(val)
+        elif tok.id == lexer.ELLIPSIS:
+            self.advance_tok()
+            # Ellipses are treated as the "ellipsis" dim
+            dim = self.syntactic_sugar(self.sym.dim, 'ellipsis',
+                                           '... dim',
+                                           saved_pos)
+            return dim
         else:
             return None
 
@@ -211,13 +256,17 @@ class DataShapeParser(object):
 
         Returns a the dtype object, or None.
         """
+        saved_pos = self.pos
         tok = self.tok
         if tok.id == lexer.NAME_UPPER:
-            tvar = coretypes.TypeVar(tok.val)
+            val = tok.val
             self.advance_tok()
-            return tvar
+            # TypeVars are treated as the "typevar" dtype
+            tconstr = self.syntactic_sugar(self.sym.dtype_constr, 'typevar',
+                                           'TypeVar dtype constructor',
+                                           saved_pos)
+            return tconstr(val)
         elif tok.id == lexer.NAME_LOWER:
-            saved_pos = self.pos
             name = tok.val
             self.advance_tok()
             if self.tok.id == lexer.LBRACKET:
@@ -426,15 +475,10 @@ class DataShapeParser(object):
         # compatible with type constructor parameters
         names = [f[0] for f in fields]
         types = [f[1] for f in fields]
-        # Structs are treated as the "struct" dtype, so
-        # look up the struct type constructor
-        tconstr = self.sym.dtype_constr.get('struct')
-        if tconstr is not None:
-            return tconstr(names, types)
-        else:
-            self.pos = saved_pos
-            self.raise_error('Symbol table missing "struct" dtype ' +
-                             'constructor for {...} dtype')
+        # Structs are treated as the "struct" dtype
+        tconstr = self.syntactic_sugar(self.sym.dtype_constr, 'struct',
+                                       '{...} dtype constructor', saved_pos)
+        return tconstr(names, types)
 
     def parse_struct_field(self):
         """
@@ -485,15 +529,10 @@ class DataShapeParser(object):
             self.raise_error('Invalid datashape in tuple')
         self.advance_tok()
         if self.tok.id != lexer.RARROW:
-            # Tuples are treated as the "tuple" dtype, so
-            # look up the tuple type constructor
-            tconstr = self.sym.dtype_constr.get('tuple')
-            if tconstr is not None:
-                return tconstr(dshapes)
-            else:
-                self.pos = saved_pos
-                self.raise_error('Symbol table missing "tuple" dtype ' +
-                                 'constructor for (...) dtype')
+            # Tuples are treated as the "tuple" dtype
+            tconstr = self.syntactic_sugar(self.sym.dtype_constr, 'tuple',
+                                           '(...) dtype constructor', saved_pos)
+            return tconstr(dshapes)
         else:
             # Get the return datashape after the right arrow
             self.advance_tok()
@@ -501,15 +540,11 @@ class DataShapeParser(object):
             if ret_dshape is None:
                 self.raise_error('Expected function prototype return ' +
                                  'datashape')
-            # Function Prototypes are treated as the "funcproto" dtype, so
-            # look up the funcproto type constructor
-            tconstr = self.sym.dtype_constr.get('funcproto')
-            if tconstr is not None:
-                return tconstr(dshapes, ret_dshape)
-            else:
-                self.pos = saved_pos
-                self.raise_error('Symbol table missing "funcproto" dtype ' +
-                                 'constructor for (...) -> ... dtype')
+            # Function Prototypes are treated as the "funcproto" dtype
+            tconstr = self.syntactic_sugar(self.sym.dtype_constr, 'funcproto',
+                                           '(...) -> ... dtype constructor',
+                                           saved_pos)
+            return tconstr(dshapes, ret_dshape)
 
 
 def parse(ds_str, sym):
