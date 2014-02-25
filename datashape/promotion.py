@@ -12,7 +12,7 @@ import numpy as np
 from .error import UnificationError
 from .util import gensym, verify
 from . import (DataShape, CType, Fixed, Var, to_numpy, to_numpy_dtype,
-               TypeSet, TypeVar, TypeConstructor)
+               TypeSet, TypeVar)
 
 
 def promote_units(*units):
@@ -94,10 +94,6 @@ def promote(a, b):
 
     elif isinstance(a, (DataShape, CType)) and isinstance(b, (DataShape, CType)):
         return promote_datashapes(a, b)
-
-    elif (isinstance(type(a), TypeConstructor) and
-              isinstance(type(b), TypeConstructor)):
-        return promote_type_constructor(a, b)
 
     else:
         raise TypeError("Unknown types, cannot promote: %s and %s" % (a, b))

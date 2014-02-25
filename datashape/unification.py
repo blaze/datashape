@@ -26,7 +26,7 @@ from .error import UnificationError
 from .py2help import dict_iteritems, _strtypes
 from .util import IdentityDict, IdentitySet
 from . import (promote_units, normalize, simplify, tmap, dshape, verify)
-from .coretypes import (TypeVar, Mono, free, TypeConstructor,
+from .coretypes import (TypeVar, Mono, free,
                         MEASURE)
 
 logger = logging.getLogger(__name__)
@@ -137,8 +137,6 @@ def unify_single(t1, t2, solution, remaining):
         if t2 in free(t1):
             raise UnificationError("Cannot unify recursive types")
         solution[t2].add(t1)
-    elif isinstance(t1, TypeConstructor):
-        verify(t1, t2)
     elif not isinstance(t1, Mono) and not isinstance(t2, Mono):
         verify(t1, t2)
     elif getattr(t1, 'cls', None) == MEASURE and getattr(t2, 'cls', None) == MEASURE:
