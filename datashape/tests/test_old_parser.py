@@ -205,7 +205,7 @@ class TestFunction(common.BTestCase):
     def test_function_signature(self):
         res = parse("A, int32 -> B, float64 -> T, T, X")
         self.assertIsInstance(res, Function)
-        self.assertEqual(str(res), 'A, int32 -> B, float64 -> T, T, X')
+        self.assertEqual(str(res), '(A * int32, B * float64) -> T * T * X')
 
 
 if __name__ == '__main__':

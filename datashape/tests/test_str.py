@@ -17,16 +17,16 @@ class TestDataShapeStr(unittest.TestCase):
         self.assertEqual(str(datashape.float32), 'float32')
         self.assertEqual(str(datashape.float64), 'float64')
         self.assertEqual(str(datashape.string), 'string')
-        self.assertEqual(str(datashape.String(3)), 'string(3)')
-        self.assertEqual(str(datashape.String('A')), "string('A')")
+        self.assertEqual(str(datashape.String(3)), 'string[3]')
+        self.assertEqual(str(datashape.String('A')), "string['A']")
 
     def test_structure_str(self):
-        self.assertEqual(str(dshape('{x:int32; y:int64}')),
-                        '{ x : int32; y : int64 }')
+        self.assertEqual(str(dshape('{x:int32, y:int64}')),
+                        '{ x : int32, y : int64 }')
 
     def test_array_str(self):
-        self.assertEqual(str(dshape('3,5,int16')),
-                        '3, 5, int16')
+        self.assertEqual(str(dshape('3*5*int16')),
+                        '3 * 5 * int16')
 
     def test_primitive_measure_repr(self):
         self.assertEqual(repr(datashape.int8),      'ctype("int8")')
@@ -40,17 +40,17 @@ class TestDataShapeStr(unittest.TestCase):
         self.assertEqual(repr(datashape.float32),   'ctype("float32")')
         self.assertEqual(repr(datashape.float64),   'ctype("float64")')
         self.assertEqual(repr(datashape.string),    'ctype("string")')
-        self.assertEqual(repr(datashape.String(3)), 'ctype("string(3)")')
+        self.assertEqual(repr(datashape.String(3)), 'ctype("string[3]")')
         self.assertEqual(repr(datashape.String('A')),
-                        'ctype("string(\'A\')")')
+                        'ctype("string[\'A\']")')
 
     def test_structure_repr(self):
-        self.assertEqual(repr(dshape('{x:int32; y:int64}')),
-                        'dshape("{ x : int32; y : int64 }")')
+        self.assertEqual(repr(dshape('{x:int32, y:int64}')),
+                        'dshape("{ x : int32, y : int64 }")')
 
     def test_array_repr(self):
-        self.assertEqual(repr(dshape('3,5,int16')),
-                        'dshape("3, 5, int16")')
+        self.assertEqual(repr(dshape('3*5*int16')),
+                        'dshape("3 * 5 * int16")')
 
 
 if __name__ == '__main__':
