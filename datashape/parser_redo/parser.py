@@ -501,6 +501,68 @@ class DataShapeParser(object):
                                        'Expected the datashape of the field')
         return (name, ds)
 
+    def parse_funcproto_or_tuple_type(self):
+        """
+        funcproto_or_tuple_type : tuple_type RARROW datashape
+                                | tuple_type
+        tuple_type : LPAREN tuple_item_list RPAREN
+                   | LPAREN tuple_item_list COMMA RPAREN
+                   | LPAREN RPAREN
+        tuple_item_list : datashape COMMA tuple_item_list
+                        | datashape
+
+        Returns a tuple type object, a function prototype, or None.
+        """
+        if self.tok.id != lexer.LPAREN:
+            return None
+        saved_pos = self.pos
+        self.advance_tok()
+        dshapes = self.parse_homogeneous_list(self.parse_datashape, lexer.COMMA,
+                                             'Invalid datashape in tuple',
+                                             trailing_sep=True)
+        if dshapes is None and self.tok.id == lexer.RPAREN:
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'At least one datashape is required in ' +
+                                       'a tuple datashape')
+        if self.tok.id != lexer.RPAREN:
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'Invalid datashape in tuple')
+        self.advance_tok()
+        if self.tok.id != lexer.RARROW:
+            # Tuples are treated as the "tuple" dtype, so
+            # look up the tuple type constructor
+            tconstr = self.sym.dtype_constr.get('tuple')
+            if tconstr is not None:
+                return tconstr(dshapes)
+            else:
+                self.pos = saved_pos
+                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                           self.ds_str,
+                                           'Symbol table missing "tuple" ' +
+                                           'dtype constructor for ' +
+                                           '(...) dtype')
+        else:
+            self.advance_tok()
+            ret_dshape = self.parse_datashape()
+            if ret_dshape is None:
+                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                           self.ds_str,
+                                           'Expected function prototype ' +
+                                           'return datashape')
+            # Function Prototypes are treated as the "funcproto" dtype, so
+            # look up the funcproto type constructor
+            tconstr = self.sym.dtype_constr.get('funcproto')
+            if tconstr is not None:
+                return tconstr(dshapes, ret_dshape)
+            else:
+                self.pos = saved_pos
+                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                           self.ds_str,
+                                           'Symbol table missing "funcproto" ' +
+                                           'dtype constructor for ' +
+                                           '(...) -> ... dtype')
 
 
 def parse(ds_str, sym):

@@ -696,6 +696,42 @@ class Record(Mono):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
 
 
+class Tuple(Mono):
+    """
+    A product type.
+    """
+    cls = MEASURE
+
+    def __init__(self, dshapes):
+        """
+        Parameters
+        ----------
+        dshapes : list of dshapes
+            The datashapes which make up the tuple.
+        """
+        self.__dshapes = tuple(dshapes)
+        self.parameters = (dshapes,)
+
+    @property
+    def dshapes(self):
+        return self.__dshapes
+
+    def __eq__(self, other):
+        if isinstance(other, Tuple):
+            return self.__dshapes == other.__dshapes
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.__dshapes)
+
+    def __str__(self):
+        return '(' + ', '.join(str(x) for x in self.__dshapes) + ')'
+
+    def __repr__(self):
+        return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
+
+
 class JSON(Mono):
     """ JSON measure """
     cls = MEASURE

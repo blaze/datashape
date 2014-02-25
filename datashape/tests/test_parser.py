@@ -483,7 +483,42 @@ class TestDataShapeParseTuple(unittest.TestCase):
         self.sym = datashape.TypeSymbolTable()
 
     def test_tuple(self):
-        pass
+        # Simple tuple
+        self.assertEqual(parse('(float32)', self.sym),
+                         T.DataShape(T.Tuple([T.DataShape(T.float32)])))
+        self.assertEqual(parse('(int16, int32)', self.sym),
+                         T.DataShape(T.Tuple([T.DataShape(T.int16),
+                                              T.DataShape(T.int32)])))
+        # A trailing comma is ok
+        self.assertEqual(parse('(float32,)', self.sym),
+                         T.DataShape(T.Tuple([T.DataShape(T.float32)])))
+        self.assertEqual(parse('(int16, int32,)', self.sym),
+                         T.DataShape(T.Tuple([T.DataShape(T.int16),
+                                              T.DataShape(T.int32)])))
+
+
+class TestDataShapeParseFuncProto(unittest.TestCase):
+    def setUp(self):
+        # Create a default symbol table for the parser to use
+        self.sym = datashape.TypeSymbolTable()
+
+    def test_funcproto(self):
+        # Simple funcproto
+        self.assertEqual(parse('(float32) -> float64', self.sym),
+                         T.DataShape(T.Function(T.DataShape(T.float32),
+                                                T.DataShape(T.float64))))
+        self.assertEqual(parse('(int16, int32) -> bool', self.sym),
+                         T.DataShape(T.Function(T.DataShape(T.int16),
+                                                T.DataShape(T.int32),
+                                                T.DataShape(T.bool_))))
+        # A trailing comma is ok
+        self.assertEqual(parse('(float32,) -> float64', self.sym),
+                         T.DataShape(T.Function(T.DataShape(T.float32),
+                                                T.DataShape(T.float64))))
+        self.assertEqual(parse('(int16, int32,) -> bool', self.sym),
+                         T.DataShape(T.Function(T.DataShape(T.int16),
+                                                T.DataShape(T.int32),
+                                                T.DataShape(T.bool_))))
 
 if __name__ == '__main__':
     unittest.main()

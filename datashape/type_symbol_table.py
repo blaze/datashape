@@ -25,6 +25,11 @@ def _struct(names, dshapes):
     """Simple temporary type constructor for struct"""
     return T.Record(list(zip(names, dshapes)))
 
+def _funcproto(args, ret):
+    """Simple temporary type constructor for funcproto"""
+    return T.Function(*(args + [ret]))
+
+
 class TypeSymbolTable(object):
     """
     This is a class which holds symbols for types and type constructors,
@@ -78,8 +83,10 @@ class TypeSymbolTable(object):
                            ('date', T.date)])
         # data types with a type constructor
         self.dtype_constr.update([('complex', _complex),
+                                  ('string', T.String),
                                   ('struct', _struct),
-                                  ('string', T.String)])
+                                  ('tuple', T.Tuple),
+                                  ('funcproto', _funcproto)])
         # dim types with no type constructor
         self.dim.update([('var', T.Var())])
         # dim types with a type constructor
