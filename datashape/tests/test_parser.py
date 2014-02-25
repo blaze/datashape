@@ -10,6 +10,7 @@ import datashape
 from datashape.parser_redo import parse
 from datashape import coretypes as T
 from datashape import DataShapeSyntaxError
+from datashape.py2help import skip
 
 class TestDataShapeParseBasicDType(unittest.TestCase):
     def setUp(self):
@@ -290,6 +291,16 @@ class TestDataShapeParserDims(unittest.TestCase):
                          T.DataShape(T.Var(), T.Var(), T.bool_))
         self.assertEqual(parse('M * 5 * var * bool', self.sym),
                          T.DataShape(T.TypeVar('M'), T.Fixed(5), T.Var(), T.bool_))
+
+    @skip('There is a bug in unification preventing proper equality on ...')
+    def test_ellipses(self):
+        self.assertEqual(parse('... * bool', self.sym),
+                         T.DataShape(T.Ellipsis(), T.bool_))
+        self.assertEqual(parse('M * ... * bool', self.sym),
+                         T.DataShape(T.TypeVar('M'), T.Ellipsis(), T.bool_))
+        self.assertEqual(parse('M * ... * 3 * bool', self.sym),
+                         T.DataShape(T.TypeVar('M'), T.Ellipsis(),
+                                     T.Fixed(3), T.bool_))
 
 
 class TestDataShapeParseStruct(unittest.TestCase):
