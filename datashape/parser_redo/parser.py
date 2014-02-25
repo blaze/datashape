@@ -50,7 +50,8 @@ class DataShapeParser(object):
     def tok(self):
         return self.tokens[self.pos]
 
-    def parse_homogeneous_list(self, parse_item, sep_tok_id, errmsg):
+    def parse_homogeneous_list(self, parse_item, sep_tok_id, errmsg,
+                               trailing_sep=False):
         """
         <item>_list : <item> <SEP> <item>_list
                     | <item>
@@ -74,11 +75,14 @@ class DataShapeParser(object):
                     return items
             else:
                 if len(items) > 0:
-                    # If we already saw "<item> <SEP>" at least once,
-                    # we can point at the more specific position within
-                    # the list of <item>s where the error occurred
-                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               self.ds_str, errmsg)
+                    if trailing_sep:
+                        return items
+                    else:
+                        # If we already saw "<item> <SEP>" at least once,
+                        # we can point at the more specific position within
+                        # the list of <item>s where the error occurred
+                        raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                                   self.ds_str, errmsg)
                 else:
                     self.pos = saved_pos
                     return None
@@ -250,6 +254,8 @@ class DataShapeParser(object):
                 else:
                     self.pos = saved_pos
                     return None
+        elif tok.id == lexer.LBRACE:
+            return self.parse_struct_type()
         else:
             return None
 
@@ -424,6 +430,76 @@ class DataShapeParser(object):
                                            'Expected another string, ' +
                                            'type constructor parameter ' +
                                            'lists must have uniform type')
+
+    def parse_struct_type(self):
+        """
+        struct_type : LBRACE struct_field_list RBRACE
+                    | LBRACE struct_field_list COMMA RBRACE
+
+        Returns a struct type, or None.
+        """
+        if self.tok.id != lexer.LBRACE:
+            return None
+        saved_pos = self.pos
+        self.advance_tok()
+        fields = self.parse_homogeneous_list(self.parse_struct_field, lexer.COMMA,
+                                             'Invalid field in struct',
+                                             trailing_sep=True)
+        if fields is None and self.tok.id == lexer.RBRACE:
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'At least one field is required in ' +
+                                       'struct datashape')
+        if self.tok.id != lexer.RBRACE:
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'Invalid field in struct')
+        self.advance_tok()
+        # Split apart the names and types into separate lists,
+        # compatible with type constructor parameters
+        names = [f[0] for f in fields]
+        types = [f[1] for f in fields]
+        # Structs are treated as the "struct" dtype, so
+        # look up the struct type constructor
+        tconstr = self.sym.dtype_constr.get('struct')
+        if tconstr is not None:
+            return tconstr(names, types)
+        else:
+            self.pos = saved_pos
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'Symbol table missing "struct" ' +
+                                       'dtype constructor for ' +
+                                       '{...} dtype')
+
+    def parse_struct_field(self):
+        """
+        struct_field : struct_field_name COLON datashape
+        struct_field_name : NAME_LOWER
+                          | NAME_UPPER
+                          | NAME_OTHER
+
+        Returns a tuple (name, datashape object) or None
+        """
+        if self.tok.id not in [lexer.NAME_LOWER, lexer.NAME_UPPER,
+                               lexer.NAME_OTHER]:
+            return None
+        name = self.tok.val
+        self.advance_tok()
+        if self.tok.id != lexer.COLON:
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'Expected a ":" separating the field ' +
+                                       'name from its datashape')
+        self.advance_tok()
+        ds = self.parse_datashape()
+        if ds is None:
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'Expected the datashape of the field')
+        return (name, ds)
+
+
 
 def parse(ds_str, sym):
     """Parses a single datashape from a string.

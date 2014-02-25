@@ -288,5 +288,165 @@ class TestDataShapeParserDims(unittest.TestCase):
                          T.DataShape(T.TypeVar('M'), T.Fixed(5), T.Var(), T.bool_))
 
 
+class TestDataShapeStruct(unittest.TestCase):
+    def setUp(self):
+        # Create a default symbol table for the parser to use
+        self.sym = datashape.TypeSymbolTable()
+
+    def test_struct(self):
+        # Simple struct
+        self.assertEqual(parse('{x: int16, y: int32}', self.sym),
+                         T.DataShape(T.Record([('x', T.DataShape(T.int16)),
+                                               ('y', T.DataShape(T.int32))])))
+        # A trailing comma is ok
+        self.assertEqual(parse('{x: int16, y: int32,}', self.sym),
+                         T.DataShape(T.Record([('x', T.DataShape(T.int16)),
+                                               ('y', T.DataShape(T.int32))])))
+        ds_str = """3 * var * {
+                        id : int32,
+                        name : string,
+                        description : {
+                            language : string,
+                            text : string
+                        },
+                        entries : var * {
+                            date : date,
+                            text : string
+                        }
+                    }"""
+        int32 = T.DataShape(T.int32)
+        string = T.DataShape(T.string)
+        date = T.DataShape(T.date)
+        ds = (T.Fixed(3), T.Var(),
+              T.Record([('id', int32),
+                        ('name', string),
+                        ('description', T.DataShape(T.Record([('language', string),
+                                                              ('text', string)]))),
+                        ('entries', T.DataShape(T.Var(),
+                                                T.Record([('date', date),
+                                                          ('text', string)])))]))
+        self.assertEqual(parse(ds_str, self.sym), T.DataShape(*ds))
+
+    def test_fields_with_dshape_names(self):
+        # Should be able to name a field 'type', 'int64', etc
+        ds = parse("""{
+                type: bool,
+                data: bool,
+                blob: bool,
+                bool: bool,
+                int: int32,
+                float: float32,
+                double: float64,
+                int8: int8,
+                int16: int16,
+                int32: int32,
+                int64: int64,
+                uint8: uint8,
+                uint16: uint16,
+                uint32: uint32,
+                uint64: uint64,
+                float16: float32,
+                float32: float32,
+                float64: float64,
+                float128: float64,
+                complex: float32,
+                complex64: float32,
+                complex128: float64,
+                string: string,
+                object: string,
+                datetime: string,
+                datetime64: string,
+                timedelta: string,
+                timedelta64: string,
+                json: string,
+                var: string,
+            }""", self.sym)
+        self.assertEqual(type(ds[-1]), T.Record)
+        self.assertEqual(len(ds[-1].names), 30)
+
+    def test_kiva_datashape(self):
+        # A slightly more complicated datashape which should parse
+        ds = parse("""5 * var * {
+              id: int64,
+              name: string,
+              description: {
+                languages: var * string[2],
+                texts: json,
+              },
+              status: string,
+              funded_amount: float64,
+              basket_amount: json,
+              paid_amount: json,
+              image: {
+                id: int64,
+                template_id: int64,
+              },
+              video: json,
+              activity: string,
+              sector: string,
+              use: string,
+              delinquent: bool,
+              location: {
+                country_code: string[2],
+                country: string,
+                town: json,
+                geo: {
+                  level: string,
+                  pairs: string,
+                  type: string,
+                },
+              },
+              partner_id: int64,
+              posted_date: json,
+              planned_expiration_date: json,
+              loan_amount: float64,
+              currency_exchange_loss_amount: json,
+              borrowers: var * {
+                first_name: string,
+                last_name: string,
+                gender: string[1],
+                pictured: bool,
+              },
+              terms: {
+                disbursal_date: json,
+                disbursal_currency: string[3,'A'],
+                disbursal_amount: float64,
+                loan_amount: float64,
+                local_payments: var * {
+                  due_date: json,
+                  amount: float64,
+                },
+                scheduled_payments: var * {
+                  due_date: json,
+                  amount: float64,
+                },
+                loss_liability: {
+                  nonpayment: string,
+                  currency_exchange: string,
+                  currency_exchange_coverage_rate: json,
+                },
+              },
+              payments: var * {
+                amount: float64,
+                local_amount: float64,
+                processed_date: json,
+                settlement_date: json,
+                rounded_local_amount: float64,
+                currency_exchange_loss_amount: float64,
+                payment_id: int64,
+                comment: json,
+              },
+              funded_date: json,
+              paid_date: json,
+              journal_totals: {
+                entries: int64,
+                bulkEntries: int64,
+              },
+            }
+        """, self.sym)
+        self.assertEqual(type(ds[-1]), T.Record)
+        self.assertEqual(len(ds[-1].names), 25)
+
+
 if __name__ == '__main__':
     unittest.main()

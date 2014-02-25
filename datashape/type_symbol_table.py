@@ -21,6 +21,10 @@ def _complex(tp):
     else:
         raise TypeError('Cannot contruct a complex type with real component %s' % tp)
 
+def _struct(names, dshapes):
+    """Simple temporary type constructor for struct"""
+    return T.Record(list(zip(names, dshapes)))
+
 class TypeSymbolTable(object):
     """
     This is a class which holds symbols for types and type constructors,
@@ -68,9 +72,14 @@ class TypeSymbolTable(object):
                            ('float32', T.float32),
                            ('float64', T.float64),
                            ('real', T.float64),
-                           ('complex', T.complex_float64)])
+                           ('complex', T.complex_float64),
+                           ('string', T.string),
+                           ('json', T.json),
+                           ('date', T.date)])
         # data types with a type constructor
-        self.dtype_constr.update([('complex', _complex)])
+        self.dtype_constr.update([('complex', _complex),
+                                  ('struct', _struct),
+                                  ('string', T.String)])
         # dim types with no type constructor
         self.dim.update([('var', T.Var())])
         # dim types with a type constructor
