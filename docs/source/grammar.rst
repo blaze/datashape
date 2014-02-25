@@ -65,6 +65,17 @@ Here are some simple examples to motivate the idea::
     # Function prototype with broadcasting dimensions
     (A... * int32, A... * int32) -> A... * int32
 
+Syntactic Sugar
+---------------
+
+Integer dimensions, structures, tuples, and function prototypes are
+syntactic sugar for particular type constructors as follows::
+
+    3 * int32                 =>   fixed[3] * int32
+    {x : int32; y : int16     =>   struct[['x', 'y'], [int32, int16]]
+    (int64, float32)          =>   tuple[[int64, float32]]
+    (int64, float32) -> bool  =>   funcproto[[int64, float32], bool]
+
 The DataShape Grammar
 ---------------------
 
@@ -248,7 +259,7 @@ Grammar::
     # Tuple type (allowing for a trailing comma)
     tuple_type : LPAREN tuple_item_list RPAREN
                | LPAREN tuple_item_list COMMA RPAREN
-               | LPAREN RPAREN
 
     tuple_item_list : datashape COMMA tuple_item_list
                     | datashape
+
