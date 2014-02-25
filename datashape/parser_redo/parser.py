@@ -50,6 +50,10 @@ class DataShapeParser(object):
     def tok(self):
         return self.tokens[self.pos]
 
+    def raise_error(self, errmsg):
+        raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                   self.ds_str, errmsg)
+
     def parse_homogeneous_list(self, parse_item, sep_tok_id, errmsg,
                                trailing_sep=False):
         """
@@ -81,8 +85,7 @@ class DataShapeParser(object):
                         # If we already saw "<item> <SEP>" at least once,
                         # we can point at the more specific position within
                         # the list of <item>s where the error occurred
-                        raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                                   self.ds_str, errmsg)
+                        self.raise_error(errmsg)
                 else:
                     self.pos = saved_pos
                     return None
@@ -120,9 +123,7 @@ class DataShapeParser(object):
                 # If we already saw "dim ASTERISK" at least once,
                 # we can point at the more specific position within
                 # the datashape where the error occurred
-                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                           self.ds_str,
-                                           'Expected a dim or a dtype')
+                self.raise_error('Expected a dim or a dtype')
             else:
                 self.pos = saved_pos
                 return None
@@ -166,9 +167,7 @@ class DataShapeParser(object):
                     self.advance_tok()
                     raise RuntimeError('dim type constructors not actually supported yet')
                 else:
-                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               self.ds_str,
-                                               'Expected a closing "]"')
+                    self.raise_error('Expected a closing "]"')
             else:
                 dim = self.sym.dim.get(name)
                 if dim is not None:
@@ -191,11 +190,8 @@ class DataShapeParser(object):
             if tconstr is not None:
                 return tconstr(val)
             else:
-                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                           self.ds_str,
-                                           'Symbol table missing "fixed" ' +
-                                           'dim constructor for integer ' +
-                                           'dimensions')
+                self.raise_error('Symbol table missing "fixed" dim ' +
+                                 'constructor for integer dimensions')
         else:
             return None
 
@@ -233,17 +229,12 @@ class DataShapeParser(object):
                 args, kwargs = self.parse_type_arg_list()
                 if self.tok.id == lexer.RBRACKET:
                     if len(args) == 0 and len(kwargs) == 0:
-                        raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                                   self.ds_str,
-                                                   'Expected at least one ' +
-                                                   'type constructor argument')
+                        self.raise_error('Expected at least one type ' +
+                                         'constructor argument')
                     self.advance_tok()
                     return dtype_constr(*args, **kwargs)
                 else:
-                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               self.ds_str,
-                                               'Invalid type constructor ' +
-                                               'argument')
+                    self.raise_error('Invalid type constructor argument')
             else:
                 dtype = self.sym.dtype.get(name)
                 if dtype is not None:
@@ -331,14 +322,10 @@ class DataShapeParser(object):
                 return [] if val is None else val
             else:
                 if val is None:
-                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               self.ds_str,
-                                               'Expected a type constructor' +
-                                               ' argument or a closing "]"')
+                    self.raise_error('Expected a type constructor argument ' +
+                                     'or a closing "]"')
                 else:
-                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               self.ds_str,
-                                               'Expected a "," or a closing "]"')
+                    self.raise_error('Expected a "," or a closing "]"')
         else:
             return None
 
@@ -362,11 +349,7 @@ class DataShapeParser(object):
             return (name, arg)
         else:
             # After "NAME_LOWER EQUAL", a type_arg is required.
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'Expected a type constructor' +
-                                       ' argument')
-
+            self.raise_error('Expected a type constructor argument')
 
     def parse_datashape_list(self):
         """
@@ -441,14 +424,10 @@ class DataShapeParser(object):
                                              'Invalid field in struct',
                                              trailing_sep=True)
         if fields is None and self.tok.id == lexer.RBRACE:
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'At least one field is required in ' +
-                                       'struct datashape')
+            self.raise_error('At least one field is required in ' +
+                             'struct datashape')
         if self.tok.id != lexer.RBRACE:
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'Invalid field in struct')
+            self.raise_error('Invalid field in struct')
         self.advance_tok()
         # Split apart the names and types into separate lists,
         # compatible with type constructor parameters
@@ -461,11 +440,8 @@ class DataShapeParser(object):
             return tconstr(names, types)
         else:
             self.pos = saved_pos
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'Symbol table missing "struct" ' +
-                                       'dtype constructor for ' +
-                                       '{...} dtype')
+            self.raise_error('Symbol table missing "struct" dtype ' +
+                             'constructor for {...} dtype')
 
     def parse_struct_field(self):
         """
@@ -482,16 +458,12 @@ class DataShapeParser(object):
         name = self.tok.val
         self.advance_tok()
         if self.tok.id != lexer.COLON:
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'Expected a ":" separating the field ' +
-                                       'name from its datashape')
+            self.raise_error('Expected a ":" separating the field ' +
+                             'name from its datashape')
         self.advance_tok()
         ds = self.parse_datashape()
         if ds is None:
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'Expected the datashape of the field')
+            self.raise_error('Expected the datashape of the field')
         return (name, ds)
 
     def parse_funcproto_or_tuple_type(self):
@@ -514,14 +486,10 @@ class DataShapeParser(object):
                                              'Invalid datashape in tuple',
                                              trailing_sep=True)
         if dshapes is None and self.tok.id == lexer.RPAREN:
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'At least one datashape is required in ' +
-                                       'a tuple datashape')
+            self.raise_error('At least one datashape is required in ' +
+                             'a tuple datashape')
         if self.tok.id != lexer.RPAREN:
-            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                       self.ds_str,
-                                       'Invalid datashape in tuple')
+            self.raise_error('Invalid datashape in tuple')
         self.advance_tok()
         if self.tok.id != lexer.RARROW:
             # Tuples are treated as the "tuple" dtype, so
@@ -531,19 +499,14 @@ class DataShapeParser(object):
                 return tconstr(dshapes)
             else:
                 self.pos = saved_pos
-                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                           self.ds_str,
-                                           'Symbol table missing "tuple" ' +
-                                           'dtype constructor for ' +
-                                           '(...) dtype')
+                self.raise_error('Symbol table missing "tuple" dtype ' +
+                                 'constructor for (...) dtype')
         else:
             self.advance_tok()
             ret_dshape = self.parse_datashape()
             if ret_dshape is None:
-                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                           self.ds_str,
-                                           'Expected function prototype ' +
-                                           'return datashape')
+                self.raise_error('Expected function prototype return ' +
+                                 'datashape')
             # Function Prototypes are treated as the "funcproto" dtype, so
             # look up the funcproto type constructor
             tconstr = self.sym.dtype_constr.get('funcproto')
@@ -551,11 +514,8 @@ class DataShapeParser(object):
                 return tconstr(dshapes, ret_dshape)
             else:
                 self.pos = saved_pos
-                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                           self.ds_str,
-                                           'Symbol table missing "funcproto" ' +
-                                           'dtype constructor for ' +
-                                           '(...) -> ... dtype')
+                self.raise_error('Symbol table missing "funcproto" dtype ' +
+                                 'constructor for (...) -> ... dtype')
 
 
 def parse(ds_str, sym):
