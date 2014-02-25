@@ -159,6 +159,56 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
                             [T.DataShape(T.float64), T.DataShape(T.int8),
                              T.DataShape(T.uint16)])
 
+    def test_binary_dtype_constr(self):
+        # Create a symbol table with no types in it, so we can
+        # make some isolated type constructors for testing
+        sym = datashape.TypeSymbolTable(bare=True)
+        # A limited set of dtypes for testing
+        sym.dtype['int8'] = T.int8
+        sym.dtype['uint16'] = T.uint16
+        sym.dtype['float64'] = T.float64
+        # Binary dtype constructor that asserts on the argument values
+        expected_arg = [None, None]
+        def _binary_type_constr(a, b):
+            self.assertEqual(a, expected_arg[0])
+            self.assertEqual(b, expected_arg[1])
+            expected_arg[0] = None
+            expected_arg[1] = None
+            return T.float32
+        sym.dtype_constr['binary'] = _binary_type_constr
+
+        def assertExpectedParse(ds_str, expected_a, expected_b):
+            # Set the expected value, and call the parser
+            expected_arg[0] = expected_a
+            expected_arg[1] = expected_b
+            self.assertEqual(parser.parse(ds_str, sym), T.DataShape(T.float32))
+            # Make sure the expected value was actually run by
+            # check that it reset the expected value to None
+            self.assertEqual(expected_arg, [None, None],
+                             'The test binary type constructor did not run')
+
+        # Positional args
+        assertExpectedParse('binary[1, 0]', 1, 0)
+        assertExpectedParse('binary[0, "test"]', 0, 'test')
+        assertExpectedParse('binary[int8, "test"]',
+                            T.DataShape(T.int8), 'test')
+        assertExpectedParse('binary[[1,3,5], "test"]', [1, 3, 5], 'test')
+        # Positional and keyword args
+        assertExpectedParse('binary[0, b=1]', 0, 1)
+        assertExpectedParse('binary["test", b=A]', 'test',
+                            T.DataShape(T.TypeVar('A')))
+        assertExpectedParse('binary[[3, 6], b=int8]', [3, 6],
+                            T.DataShape(T.int8))
+        assertExpectedParse('binary[Arg, b=["x", "test"]]',
+                            T.DataShape(T.TypeVar('Arg')), ['x', 'test'])
+        # Keyword args
+        assertExpectedParse('binary[a=1, b=0]', 1, 0)
+        assertExpectedParse('binary[a=[int8, A, uint16], b="x"]',
+                            [T.DataShape(T.int8),
+                             T.DataShape(T.TypeVar('A')),
+                             T.DataShape(T.uint16)],
+                            'x')
+
     def test_dtype_constr_errors(self):
         # Create a symbol table with no types in it, so we can
         # make some isolated type constructors for testing
@@ -172,7 +222,7 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
             return T.float32
         sym.dtype_constr['tcon'] = _type_constr
 
-        # Require closeing "]"
+        # Require closing "]"
         self.assertRaises(DataShapeSyntaxError,
                           parser.parse, 'tcon[', sym)
         # Type constructors should always have an argument
