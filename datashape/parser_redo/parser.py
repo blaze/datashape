@@ -4,7 +4,8 @@ Parser for the datashape grammar.
 
 from __future__ import absolute_import, division, print_function
 
-from .. import error, coretypes, lexer
+from .. import coretypes, lexer
+from ..error import DataShapeSyntaxError
 
 __all__ = ['parse']
 
@@ -49,6 +50,39 @@ class DataShapeParser(object):
     def tok(self):
         return self.tokens[self.pos]
 
+    def parse_homogeneous_list(self, parse_item, sep_tok_id, errmsg):
+        """
+        <item>_list : <item> <SEP> <item>_list
+                    | <item>
+
+        Returns a list of <item>s, or None.
+        """
+        saved_pos = self.pos
+        # Parse zero or more "<item> <SEP>" repetitions
+        items = []
+        item = True
+        while item is not None:
+            # Parse the <item>
+            item = parse_item()
+            if item is not None:
+                items.append(item)
+                if self.tok.id == sep_tok_id:
+                    # If a <SEP> is next, there are more items
+                    self.advance_tok()
+                else:
+                    # Otherwise we've reached the end
+                    return items
+            else:
+                if len(items) > 0:
+                    # If we already saw "<item> <SEP>" at least once,
+                    # we can point at the more specific position within
+                    # the list of <item>s where the error occurred
+                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                               self.ds_str, msg)
+                else:
+                    self.pos = saved_pos
+                    return None
+
     def parse_datashape(self):
         """
         datashape : dim ASTERISK datashape
@@ -83,9 +117,9 @@ class DataShapeParser(object):
                 # If we already saw "dim ASTERISK" at least once,
                 # we can point at the more specific position within
                 # the datashape where the error occurred
-                raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                                 self.ds_str,
-                                                 'Expected a dim or a dtype')
+                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                           self.ds_str,
+                                           'Expected a dim or a dtype')
             else:
                 self.pos = saved_pos
                 return None
@@ -130,9 +164,9 @@ class DataShapeParser(object):
                     self.advance_tok()
                     raise RuntimeError('dim type constructors not actually supported yet')
                 else:
-                    raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                                     ds_str,
-                                                     'Expected closing ]')
+                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                               ds_str,
+                                               'Expected a closing "]"')
             else:
                 dim = self.sym.dim.get(name)
                 if dim is not None:
@@ -182,9 +216,9 @@ class DataShapeParser(object):
                     self.advance_tok()
                     return dtype_constr(*args, **kwargs)
                 else:
-                    raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                                     ds_str,
-                                                     'Expected an argument or a closing ]')
+                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                               ds_str,
+                                               'Expected an argument or a closing "]"')
             else:
                 dtype = self.sym.dtype.get(name)
                 if dtype is not None:
@@ -205,6 +239,7 @@ class DataShapeParser(object):
 
         Returns a tuple (args, kwargs), or (None, None).
         """
+        print('parse_type_arg_list', self.tok)
         # Parse zero or more "type_arg COMMA" repetitions
         args = []
         arg = True
@@ -225,7 +260,18 @@ class DataShapeParser(object):
             else:
                 break
         kwargs = self.parse_type_kwarg_list()
-        return (args, kwargs)
+        return (args, dict(kwargs))
+
+    def parse_type_kwarg_list(self):
+        """
+        type_kwarg_list : type_kwarg COMMA type_kwarg_list
+                        | type_kwarg
+        """
+        print('parse_type_kwarg_list', self.tok)
+        return self.parse_homogeneous_list(self.parse_type_kwarg, lexer.COMMA,
+                                           'Expected another keyword argument, ' +
+                                           'positional arguments cannot follow ' +
+                                           'keyword arguments')
 
     def parse_type_arg(self):
         """
@@ -240,6 +286,7 @@ class DataShapeParser(object):
 
         Returns a type_arg value, or None.
         """
+        print('parse_type_arg', self.tok)
         ds = self.parse_datashape()
         if ds is not None:
             return ds
@@ -248,7 +295,6 @@ class DataShapeParser(object):
             self.advance_tok()
             return val
         elif self.tok.id == lexer.LBRACKET:
-            saved_pos = self.pos
             self.advance_tok()
             val = self.parse_datashape_list()
             if val is None:
@@ -256,13 +302,105 @@ class DataShapeParser(object):
             if val is None:
                 val = self.parse_string_list()
             if self.tok.id == lexer.RBRACKET:
+                self.advance_tok()
                 return [] if val is None else val
             else:
-                raise error.DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                                 ds_str,
-                                                 'Expected a closing ]')
+                if val is None:
+                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                               self.ds_str,
+                                               'Expected a type constructor' +
+                                               ' argument or a closing "]"')
+                else:
+                    raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                               self.ds_str,
+                                               'Expected a "," or a closing "]"')
         else:
             return None
+
+    def parse_type_kwarg(self):
+        """
+        type_kwarg : NAME_LOWER EQUAL type_arg
+
+        Returns a (name, type_arg) tuple, or None.
+        """
+        print('parse_type_kwarg', self.tok)
+        if self.tok.id != lexer.NAME_LOWER:
+            return None
+        saved_pos = self.pos
+        name = self.tok.val
+        self.advance_tok()
+        if self.tok.id != lexer.EQUAL:
+            self.pos = saved_pos
+            return None
+        self.advance_tok()
+        arg = self.parse_type_arg()
+        if arg is not None:
+            return (name, arg)
+        else:
+            # After "NAME_LOWER EQUAL", a type_arg is required.
+            raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                       self.ds_str,
+                                       'Expected a type constructor' +
+                                       ' argument')
+
+
+    def parse_datashape_list(self):
+        """
+        datashape_list : datashape COMMA datashape_list
+                       | datashape
+
+        Returns a list of datashape type objects, or None.
+        """
+        return self.parse_homogeneous_list(self.parse_datashape, lexer.COMMA,
+                                           'Expected another integer, ' +
+                                           'type constructor parameter ' +
+                                           'lists must have uniform type')
+
+    def parse_integer(self):
+        """
+        integer : INTEGER
+        """
+        if self.tok.id == lexer.INTEGER:
+            val = self.tok.val
+            self.advance_tok()
+            return val
+        else:
+            return None
+
+    def parse_integer_list(self):
+        """
+        integer_list : INTEGER COMMA integer_list
+                     | INTEGER
+
+        Returns a list of integers, or None.
+        """
+        return self.parse_homogeneous_list(self.parse_integer, lexer.COMMA,
+                                           'Expected another integer, ' +
+                                           'type constructor parameter ' +
+                                           'lists must have uniform type')
+
+    def parse_string(self):
+        """
+        string : STRING
+        """
+        if self.tok.id == lexer.STRING:
+            val = self.tok.val
+            self.advance_tok()
+            return val
+        else:
+            return None
+
+    def parse_string_list(self):
+        """
+        string_list : STRING COMMA string_list
+                    | STRING
+
+        Returns a list of strings, or None.
+        """
+        return self.parse_homogeneous_list(self.parse_string, lexer.COMMA,
+                                           'Expected another string, ' +
+                                           'type constructor parameter ' +
+                                           'lists must have uniform type')
 
 def parse(ds_str, sym):
     """Parses a single datashape from a string.
@@ -279,13 +417,13 @@ def parse(ds_str, sym):
     ds = dsp.parse_datashape()
     # If no datashape could be found
     if ds is None:
-        raise error.DataShapeSyntaxError(dsp.tok.span[0], '<nofile>',
-                                         ds_str,
-                                         'Expected a dim or a dtype')
+        raise DataShapeSyntaxError(dsp.tok.span[0], '<nofile>',
+                                   ds_str,
+                                   'Expected a dim or a dtype')
 
     # Make sure there's no garbage at the end
     if dsp.pos != dsp.end_pos:
-        raise error.DataShapeSyntaxError(dsp.tok.span[0], '<nofile>',
-                                         ds_str,
-                                         'Unexpected token in datashape')
+        raise DataShapeSyntaxError(dsp.tok.span[0], '<nofile>',
+                                   ds_str,
+                                   'Unexpected token in datashape')
     return ds

@@ -37,6 +37,8 @@ class TypeSymbolTable(object):
     sym.dim_constr
         Dimension symbols with a type constructor.
     """
+    __slots__ = ['dtype', 'dtype_constr', 'dim', 'dim_constr']
+
     def __init__(self, bare=False):
         # Initialize all the symbol tables to empty dicts1
         self.dtype = {}
