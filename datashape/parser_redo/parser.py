@@ -256,6 +256,8 @@ class DataShapeParser(object):
                     return None
         elif tok.id == lexer.LBRACE:
             return self.parse_struct_type()
+        elif tok.id == lexer.LPAREN:
+            return self.parse_funcproto_or_tuple_type()
         else:
             return None
 

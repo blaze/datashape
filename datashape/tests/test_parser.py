@@ -11,7 +11,7 @@ from datashape.parser_redo import parse
 from datashape import coretypes as T
 from datashape import DataShapeSyntaxError
 
-class TestDataShapeParserBasicDType(unittest.TestCase):
+class TestDataShapeParseBasicDType(unittest.TestCase):
     def setUp(self):
         # Create a default symbol table for the parser to use
         self.sym = datashape.TypeSymbolTable()
@@ -288,7 +288,7 @@ class TestDataShapeParserDims(unittest.TestCase):
                          T.DataShape(T.TypeVar('M'), T.Fixed(5), T.Var(), T.bool_))
 
 
-class TestDataShapeStruct(unittest.TestCase):
+class TestDataShapeParseStruct(unittest.TestCase):
     def setUp(self):
         # Create a default symbol table for the parser to use
         self.sym = datashape.TypeSymbolTable()
@@ -302,6 +302,11 @@ class TestDataShapeStruct(unittest.TestCase):
         self.assertEqual(parse('{x: int16, y: int32,}', self.sym),
                          T.DataShape(T.Record([('x', T.DataShape(T.int16)),
                                                ('y', T.DataShape(T.int32))])))
+        # Field names starting with _ and caps
+        self.assertEqual(parse('{_x: int16, Zed: int32,}', self.sym),
+                         T.DataShape(T.Record([('_x', T.DataShape(T.int16)),
+                                               ('Zed', T.DataShape(T.int32))])))
+        # A slightly bigger example
         ds_str = """3 * var * {
                         id : int32,
                         name : string,
@@ -447,6 +452,38 @@ class TestDataShapeStruct(unittest.TestCase):
         self.assertEqual(type(ds[-1]), T.Record)
         self.assertEqual(len(ds[-1].names), 25)
 
+    def test_struct_errors(self):
+        self.assertRaises(datashape.DataShapeSyntaxError,
+                          parse, '{\n}\n', self.sym)
+        self.assertRaises(datashape.DataShapeSyntaxError,
+                          parse,
+                          '{id: int64, name: string amount: invalidtype}',
+                          self.sym)
+        self.assertRaises(datashape.DataShapeSyntaxError,
+                          parse,
+                          '{id: int64, name: string, amount: invalidtype}',
+                          self.sym)
+        self.assertRaises(datashape.DataShapeSyntaxError,
+                          parse,
+                          '{id: int64, name: string, amount: %}',
+                          self.sym)
+        self.assertRaises(datashape.DataShapeSyntaxError,
+                          parse,
+                          "{\n" +
+                          "   id: int64;\n" +
+                          "   name: string;\n" +
+                          "   amount+ float32;\n" +
+                          "}\n",
+                          self.sym)
+
+
+class TestDataShapeParseTuple(unittest.TestCase):
+    def setUp(self):
+        # Create a default symbol table for the parser to use
+        self.sym = datashape.TypeSymbolTable()
+
+    def test_tuple(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()
