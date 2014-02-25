@@ -123,7 +123,7 @@ class DataShapeParser(object):
                 # If we already saw "dim ASTERISK" at least once,
                 # we can point at the more specific position within
                 # the datashape where the error occurred
-                self.raise_error('Expected a dim or a dtype')
+                self.raise_error('Expected a dtype')
             else:
                 self.pos = saved_pos
                 return None
@@ -277,18 +277,11 @@ class DataShapeParser(object):
                     return (args, {})
             else:
                 break
-        kwargs = self.parse_type_kwarg_list()
-        return (args, dict(kwargs) if kwargs else {})
-
-    def parse_type_kwarg_list(self):
-        """
-        type_kwarg_list : type_kwarg COMMA type_kwarg_list
-                        | type_kwarg
-        """
-        return self.parse_homogeneous_list(self.parse_type_kwarg, lexer.COMMA,
+        kwargs = self.parse_homogeneous_list(self.parse_type_kwarg, lexer.COMMA,
                                            'Expected another keyword argument, ' +
                                            'positional arguments cannot follow ' +
                                            'keyword arguments')
+        return (args, dict(kwargs) if kwargs else {})
 
     def parse_type_arg(self):
         """
@@ -502,6 +495,7 @@ class DataShapeParser(object):
                 self.raise_error('Symbol table missing "tuple" dtype ' +
                                  'constructor for (...) dtype')
         else:
+            # Get the return datashape after the right arrow
             self.advance_tok()
             ret_dshape = self.parse_datashape()
             if ret_dshape is None:
@@ -533,13 +527,9 @@ def parse(ds_str, sym):
     ds = dsp.parse_datashape()
     # If no datashape could be found
     if ds is None:
-        raise DataShapeSyntaxError(dsp.tok.span[0], '<nofile>',
-                                   ds_str,
-                                   'Invalid datashape')
+        dsp.raise_error('Invalid datashape')
 
     # Make sure there's no garbage at the end
     if dsp.pos != dsp.end_pos:
-        raise DataShapeSyntaxError(dsp.tok.span[0], '<nofile>',
-                                   ds_str,
-                                   'Unexpected token in datashape')
+        dsp.raise_error('Unexpected token in datashape')
     return ds
