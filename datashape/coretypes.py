@@ -128,8 +128,21 @@ class Ellipsis(Mono):
     def __repr__(self):
         return 'Ellipsis("%s")' % (str(self),)
 
+    def __eq__(self, other):
+        if isinstance(other, Ellipsis):
+            # BUG: Comparing all non-typevar ellipsis as unequal,
+            #      because of a bug in the normalization/unification
+            #      code which gets exposed more readily when they
+            #      compare as equal.
+            if self.parameters[0] is None:
+                return self is other
+            else:
+                return self.parameters == other.parameters
+        else:
+            return False
+
     def __hash__(self):
-        return hash('...')
+        return hash((self.parameters[0], '...'))
 
 
 class Null(Unit):

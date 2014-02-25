@@ -71,3 +71,7 @@ class TypeSymbolTable(object):
                            ('complex', T.complex_float64)])
         # data types with a type constructor
         self.dtype_constr.update([('complex', _complex)])
+        # dim types with no type constructor
+        self.dim.update([('var', T.Var())])
+        # dim types with a type constructor
+        self.dim_constr.update([('fixed', T.Fixed)])

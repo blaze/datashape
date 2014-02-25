@@ -165,7 +165,7 @@ class DataShapeParser(object):
                     raise RuntimeError('dim type constructors not actually supported yet')
                 else:
                     raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               ds_str,
+                                               self.ds_str,
                                                'Expected a closing "]"')
             else:
                 dim = self.sym.dim.get(name)
@@ -175,7 +175,25 @@ class DataShapeParser(object):
                     self.pos = saved_pos
                     return None
         elif tok.id == lexer.INTEGER:
-            return coretypes.Fixed(tok.val)
+            saved_pos = self.pos
+            val = tok.val
+            self.advance_tok()
+            # If the token after the INTEGER is not ASTERISK,
+            # it cannot be a dim, so skip it
+            if self.tok.id != lexer.ASTERISK:
+                self.pos = saved_pos
+                return None
+            # Integers are treated as "fixed" dimensions, so
+            # look up the fixed type constructor
+            tconstr = self.sym.dim_constr.get('fixed')
+            if tconstr is not None:
+                return tconstr(val)
+            else:
+                raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                           self.ds_str,
+                                           'Symbol table missing "fixed" ' +
+                                           'dim constructor for integer ' +
+                                           'dimensions')
         else:
             return None
 
@@ -424,7 +442,7 @@ def parse(ds_str, sym):
     if ds is None:
         raise DataShapeSyntaxError(dsp.tok.span[0], '<nofile>',
                                    ds_str,
-                                   'Expected a dim or a dtype')
+                                   'Invalid datashape')
 
     # Make sure there's no garbage at the end
     if dsp.pos != dsp.end_pos:

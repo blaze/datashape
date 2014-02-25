@@ -38,6 +38,8 @@ class CustomSyntaxError(DataShapeException):
         self.line = text[linestart:lineend]
         self.col_offset = lexpos - linestart
 
+        print(str(self)) # REMOVEME
+
     def __str__(self):
         pointer = ' '*self.col_offset + '^'
 
