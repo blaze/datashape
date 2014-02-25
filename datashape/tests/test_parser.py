@@ -9,6 +9,7 @@ import unittest
 import datashape
 from datashape import parser_redo as parser
 from datashape import coretypes as T
+from datashape import DataShapeSyntaxError
 
 class TestDataShapeParserBasicDType(unittest.TestCase):
     def setUp(self):
@@ -122,6 +123,7 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         assertExpectedParse(u'unary["\uc548\ub155"]', u'\uc548\ub155')
         # DataShape parameter (positional)
         assertExpectedParse('unary[int8]', T.DataShape(T.int8))
+        assertExpectedParse('unary[X]', T.DataShape(T.TypeVar('X')))
         # Empty list parameter (positional)
         assertExpectedParse('unary[[]]', [])
         # List of integers parameter (positional)
@@ -144,6 +146,7 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         assertExpectedParse(u'unary[blah="\uc548\ub155"]', u'\uc548\ub155')
         # DataShape parameter (keyword)
         assertExpectedParse('unary[blah=int8]', T.DataShape(T.int8))
+        assertExpectedParse('unary[blah=X]', T.DataShape(T.TypeVar('X')))
         # Empty list parameter (keyword)
         assertExpectedParse('unary[blah=[]]', [])
         # List of integers parameter (keyword)
@@ -155,6 +158,50 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         assertExpectedParse('unary[blah=[float64, int8, uint16]]',
                             [T.DataShape(T.float64), T.DataShape(T.int8),
                              T.DataShape(T.uint16)])
+
+    def test_dtype_constr_errors(self):
+        # Create a symbol table with no types in it, so we can
+        # make some isolated type constructors for testing
+        sym = datashape.TypeSymbolTable(bare=True)
+        # A limited set of dtypes for testing
+        sym.dtype['int8'] = T.int8
+        sym.dtype['uint16'] = T.uint16
+        sym.dtype['float64'] = T.float64
+        # Arbitrary dtype constructor that does nothing
+        def _type_constr(*args, **kwargs):
+            return T.float32
+        sym.dtype_constr['tcon'] = _type_constr
+
+        # Require closeing "]"
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[', sym)
+        # Type constructors should always have an argument
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[]', sym)
+        # Unknown type
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[unknown]', sym)
+        # Missing parameter value
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[x=', sym)
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[x=]', sym)
+        # A positional arg cannot be after a keyword arg
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[x=A, B]', sym)
+        # List args must be homogeneous
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[[0, "x"]]', sym)
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[[0, X]]', sym)
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[["x", 0]]', sym)
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[["x", X]]', sym)
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[[X, 0]]', sym)
+        self.assertRaises(DataShapeSyntaxError,
+                          parser.parse, 'tcon[[X, "x"]]', sym)
 
 if __name__ == '__main__':
     unittest.main()

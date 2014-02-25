@@ -78,7 +78,7 @@ class DataShapeParser(object):
                     # we can point at the more specific position within
                     # the list of <item>s where the error occurred
                     raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               self.ds_str, msg)
+                                               self.ds_str, errmsg)
                 else:
                     self.pos = saved_pos
                     return None
@@ -213,12 +213,18 @@ class DataShapeParser(object):
                 self.advance_tok()
                 args, kwargs = self.parse_type_arg_list()
                 if self.tok.id == lexer.RBRACKET:
+                    if len(args) == 0 and len(kwargs) == 0:
+                        raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
+                                                   self.ds_str,
+                                                   'Expected at least one ' +
+                                                   'type constructor argument')
                     self.advance_tok()
                     return dtype_constr(*args, **kwargs)
                 else:
                     raise DataShapeSyntaxError(self.tok.span[0], '<nofile>',
-                                               ds_str,
-                                               'Expected an argument or a closing "]"')
+                                               self.ds_str,
+                                               'Invalid type constructor ' +
+                                               'argument')
             else:
                 dtype = self.sym.dtype.get(name)
                 if dtype is not None:
@@ -244,7 +250,6 @@ class DataShapeParser(object):
         args = []
         arg = True
         while arg is not None:
-            saved_pos = self.pos
             # Parse the type_arg
             arg = self.parse_type_arg()
             if arg is not None:
@@ -260,7 +265,7 @@ class DataShapeParser(object):
             else:
                 break
         kwargs = self.parse_type_kwarg_list()
-        return (args, dict(kwargs))
+        return (args, dict(kwargs) if kwargs else {})
 
     def parse_type_kwarg_list(self):
         """
@@ -352,7 +357,7 @@ class DataShapeParser(object):
         Returns a list of datashape type objects, or None.
         """
         return self.parse_homogeneous_list(self.parse_datashape, lexer.COMMA,
-                                           'Expected another integer, ' +
+                                           'Expected another datashape, ' +
                                            'type constructor parameter ' +
                                            'lists must have uniform type')
 

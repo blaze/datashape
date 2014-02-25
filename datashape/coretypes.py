@@ -562,16 +562,14 @@ class TypeVar(Unit):
     def __str__(self):
         return str(self.symbol)
 
-    # All TypeVariables compare equal
-    # dshape('M,int32') = dshape('N,int32')
-    # def __eq__(self, other):
-    #     if not isinstance(other, TypeVar):
-    #         return False
-    #     else:
-    #         return True
+    def __eq__(self, other):
+        if isinstance(other, TypeVar):
+            return self.symbol == other.symbol
+        else:
+            return False
 
-    # def __hash__(self):
-    #     return hash(self.__class__)
+    def __hash__(self):
+        return hash(self.symbol)
 
 
 class Implements(Mono):
