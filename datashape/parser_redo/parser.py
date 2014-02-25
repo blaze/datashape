@@ -94,7 +94,6 @@ class DataShapeParser(object):
 
         Returns a datashape object or None.
         """
-        print('parse_datashape', self.tok)
         saved_pos = self.pos
         # Parse zero or more "dim ASTERISK" repetitions
         dims = []
@@ -143,7 +142,6 @@ class DataShapeParser(object):
         Returns a the dim object, or None.
         TODO: Support type constructors
         """
-        print('parse_dim', self.tok)
         tok = self.tok
         if tok.id == lexer.NAME_UPPER:
             tvar = coretypes.TypeVar(tok.val)
@@ -217,7 +215,6 @@ class DataShapeParser(object):
 
         Returns a the dtype object, or None.
         """
-        print('parse_dtype', self.tok)
         tok = self.tok
         if tok.id == lexer.NAME_UPPER:
             tvar = coretypes.TypeVar(tok.val)
@@ -271,7 +268,6 @@ class DataShapeParser(object):
 
         Returns a tuple (args, kwargs), or (None, None).
         """
-        print('parse_type_arg_list', self.tok)
         # Parse zero or more "type_arg COMMA" repetitions
         args = []
         arg = True
@@ -298,7 +294,6 @@ class DataShapeParser(object):
         type_kwarg_list : type_kwarg COMMA type_kwarg_list
                         | type_kwarg
         """
-        print('parse_type_kwarg_list', self.tok)
         return self.parse_homogeneous_list(self.parse_type_kwarg, lexer.COMMA,
                                            'Expected another keyword argument, ' +
                                            'positional arguments cannot follow ' +
@@ -317,7 +312,6 @@ class DataShapeParser(object):
 
         Returns a type_arg value, or None.
         """
-        print('parse_type_arg', self.tok)
         ds = self.parse_datashape()
         if ds is not None:
             return ds
@@ -354,7 +348,6 @@ class DataShapeParser(object):
 
         Returns a (name, type_arg) tuple, or None.
         """
-        print('parse_type_kwarg', self.tok)
         if self.tok.id != lexer.NAME_LOWER:
             return None
         saved_pos = self.pos
