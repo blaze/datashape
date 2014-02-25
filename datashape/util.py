@@ -18,6 +18,8 @@ except ImportError as e:
 
 from . import py2help
 from . import old_parser
+from . import parser
+from . import type_symbol_table
 from .error import UnificationError
 from .validation import validate
 from .coretypes import (DataShape, Fixed, TypeVar, Record, Ellipsis, String,
@@ -29,7 +31,7 @@ from .traversal import tmap
 from .typesets import TypeSet
 
 
-__all__ = ['dopen', 'dshape', 'dshapes', 'cat_dshapes', 'broadcastable',
+__all__ = ['dshape', 'dshapes', 'cat_dshapes', 'broadcastable',
            'dummy_signature', 'verify',
            'from_ctypes', 'from_cffi', 'to_ctypes', 'from_llvm',
            'to_numba', 'from_numba_str',
@@ -45,10 +47,6 @@ POINTER = 1
 #------------------------------------------------------------------------
 # Utility Functions for DataShapes
 #------------------------------------------------------------------------
-
-def dopen(fname):
-    contents = open(fname).read()
-    return old_parser.parse_extern(contents)
 
 def dshapes(*args):
     """
@@ -68,33 +66,25 @@ def dshapes(*args):
 
     return [tmap(f, t) for t in result]
 
-def dshape(o, multi=False):
+def dshape(o):
     """
     Parse a blaze type. For a thorough description see
     http://blaze.pydata.org/docs/datashape.html
 
-    Parameters
-    ----------
-    multi: bool
-        indicates whether the input is a single type or a series of types.
     """
-    ds = _dshape(o, multi)
+    ds = _dshape(o)
     validate(ds)
     if isinstance(ds, CType):
         ds = DataShape(ds)
     return _unique_typevars(ds)
 
-def _dshape(o, multi=False):
-    if multi:
-        return list(old_parser.parse_mod(o))
+def _dshape(o):
     if isinstance(o, py2help._strtypes):
-        return old_parser.parse(o)
+        return parser.parse(o, type_symbol_table.sym)
     elif isinstance(o, Mono):
         return o
     elif isinstance(o, (CType, String, Record, JSON)):
         return DataShape(o)
-    elif hasattr(o, 'read'):
-        return list(old_parser.parse_mod(o.read()))
     else:
         raise TypeError('Cannot create dshape from object of type %s' % type(o))
 

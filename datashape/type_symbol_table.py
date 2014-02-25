@@ -4,7 +4,7 @@ A symbol table object to hold types for the parser.
 
 from __future__ import absolute_import, division, print_function
 
-__all__ = ['TypeSymbolTable']
+__all__ = ['TypeSymbolTable', 'sym']
 
 import ctypes
 
@@ -107,3 +107,6 @@ class TypeSymbolTable(object):
         self.dim_constr.update([('fixed', T.Fixed),
                                 ('typevar', _typevar_dim),
                                 ('ellipsis', _ellipsis)])
+
+# Create the default global type symbol table
+sym = TypeSymbolTable()

@@ -294,11 +294,11 @@ class String(Unit):
         if self.fixlen is None and self.encoding == 'U8':
             return 'string'
         elif self.fixlen is not None and self.encoding == 'U8':
-            return 'string(%i)' % self.fixlen
+            return 'string[%i]' % self.fixlen
         elif self.fixlen is None and self.encoding != 'U8':
-            return 'string(%s)' % repr(self.encoding).strip('u')
+            return 'string[%s]' % repr(self.encoding).strip('u')
         else:
-            return 'string(%i, %s)' % \
+            return 'string[%i, %s]' % \
                             (self.fixlen, repr(self.encoding).strip('u'))
 
     def __repr__(self):
@@ -361,7 +361,7 @@ class DataShape(Mono):
         if self.name:
             res = self.name
         else:
-            res = (', '.join(map(str, self.parameters)))
+            res = (' * '.join(map(str, self.parameters)))
 
         return res
 
@@ -431,7 +431,7 @@ class Option(DataShape):
         self.ty = params[0]
 
     def __str__(self):
-        return 'option(%s)' % str(self.ty)
+        return 'option[%s]' % str(self.ty)
 
     def __repr__(self):
         return str(self)
@@ -564,8 +564,9 @@ class TypeVar(Unit):
     # cls could be MEASURE or DIMENSION, depending on context
 
     def __init__(self, symbol):
-        if symbol.startswith("'"):
-            symbol = symbol[1:]
+        if not symbol[0].isupper():
+            raise ValueError(('TypeVar symbol %r does not ' +
+                              'begin with a capital') % symbol)
         self.symbol = symbol
         self.parameters = (symbol,)
 
@@ -625,11 +626,15 @@ class Function(Mono):
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash(('Function',) + self.parameters)
+
     # def __repr__(self):
     #     return " -> ".join(map(repr, self.parameters))
 
     def __str__(self):
-        return " -> ".join(map(str, self.parameters))
+        return ('(' + ', '.join(map(str, self.parameters[:-1])) +
+                ') -> ' + str(self.parameters[-1]))
 
 
 class Record(Mono):
@@ -1034,7 +1039,7 @@ def record_string(fields, values):
         if (i+1) == count:
             body += '%s : %s' % (k,v)
         else:
-            body += '%s : %s; ' % (k,v)
+            body += '%s : %s, ' % (k,v)
     return '{ ' + body + ' }'
 
 
