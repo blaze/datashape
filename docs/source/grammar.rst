@@ -71,7 +71,7 @@ Syntactic Sugar
 Many syntax elements in datashape are syntax sugar for particular
 type constructors. For dtypes, this is::
 
-    {x : int32; y : int16     =>   struct[['x', 'y'], [int32, int16]]
+    {x : int32; y : int16}    =>   struct[['x', 'y'], [int32, int16]]
     (int64, float32)          =>   tuple[[int64, float32]]
     (int64, float32) -> bool  =>   funcproto[[int64, float32], bool]
     DTypeVar                  =>   typevar['DTypeVar']
