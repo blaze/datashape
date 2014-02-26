@@ -44,7 +44,7 @@ def tmap(f, t, descend=descend):
 
 def tzip(f, a, b, descend=descend):
     """Map f over two types zip-wise"""
-    from . import verify # TODO: remove circularity
+    from .util import verify # TODO: remove circularity
 
     if not descend(a) or not descend(b):
         return a, b

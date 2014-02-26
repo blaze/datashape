@@ -212,7 +212,7 @@ class StringConstant(Unit):
         return hash(self.val)
 
 
-class Bytes(Mono):
+class Bytes(Unit):
     """ Bytes type """
     cls = MEASURE
 
@@ -241,7 +241,7 @@ _canonical_string_encodings = {
 }
 
 
-class String(Mono):
+class String(Unit):
     """ String container """
     cls = MEASURE
 

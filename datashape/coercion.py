@@ -16,7 +16,8 @@ import datashape
 from .error import CoercionError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import boolean, complexes, floating, integral, signed, unsigned
-from . import verify, normalize, Implements, Fixed, Var, Ellipsis, DataShape
+from . import verify, Implements, Fixed, Var, Ellipsis, DataShape
+from .normalization import normalize, _strip_datashape
 
 
 class CoercionTable(object):
@@ -87,6 +88,7 @@ def coercion_cost(a, b, seen=None):
 
     Type `a` and `b'` must be unifiable and normalized.
     """
+    a, b = _strip_datashape(a), _strip_datashape(b)
     # Determine the approximate cost and subtract the term size of the
     # right hand side: the more complicated the RHS, the more specific
     # the match should be
@@ -157,7 +159,7 @@ def coerce_datashape(a, b, seen):
     penalty = broadcast_penalty + ellipsis_penalty
 
     # Process rest of parameters
-    [(a, b)], _ = normalize([(a, b)], [True])
+    [(a, b)] = normalize([(a, b)])
     verify(a, b)
     for x, y in zip(a.parameters, b.parameters):
         penalty += coercion_cost(x, y, seen)

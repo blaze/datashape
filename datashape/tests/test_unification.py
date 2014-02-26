@@ -12,7 +12,7 @@ class TestUnification(unittest.TestCase):
     def test_unify_datashape_promotion(self):
         d1 = dshape('10 * T1 * int32')
         d2 = dshape('T2 * T2 * float32')
-        [result], constraints = unify([(d1, d2)], [True])
+        [result], constraints = unify([(d1, d2)])
         self.assertEqual(result, dshape('10 * 10 * float32'))
 
     def test_unify_datashape_promotion2(self):
@@ -38,7 +38,7 @@ class TestUnification(unittest.TestCase):
         # Fixed(10), but not whether it is actually Fixed(10) (it may also be
         # Fixed(1))
 
-        [arg1, arg2], remaining_constraints = unify(constraints, [True, True])
+        [arg1, arg2], remaining_constraints = unify(constraints)
         self.assertEqual(str(arg1), '10 * B * int16')
         self.assertEqual(str(arg2), '10 * 10 * float32')
 
@@ -51,19 +51,19 @@ class TestUnification(unittest.TestCase):
     def test_unify_broadcasting1(self):
         ds1 = dshape('A * B * int32')
         ds2 = dshape('K * M * N * float32')
-        [result], constraints = unify([(ds1, ds2)], [True])
+        [result], constraints = unify([(ds1, ds2)])
         self.assertEqual(str(result), '1 * A * B * float32')
 
     def test_unify_broadcasting2(self):
         ds1 = dshape('A * B * C * int32')
         ds2 = dshape('M * N * float32')
-        [result], constraints = unify([(ds1, ds2)], [True])
+        [result], constraints = unify([(ds1, ds2)])
         self.assertEqual(str(result), '1 * B * C * float32')
 
     def test_unify_ellipsis(self):
         ds1 = dshape('A * ... * B * int32')
         ds2 = dshape('M * N * ... * S * T * float32')
-        [result], constraints = unify([(ds1, ds2)], [True])
+        [result], constraints = unify([(ds1, ds2)])
         self.assertEqual(str(result), 'A * N * ... * S * B * float32')
 
     def test_unify_ellipsis_to_scalar(self):
@@ -73,12 +73,12 @@ class TestUnification(unittest.TestCase):
         ds2 = dshape('(int32) -> R')
 
         # Try with (ds1, ds2)
-        [result], constraints = unify([(ds1, ds2)], [True])
+        [result], constraints = unify([(ds1, ds2)])
         self.assertEqual(str(result), '(int32) -> int32')
         self.assertEqual(constraints, [])
 
         # Try with (ds2, ds1)
-        [result], constraints = unify([(ds2, ds1)], [True])
+        [result], constraints = unify([(ds2, ds1)])
         self.assertEqual(str(result), '(int32) -> int32')
         # We have one constraint, namely that R must be coercible to int32
         self.assertEqual(len(constraints), 1)
@@ -90,12 +90,12 @@ class TestUnification(unittest.TestCase):
         ds2 = dshape('(3 * int32, int32) -> R')
 
         # Try with (ds1, ds2)
-        [result], constraints = unify([(ds1, ds2)], [True])
+        [result], constraints = unify([(ds1, ds2)])
         self.assertEqual(str(result), '(3 * int32, int32) -> 3 * int32')
         self.assertEqual(constraints, [])
 
         # Try with (ds2, ds1)
-        [result], constraints = unify([(ds2, ds1)], [True])
+        [result], constraints = unify([(ds2, ds1)])
         self.assertEqual(str(result), '(3 * int32, int32) -> 3 * int32')
         # We have one constraint
         self.assertEqual(len(constraints), 1)
@@ -103,21 +103,21 @@ class TestUnification(unittest.TestCase):
     def test_unify_ellipsis2(self):
         ds1 = dshape('(X * Y * float32, ... * float32) -> Z')
         ds2 = dshape('(10 * T1 * int32, T2 * T2 * float32) -> R')
-        [result], constraints = unify([(ds1, ds2)], [True])
+        [result], constraints = unify([(ds1, ds2)])
         self.assertEqual(str(result), '(10 * Y * int32, T2 * T2 * float32) -> Z')
 
     @skip('implements has not been implemented in the new parser')
     def test_unify_implements(self):
         d1 = dshape('10 * int32')
         d2 = dshape('T * A : numeric')
-        [res], constraints = unify([(d1, d2)], [True])
+        [res], constraints = unify([(d1, d2)])
         self.assertEqual(str(res), '10 * int32')
         self.assertFalse(constraints)
 
     def test_unify_record_promotion(self):
         d1 = dshape('10 * T1 * {x: int32, y: int32}')
         d2 = dshape('T2 * T2 * {x: int32, y: int32}')
-        [result], constraints = unify([(d1, d2)], [True])
+        [result], constraints = unify([(d1, d2)])
         self.assertEqual(result, dshape('10 * 10 * {x: int32, y: int32}'))
 
 
@@ -126,25 +126,25 @@ class TestUnificationErrors(unittest.TestCase):
     def test_unify_datashape_bad_unifications(self):
         d1 = dshape('2 * int32')
         d2 = dshape('3 * int32')
-        self.assertRaises(error.UnificationError, unify, [(d1, d2)], [True])
+        self.assertRaises(error.UnificationError, unify, [(d1, d2)])
         d1 = dshape('1 * int32')
         d2 = dshape('3 * int32')
-        self.assertRaises(error.UnificationError, unify, [(d1, d2)], [True])
-        self.assertRaises(error.UnificationError, unify, [(d2, d1)], [True])
+        self.assertRaises(error.UnificationError, unify, [(d1, d2)])
+        self.assertRaises(error.UnificationError, unify, [(d2, d1)])
         d1 = dshape('3 * T * int32')
         d2 = dshape('1 * S * int32')
-        self.assertRaises(error.UnificationError, unify, [(d1, d2)], [True])
+        self.assertRaises(error.UnificationError, unify, [(d1, d2)])
 
     def test_unify_datashape_error(self):
         d1 = dshape('10 * 11 * int32')
         d2 = dshape('T2 * T2 * int32')
-        self.assertRaises(error.UnificationError, unify, [(d1, d2)], [True])
+        self.assertRaises(error.UnificationError, unify, [(d1, d2)])
 
     @skip('implements has not been implemented in the new parser')
     def test_unify_datashape_error_implements(self):
         d1 = dshape('10 * int32')
         d2 = dshape('T * A : floating')
-        self.assertRaises(error.UnificationError, unify, [(d1, d2)], [True])
+        self.assertRaises(error.UnificationError, unify, [(d1, d2)])
 
 
 if __name__ == '__main__':

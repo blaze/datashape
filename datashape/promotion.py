@@ -126,7 +126,7 @@ def promote_datashapes(a, b):
     dst = DataShape(*[TypeVar(gensym()) for i in range(n + 1)])
 
     # Unify
-    [result1, result2], _ = unify([(a, dst), (b, dst)], [True, True])
+    [result1, result2], _ = unify([(a, dst), (b, dst)])
 
     assert result1 == result2
     return result1

@@ -234,10 +234,9 @@ def find_matches(overloads, argtypes, constraints=()):
         # Unification
 
         equations = list(chain([(input, sig)], constraints))
-        broadcasting = [True] * l1
 
         try:
-            result, remaining = unify(equations, broadcasting)
+            result, remaining = unify(equations)
         except UnificationError:
             continue
         else:

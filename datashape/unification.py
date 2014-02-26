@@ -40,27 +40,27 @@ def unify_simple(a, b):
     a = dshape(a)
     b = dshape(b)
     print('unify_simple', repr(a), repr(b))
-    [res], _ = unify([(a, b)], [True])
+    [res], _ = unify([(a, b)])
     return res
 
-def unify(constraints, broadcasting=None):
+def unify(constraints):
     """
     Unify a set of constraints and return a concrete solution
 
         >>> import blaze
         >>> d1 = blaze.dshape('10, int32')
         >>> d2 = blaze.dshape('T, float32')
-        >>> [result], constraints = unify([(d1, d2)], [True])
+        >>> [result], constraints = unify([(d1, d2)])
         >>> result
         dshape("10, float32")
         >>> constraints
         []
     """
-    print('unify', constraints, broadcasting)
+    print('unify', constraints)
     S = IdentityDict()
 
     # Compute a solution to a set of constraints
-    constraints, b_env = normalize(constraints, broadcasting)
+    constraints = normalize(constraints)
     logger.debug("Normalized constraints: %s", constraints)
     print("Normalized constraints: %s", constraints)
 
@@ -72,7 +72,6 @@ def unify(constraints, broadcasting=None):
     merge_typevar_sets(remaining, solution)
 
     # Compute a type substitution with concrete types from the solution
-    # TODO: incorporate broadcasting environment during reification
     substitution = reify(solution)
     logger.debug("Substitution: %s", substitution)
     print("Substitution: %s", substitution)
@@ -127,6 +126,7 @@ def unify_single(t1, t2, solution, remaining):
     Unify a single type equation and update the solution and remaining
     constraints.
     """
+    print('unify_single', t1, '    ', t2)
     if isinstance(t1, TypeVar) and isinstance(t2, TypeVar):
         remaining.append((t1, t2))
     elif isinstance(t1, TypeVar):

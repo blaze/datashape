@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 """
 Datashape normalization. This handles Ellipses and broadcasting.
 """
 
 from functools import partial
-from itertools import chain
+from itertools import chain, starmap
 from collections import defaultdict, deque
 
 from .error import DataShapeTypeError, UnificationError
@@ -19,27 +17,23 @@ from .py2help import reduce
 # Normalization
 #------------------------------------------------------------------------
 
-def normalize(constraints, broadcasting=None):
+def normalize(constraints):
     """
     Parameters
     ----------
 
     constraints : [(DataShape, DataShape)]
         List of constraints (datashape type equations)
-    broadcasting: [bool]
-        indicates for each constraint whether the two DataShapes broadcast
 
-    Returns: (constraints, broadcast_env)
-        A two-tuple containing a list of normalized constraints and a
-        broadcasting environment listing all type variables which may
-        broadcast together.
+    Returns: constraints
+        A list of normalized constraints.
     """
-    broadcasting_env = None
     result = [normalize_simple(a, b) for a, b in constraints]
-    return result, broadcasting_env
+    return result
 
 def normalize_simple(a, b):
-    a, b = normalize_datashapes(a, b)
+    a, b = _strip_datashape(a), _strip_datashape(b)
+    a, b = _wrap_ctypes(a, b)
     a, b = normalize_ellipses(a, b)
     a, b = normalize_broadcasting(a, b)
     return a, b
@@ -48,8 +42,15 @@ def normalize_simple(a, b):
 # DataShape Normalizers
 #------------------------------------------------------------------------
 
-def normalize_datashapes(a, b):
-    # Normalize (CType, DataShape) pairs
+def _strip_datashape(a):
+    """Strips off the outer DataShape(...) if a is zero-dimensional."""
+    if isinstance(a, DataShape) and len(a) == 1:
+        a = a[0]
+    return a
+
+
+def _wrap_ctypes(a, b):
+    """Any time a CType is paired with a DataShape, wrap the CType in a DataShape."""
     if (type(a), type(b)) == (CType, DataShape):
         a = DataShape(a)
     if (type(a), type(b)) == (DataShape, CType):
@@ -57,7 +58,8 @@ def normalize_datashapes(a, b):
 
     if (type(a), type(b)) == (DataShape, DataShape):
         return a, b
-    return tzip(normalize_datashapes, a, b)
+
+    return tzip(_wrap_ctypes, a, b)
 
 
 def normalize_ellipses(a, b):
@@ -300,6 +302,29 @@ def _normalize_broadcasting(a, b):
         # Create type variables for leading dimensions
         len1, len2 = len(a.parameters), len(b.parameters)
         leading = tuple(Fixed(1) for i in range(abs(len1 - len2)))
+
+        if len1 < len2:
+            a = DataShape(*leading + a.parameters)
+        elif len2 < len1:
+            b = DataShape(*leading + b.parameters)
+    elif isinstance(a, Function) and isinstance(b, Function):
+        from .util import verify # TODO: remove circularity
+        verify(a, b)
+        result = zip(*starmap(_normalize_broadcasting,
+                     zip(a.parameters[:-1], b.parameters[:-1])))
+        params1, params2 = result or [(), ()]
+        ret1, ret2 = _normalize_broadcasting_rettype(a.parameters[-1], b.parameters[-1])
+        return (Function(*(params1 + (ret1,))), Function(*(params2 + (ret2,))))
+    else:
+        a, b = tzip(_normalize_broadcasting, a, b)
+
+    return a, b
+
+def _normalize_broadcasting_rettype(a, b):
+    if isinstance(a, DataShape) and isinstance(b, DataShape):
+        # Create type variables for leading dimensions
+        len1, len2 = len(a.parameters), len(b.parameters)
+        leading = tuple(TypeVar('QUACK%d' % i) for i in range(abs(len1 - len2)))
 
         if len1 < len2:
             a = DataShape(*leading + a.parameters)

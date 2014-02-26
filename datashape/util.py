@@ -74,17 +74,15 @@ def dshape(o):
     """
     ds = _dshape(o)
     validate(ds)
-    if isinstance(ds, CType):
-        ds = DataShape(ds)
     return _unique_typevars(ds)
 
 def _dshape(o):
     if isinstance(o, py2help._strtypes):
         return parser.parse(o, type_symbol_table.sym)
-    elif isinstance(o, Mono):
-        return o
     elif isinstance(o, (CType, String, Record, JSON)):
         return DataShape(o)
+    elif isinstance(o, Mono):
+        return o
     else:
         raise TypeError('Cannot create dshape from object of type %s' % type(o))
 

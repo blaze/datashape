@@ -82,6 +82,7 @@ class TestOverloading(unittest.TestCase):
                          '(X * Y * float32, X * Y * float32) -> X * Y * float32')
 
         input = dshape('(S * 1 * float32, T * 1 * float32) -> R')
+        print('\n\n\n\n')
         unified = unify_simple(input, match.resolved_sig)
         self.assertEqual(str(unified),
                          '(10 * 1 * float32, 10 * 1 * float32) -> 10 * 1 * float32')
