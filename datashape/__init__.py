@@ -7,7 +7,7 @@ from .coretypes import *
 from .typesets import *
 from .type_symbol_table import *
 from .util import *
-from .normalization import (normalize, simplify,
+from .normalization import (normalize,
                             normalize_ellipses, normalize_broadcasting)
 from .validation import validate
 from .promotion import promote, promote_units

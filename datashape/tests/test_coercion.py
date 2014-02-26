@@ -4,6 +4,7 @@ import unittest
 
 from datashape import coercion_cost, dshapes, error
 from datashape.tests import common
+from datashape.py2help import skip
 
 
 class TestCoercion(common.BTestCase):
@@ -38,35 +39,36 @@ class TestCoercion(common.BTestCase):
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_typevars(self):
-        a, b, c = dshapes('10, 11, float32', 'X, Y, float64', '10, Y, float64')
+        a, b, c = dshapes('10 * 11 * float32', 'X * Y * float64', '10 * Y * float64')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_constrained_typevars(self):
-        a, b, c = dshapes('10, 10, float32', 'X, Y, float64', 'X, X, float64')
+        a, b, c = dshapes('10 * 10 * float32', 'X * Y * float64', 'X * X * float64')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_broadcasting(self):
-        a, b, c = dshapes('10, 10, float32', '10, Y, Z, float64', 'X, Y, float64')
+        a, b, c = dshapes('10 * 10 * float32', '10 * Y * Z * float64', 'X * Y * float64')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_broadcasting2(self):
-        a, b, c = dshapes('10, 10, float32', '1, 10, 10, float32', '10, 10, float32')
+        a, b, c = dshapes('10 * 10 * float32', '1 * 10 * 10 * float32', '10 * 10 * float32')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_broadcasting3(self):
-        a, b, c = dshapes('10, 10, float32', '10, 10, 10, float32', '1, 10, 10, float32')
+        a, b, c = dshapes('10 * 10 * float32', '10 * 10 * 10 * float32', '1 * 10 * 10 * float32')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
+    @skip('implements has not been implemented in the new parser')
     def test_coerce_traits(self):
-        a, b, c = dshapes('10, 10, float32', '10, X, A : floating', '10, X, float32')
+        a, b, c = dshapes('10 * 10 * float32', '10 * X * A : floating', '10 * X * float32')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_dst_ellipsis(self):
-        a, b, c = dshapes('10, 10, float32', 'X, ..., float64', 'X, Y, float64')
+        a, b, c = dshapes('10 * 10 * float32', 'X * ... * float64', 'X * Y * float64')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
     def test_coerce_src_ellipsis(self):
-        a, b, c = dshapes('10, ..., float32', 'X, Y, float64', 'X, ..., float64')
+        a, b, c = dshapes('10 * ... * float32', 'X * Y * float64', 'X * ... * float64')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
 

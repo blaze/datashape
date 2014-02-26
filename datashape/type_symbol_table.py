@@ -88,6 +88,8 @@ class TypeSymbolTable(object):
                            ('uintptr', T.uint64 if _is_64bit else T.uint32),
                            ('float32', T.float32),
                            ('float64', T.float64),
+                           ('complex64', T.complex64),
+                           ('complex128', T.complex128),
                            ('real', T.float64),
                            ('complex', T.complex_float64),
                            ('string', T.string),
@@ -99,7 +101,8 @@ class TypeSymbolTable(object):
                                   ('struct', _struct),
                                   ('tuple', T.Tuple),
                                   ('funcproto', _funcproto),
-                                  ('typevar', _typevar_dtype)])
+                                  ('typevar', _typevar_dtype),
+                                  ('option', T.Option)])
         # dim types with no type constructor
         self.dim.update([('var', T.Var()),
                          ('ellipsis', T.Ellipsis())])

@@ -190,12 +190,12 @@ class TestDataShapeParser(common.BTestCase):
 class TestOption(common.BTestCase):
 
     def test_option_single(self):
-        res = datashape.dshape('option(int32)')
+        res = datashape.dshape('option[int32]')
 
-        assert isinstance(res, Option)
+        assert isinstance(res[0], Option)
 
     def test_option_multi(self):
-        res = datashape.dshape('2, 3, option(int32)')
+        res = datashape.dshape('2 * 3 * option[int32]')
 
         assert isinstance(res[2], Option)
 

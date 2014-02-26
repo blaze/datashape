@@ -212,7 +212,7 @@ class StringConstant(Unit):
         return hash(self.val)
 
 
-class Bytes(Unit):
+class Bytes(Mono):
     """ Bytes type """
     cls = MEASURE
 
@@ -241,7 +241,7 @@ _canonical_string_encodings = {
 }
 
 
-class String(Unit):
+class String(Mono):
     """ String container """
     cls = MEASURE
 
@@ -251,6 +251,7 @@ class String(Unit):
             # String()
             self.fixlen = None
             self.encoding = u'U8'
+            self.parameters = (self.encoding,)
         elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
                         encoding is None:
             # String(fixlen)
@@ -259,6 +260,7 @@ class String(Unit):
             else:
                 self.fixlen = fixlen
             self.encoding = u'U8'
+            self.parameters = (self.fixlen, self.encoding,)
         elif isinstance(fixlen, _strtypes + (StringConstant,)) and \
                         encoding is None:
             # String('encoding')
@@ -267,6 +269,7 @@ class String(Unit):
                 self.encoding = fixlen.val
             else:
                 self.encoding = unicode(fixlen)
+            self.parameters = (self.encoding,)
         elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
                         isinstance(encoding, _strtypes + (StringConstant,)):
             # String(fixlen, 'encoding')
@@ -278,6 +281,7 @@ class String(Unit):
                 self.encoding = encoding.val
             else:
                 self.encoding = unicode(encoding)
+            self.parameters = (self.fixlen, self.encoding,)
         else:
             raise ValueError(('Unexpected types to String constructor '
                             '(%s, %s)') % (type(fixlen), type(encoding)))
@@ -414,21 +418,21 @@ class DataShape(Mono):
             return DataShape(*self.parameters[leading:])
 
 
-class Option(DataShape):
+class Option(Mono):
     """
     Measure types which may or may not hold data. Makes no
     indication of how this is implemented in memory.
     """
 
-    def __init__(self, *params):
-        if len(params) != 1:
-            raise TypeError('Option only takes 1 argument')
+    def __init__(self, ds):
+        if isinstance(ds, DataShape) and len(ds) == 1:
+            ds = ds[0]
 
-        if not params[0].cls == MEASURE:
+        if not ds.cls == MEASURE:
             raise TypeError('Option only takes measure argument')
 
-        self.parameters = params
-        self.ty = params[0]
+        self.parameters = (ds,)
+        self.ty = ds
 
     def __str__(self):
         return 'option[%s]' % str(self.ty)

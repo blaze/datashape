@@ -7,8 +7,10 @@ import functools
 from collections import namedtuple, defaultdict
 from itertools import chain
 
-from datashape.error import UnificationError, CoercionError, OverloadError
-from datashape import (coretypes as T, unify, dshape, dummy_signature)
+from .error import UnificationError, CoercionError, OverloadError
+from . import coretypes as T
+from .util import dshape, dummy_signature
+from .unification import unify
 
 # -- utils -- #
 
@@ -44,6 +46,15 @@ class Dispatcher(object):
         # TODO: assert signature is "compatible" with current signatures
         if self.f is None:
             self.f = f
+
+        if isinstance(signature, T.DataShape):
+            if len(signature.parameters) != 1:
+                raise ValueError('overload signature cannot be multidimensional')
+            signature = signature[0]
+
+        if not isinstance(signature, T.Function):
+            raise ValueError(('overload signature must be a function ' +
+                              'signature, not %s') % type(signature))
 
         # Process signature
         if isinstance(f, types.FunctionType):

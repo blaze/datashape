@@ -9,7 +9,7 @@ from itertools import chain
 from collections import defaultdict, deque
 
 from .error import DataShapeTypeError, UnificationError
-from . import transform, tzip
+from .traversal import transform, tzip
 from .coretypes import (DataShape, Ellipsis, Fixed, CType, Function,
                         TypeVar, int32)
 from .promotion import promote_datashapes
@@ -309,36 +309,3 @@ def _normalize_broadcasting(a, b):
         a, b = tzip(_normalize_broadcasting, a, b)
 
     return a, b
-
-#------------------------------------------------------------------------
-# Simplification
-#------------------------------------------------------------------------
-
-def simplify(t, solution):
-    """
-    Simplify constraints by eliminating Implements (e.g. '10, A : numeric') and
-    type variables associated with Ellipsis (e.g. 'A..., int32'), and by
-    updating the given typing solution.
-
-    Parameters
-    ----------
-    t : Mono
-        Blaze type
-
-    Returns: Mono
-        Simplified blaze type
-    """
-    return transform(Simplifier(solution), t)
-
-
-class Simplifier(object):
-    """Simplify a type and update a typing solution"""
-
-    def __init__(self, S):
-        self.S = S
-
-    def Implements(self, term):
-        typeset = self.S.setdefault(term.typevar, set())
-        typeset.add(term.typeset)
-        # typeset.update(term.typeset)
-        return term.typevar

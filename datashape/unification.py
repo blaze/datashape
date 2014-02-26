@@ -25,9 +25,9 @@ from itertools import chain
 from .error import UnificationError
 from .py2help import dict_iteritems, _strtypes
 from .util import IdentityDict, IdentitySet
-from . import (promote_units, normalize, simplify, tmap, dshape, verify)
-from .coretypes import (TypeVar, Mono, free,
-                        MEASURE)
+from . import promote_units, tmap, dshape, verify
+from .normalization import normalize
+from .coretypes import (TypeVar, Mono, free, MEASURE)
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +37,9 @@ logger = logging.getLogger(__name__)
 
 def unify_simple(a, b):
     """Unify two blaze types"""
-    if isinstance(a, _strtypes):
-        a = dshape(a)
-    if isinstance(b, _strtypes):
-        b = dshape(b)
+    a = dshape(a)
+    b = dshape(b)
+    print('unify_simple', repr(a), repr(b))
     [res], _ = unify([(a, b)], [True])
     return res
 
@@ -57,16 +56,17 @@ def unify(constraints, broadcasting=None):
         >>> constraints
         []
     """
+    print('unify', constraints, broadcasting)
     S = IdentityDict()
-    constraints = [(simplify(ds1, S), simplify(ds2, S))
-                        for ds1, ds2 in constraints]
 
     # Compute a solution to a set of constraints
     constraints, b_env = normalize(constraints, broadcasting)
     logger.debug("Normalized constraints: %s", constraints)
+    print("Normalized constraints: %s", constraints)
 
     solution, remaining = unify_constraints(constraints, S)
     logger.debug("Initial solution: %s", solution)
+    print("Initial solution: %s", solution)
 
     seed_typesets(remaining, solution)
     merge_typevar_sets(remaining, solution)
@@ -75,6 +75,7 @@ def unify(constraints, broadcasting=None):
     # TODO: incorporate broadcasting environment during reification
     substitution = reify(solution)
     logger.debug("Substitution: %s", substitution)
+    print("Substitution: %s", substitution)
 
     # Reify and promote the datashapes
     result = [substitute(substitution, ds2) for ds1, ds2 in constraints]
