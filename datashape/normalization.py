@@ -11,6 +11,7 @@ from .traversal import transform, tzip
 from .coretypes import (DataShape, Ellipsis, Fixed, CType, Function,
                         TypeVar, int32)
 from .promotion import promote_datashapes
+from .util import gensym
 from .py2help import reduce
 
 #------------------------------------------------------------------------
@@ -324,7 +325,7 @@ def _normalize_broadcasting_rettype(a, b):
     if isinstance(a, DataShape) and isinstance(b, DataShape):
         # Create type variables for leading dimensions
         len1, len2 = len(a.parameters), len(b.parameters)
-        leading = tuple(TypeVar('QUACK%d' % i) for i in range(abs(len1 - len2)))
+        leading = tuple(TypeVar(gensym()) for i in range(abs(len1 - len2)))
 
         if len1 < len2:
             a = DataShape(*leading + a.parameters)

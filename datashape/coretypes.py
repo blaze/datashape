@@ -108,8 +108,8 @@ class Ellipsis(Mono):
     Ellipsis (...). Used to indicate a variable number of dimensions.
     E.g.:
 
-        ..., float32    # float32 array w/ any number of dimensions
-        A..., float32   # float32 array w/ any number of dimensions,
+        ... * float32    # float32 array w/ any number of dimensions
+        A... * float32   # float32 array w/ any number of dimensions,
                         # associated with type variable A
     """
 

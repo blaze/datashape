@@ -39,7 +39,6 @@ def unify_simple(a, b):
     """Unify two blaze types"""
     a = dshape(a)
     b = dshape(b)
-    print('unify_simple', repr(a), repr(b))
     [res], _ = unify([(a, b)])
     return res
 
@@ -56,17 +55,14 @@ def unify(constraints):
         >>> constraints
         []
     """
-    print('unify', constraints)
     S = IdentityDict()
 
     # Compute a solution to a set of constraints
     constraints = normalize(constraints)
     logger.debug("Normalized constraints: %s", constraints)
-    print("Normalized constraints: %s", constraints)
 
     solution, remaining = unify_constraints(constraints, S)
     logger.debug("Initial solution: %s", solution)
-    print("Initial solution: %s", solution)
 
     seed_typesets(remaining, solution)
     merge_typevar_sets(remaining, solution)
@@ -74,7 +70,6 @@ def unify(constraints):
     # Compute a type substitution with concrete types from the solution
     substitution = reify(solution)
     logger.debug("Substitution: %s", substitution)
-    print("Substitution: %s", substitution)
 
     # Reify and promote the datashapes
     result = [substitute(substitution, ds2) for ds1, ds2 in constraints]
@@ -126,7 +121,6 @@ def unify_single(t1, t2, solution, remaining):
     Unify a single type equation and update the solution and remaining
     constraints.
     """
-    print('unify_single', t1, '    ', t2)
     if isinstance(t1, TypeVar) and isinstance(t2, TypeVar):
         remaining.append((t1, t2))
     elif isinstance(t1, TypeVar):
