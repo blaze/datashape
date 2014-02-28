@@ -167,8 +167,8 @@ def best_match(func, argtypes, constraints=None):
         raise OverloadError(
             "Ambiguous overload for function %s with\ninput types:\n%s\nambiguous candidates:\n%s" % (
                 func.f.__name__,
-                "    " + "; ".join(map(str, argtypes)),
-                "\n".join("    %s" % (overload.resolved_sig,) for overload in candidates)))
+                "    " + ", ".join(map(str, argtypes)),
+                "\n".join("    %s (%s)" % (overload.resolved_sig, overload) for overload in candidates)))
     else:
         return candidates[0]
 
@@ -216,9 +216,9 @@ def match_by_weight(func, argtypes, constraints=None):
     return matches
 
 
-@listify
 def find_matches(overloads, argtypes, constraints=()):
     """Find all overloads that unify with the given inputs"""
+    result = []
     input = T.Function(*list(argtypes) + [T.TypeVar('R')])
     for func, sig, kwds in overloads:
         assert isinstance(sig, T.Function), sig
@@ -236,12 +236,13 @@ def find_matches(overloads, argtypes, constraints=()):
         equations = list(chain([(input, sig)], constraints))
 
         try:
-            result, remaining = unify(equations)
-        except UnificationError:
+            unified, remaining = unify(equations)
+        except UnificationError as e:
             continue
         else:
-            dst_sig = result[0]
-            yield Overload(dst_sig, sig, func, remaining, kwds)
+            dst_sig = unified[0]
+            result.append(Overload(dst_sig, sig, func, remaining, kwds))
+    return result
 
 #------------------------------------------------------------------------
 # Utils

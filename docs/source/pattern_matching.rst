@@ -2,9 +2,9 @@ Pattern Matching DataShapes
 ===========================
 
 DataShape includes type variables, as symbols beginning with a
-capital letter. For example `A, int32` represents a one-dimensional
+capital letter. For example `A * int32` represents a one-dimensional
 array of `int32`, where the size or type of the dimension is
-unspecified. Similarly, `3, A` represents a size 3 one-dimensional
+unspecified. Similarly, `3 * A` represents a size 3 one-dimensional
 array where the data type is unspecified.
 
 The main usage of pattern matching in the DataShape system is for
