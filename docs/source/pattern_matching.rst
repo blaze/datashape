@@ -42,7 +42,7 @@ Represented as DataShape function signatures, some examples are::
     (12 * float32, 12 * int32) -> 12 * float32
     (10 * float64, 1 * int32) -> 10 * float64
     (float32, 3 * 4 * int32) -> 3 * 4 * float32
-    (3 * float64, 4 * 1 * int64) -> 3 * 4 * float64
+    (3 * float64, 4 * 1 * int64) -> 4 * 3 * float64
 
 Ellipsis for Broadcasting
 -------------------------
