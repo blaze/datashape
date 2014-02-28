@@ -12,6 +12,8 @@ Contents:
    :maxdepth: 2
   
   overview.rst
+  grammar.rst
+  pattern_matching.rst
 
 
 Indices and tables
