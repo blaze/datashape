@@ -7,8 +7,9 @@ from __future__ import absolute_import, division, print_function
 
 __all__ = ['match_argtypes_to_signature', 'explode_coercion_eqns']
 
-from . import coretypes as T
+from . import coretypes
 from . import error
+
 
 def match_argtypes_to_signature(argtypes, signature):
     """
@@ -23,17 +24,17 @@ def match_argtypes_to_signature(argtypes, signature):
     signature : Function signature datashape object
         A datashape function signature type against which to match.
     """
-    if isinstance(argtypes, T.DataShape) and len(argtypes) == 1:
+    if isinstance(argtypes, coretypes.DataShape) and len(argtypes) == 1:
         argtypes = argtypes[0]
     else:
         raise TypeError('invalid argtypes %s' % argtypes)
-    if isinstance(signature, T.DataShape) and len(signature) == 1:
+    if isinstance(signature, coretypes.DataShape) and len(signature) == 1:
         signature = signature[0]
     else:
         raise TypeError('invalid argtypes %s' % argtypes)
-    if not isinstance(argtypes, T.Tuple):
+    if not isinstance(argtypes, coretypes.Tuple):
         raise TypeError('argtypes must be a datashape.Tuple')
-    if not isinstance(signature, T.Function):
+    if not isinstance(signature, coretypes.Function):
         raise TypeError('signature must be a datashape.Function')
     # The number of arguments must match
     if len(argtypes.dshapes) != len(signature.argtypes):
@@ -44,6 +45,7 @@ def match_argtypes_to_signature(argtypes, signature):
     eqns = zip(argtypes.dshapes, signature.argtypes)
     # Break it down into a system of separate broadcasting and coercion equations
     bcast_eqns, coerce_eqns = explode_coercion_eqns(eqns)
+
 
 def explode_coercion_eqns(eqns):
     """
@@ -65,7 +67,7 @@ def explode_coercion_eqns(eqns):
         while src_j >= src_i and dst_j >= dst_i:
             src = src_ds[src_j]
             dst = dst_ds[dst_j]
-            if isinstance(dst, T.Ellipsis):
+            if isinstance(dst, coretypes.Ellipsis):
                 # Since we hit an ellipsis, we need to now process
                 # the dims from the left to drill down on the part
                 # which broadcasts via adding dimensions
@@ -84,7 +86,7 @@ def explode_coercion_eqns(eqns):
                 bcast_eqns.insert(0, (src, dst, eqn_idx))
                 src_j, dst_j = src_j - 1, dst_j - 1
         # As a special case, an ellipsis can match against nothing
-        if src_i > src_j and dst_i == dst_j and isinstance(dst_ds[dst_i], T.Ellipsis):
+        if src_i > src_j and dst_i == dst_j and isinstance(dst_ds[dst_i], coretypes.Ellipsis):
             bcast_eqns.insert(0, ([], dst_ds[dst_j], eqn_idx))
             dst_j = dst_j - 1
         # If we didn't match all the dimensions together, it's an error
