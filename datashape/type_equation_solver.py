@@ -5,7 +5,7 @@ occur when doing multiple dispatch.
 
 from __future__ import absolute_import, division, print_function
 
-__all__ = ['match_argtypes_to_signature']
+__all__ = ['match_argtypes_to_signature', 'explode_coercion_eqns']
 
 from . import coretypes as T
 from . import error
@@ -57,28 +57,46 @@ def explode_coercion_eqns(eqns):
     bcast_eqns = []
     coerce_eqns = []
     for eqn_idx, (src_ds, dst_ds) in enumerate(eqns):
+        print('processing equation %s ==> %s' % (src_ds, dst_ds))
         # Add the data type coercion
         coerce_eqns.append((src_ds[-1], dst_ds[-1], eqn_idx))
         # Add all the broadcasting operations, starting from the right
         src_i, dst_i = 0, 0
         src_j, dst_j = len(src_ds) - 2, len(dst_ds) - 2
-        while src_j >= 0 and dst_j >= 0:
+        while src_j >= src_i and dst_j >= dst_i:
             src = src_ds[src_j]
             dst = dst_ds[dst_j]
+            print("processing term %s ==> %s" % (src, dst))
             if isinstance(dst, T.Ellipsis):
                 # Since we hit an ellipsis, we need to now process
                 # the dims from the left to drill down on the part
                 # which broadcasts via adding dimensions
-                while src_i < src_j and dst_i < dst_j:
-                    bcast_eqns.append((src_ds[src_i], dst_ds[dst_i], eqn_idx))
+                pre_eqn = []
+                print('leading test', src_i, dst_i, src_i, dst_i)
+                while src_i <= src_j and dst_i < dst_j:
+                    pre_eqn.append((src_ds[src_i], dst_ds[dst_i], eqn_idx))
+                    print('added to pre_eqn')
+                    print(pre_eqn)
+                    src_i, dst_i = src_i + 1, dst_i + 1
                 # When broadcasting against an ellipsis, the src side gets a
                 # list of dimensions, instead of just one
                 src = [src_ds[i] for i in range(src_i, src_j + 1)]
-                bcast_eqns.append((src, dst, eqn_idx))
+                pre_eqn.append((src, dst, eqn_idx))
+                pre_eqn.extend(bcast_eqns)
+                bcast_eqns = pre_eqn
+                src_j, dst_j = src_i - 1, dst_j - 1
             else:
-                bcast_eqns.append((src, dst, eqn_idx))
+                bcast_eqns.insert(0, (src, dst, eqn_idx))
+                src_j, dst_j = src_j - 1, dst_j - 1
+        # As a special case, an ellipsis can match against nothing
+        print('ellipsis test', dst_i, dst_j, dst_ds[dst_i])
+        print(bcast_eqns)
+        if src_i > src_j and dst_i == dst_j and isinstance(dst_ds[dst_i], T.Ellipsis):
+            bcast_eqns.insert(0, ([], dst_ds[dst_j], eqn_idx))
+            dst_j = dst_j - 1
         # If we didn't match all the dimensions together, it's an error
-        if src_i != src_j or dst_i != dst_j:
+        if src_i <= src_j or dst_i <= dst_j:
+            print('indexes', src_i, dst_i, src_j, dst_j)
             raise error.UnificationError(('Could not coerce dimensions of ' +
-                                          '%d into %d') % (src_ds, dst_ds))
+                                          '%s into %s') % (src_ds, dst_ds))
     return (bcast_eqns, coerce_eqns)

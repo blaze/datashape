@@ -130,14 +130,7 @@ class Ellipsis(Mono):
 
     def __eq__(self, other):
         if isinstance(other, Ellipsis):
-            # BUG: Comparing all non-typevar ellipsis as unequal,
-            #      because of a bug in the normalization/unification
-            #      code which gets exposed more readily when they
-            #      compare as equal.
-            if self.parameters[0] is None:
-                return self is other
-            else:
-                return self.parameters == other.parameters
+             return self.parameters == other.parameters
         else:
             return False
 
