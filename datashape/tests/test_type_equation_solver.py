@@ -5,6 +5,7 @@ import unittest
 from datashape import coretypes as T
 from datashape.type_equation_solver import match_argtypes_to_signature, _match_equation
 from datashape import dshape
+from datashape import error
 from datashape.coercion import dim_coercion_cost, dtype_coercion_cost
 
 
@@ -38,7 +39,8 @@ class TestSignatureArgMatching(unittest.TestCase):
     def test_dtype_coerce_error(self):
         at = dshape('(int32, float64)')
         sig = dshape('(int32, int32) -> int16')
-        self.assertRaises(TypeError, match_argtypes_to_signature, at, sig)
+        self.assertRaises(error.CoercionError, match_argtypes_to_signature,
+                          at, sig)
 
     def test_dtype_matches_typevar(self):
         # Exact match, and zero cost
@@ -95,11 +97,13 @@ class TestSignatureArgMatching(unittest.TestCase):
         # Single dimension type variables must match up exactly
         at = dshape('(1 * int32, 3 * float64)')
         sig = dshape('(M * int32, M * int32) -> M * int16')
-        self.assertRaises(TypeError, match_argtypes_to_signature, at, sig)
+        self.assertRaises(error.CoercionError, match_argtypes_to_signature,
+                          at, sig)
         # Ellipsis typevars must broadcast
         at = dshape('(2 * int32, 3 * float64)')
         sig = dshape('(Dims... * int32, Dims... * int32) -> Dims... * int16')
-        self.assertRaises(TypeError, match_argtypes_to_signature, at, sig)
+        self.assertRaises(error.CoercionError, match_argtypes_to_signature,
+                          at, sig)
 
 
 class TestEquationMatching(unittest.TestCase):

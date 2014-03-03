@@ -10,18 +10,11 @@ from itertools import chain
 from .error import UnificationError, CoercionError, OverloadError
 from . import coretypes as T
 from .util import dshape, dummy_signature
-from .unification import unify
+from .type_equation_solver import (match_argtypes_to_signature,
+                                   PrunedMatchProcessing)
 
-# -- utils -- #
+inf = float('inf')
 
-def listify(f):
-    """Decorator to turn generator results into lists"""
-    @functools.wraps(f)
-    def wrapper(*args, **kwargs):
-        return list(f(*args, **kwargs))
-    return wrapper
-
-# -- overloading / dispatching -- #
 
 class Dispatcher(object):
     """
@@ -66,29 +59,16 @@ class Dispatcher(object):
         # TODO: match signature to be a Function type with correct arity
         self.overloads.append((f, signature, kwds))
 
-    def lookup_dispatcher(self, args, kwargs, constraints=None):
+    def lookup_dispatcher(self, args, kwargs):
         assert self.f is not None
         args = flatargs(self.f, tuple(args), kwargs)
         types = list(map(T.typeof, args))
-        match = best_match(self, types, constraints)
+        match = best_match(self, T.Tuple(types))
         return match, args
 
     def dispatch(self, *args, **kwargs):
         match, args = self.lookup_dispatcher(args, kwargs)
         return match.func(*args)
-
-    def simple_dispatch(self, *args, **kwargs):
-        assert self.f is not None
-        args = flatargs(self.f, args, kwargs)
-        types = list(map(T.typeof, args))
-        candidates = find_matches(self.overloads, types)
-        if len(candidates) != 1:
-            raise OverloadError(
-                "Cannot perform simple dispatch with %d input types")
-
-        [dst_sig, sig, func] = candidates
-        # TODO: convert argument types using dst_sig
-        return func(*args)
 
     __call__ = dispatch
 
@@ -131,9 +111,9 @@ def overloadable(f):
 # Matching
 #------------------------------------------------------------------------
 
-Overload = namedtuple('Overload', 'resolved_sig, sig, func, constraints, kwds')
+Overload = namedtuple('Overload', 'resolved_sig, sig, func, kwds')
 
-def best_match(func, argtypes, constraints=None):
+def best_match(func, argtypes):
     """
     Find a best match in for overloaded function `func` given `argtypes`.
 
@@ -145,16 +125,13 @@ def best_match(func, argtypes, constraints=None):
     argtypes: [Mono]
         List of input argument types
 
-    constraints: [(TypeVar, Mono)]
-        Optional set of constraints, see unification.py
-
     Returns
     -------
     Overloaded function as an `Overload` instance.
     """
-    matches = match_by_weight(func, argtypes, constraints=constraints)
+    candidates = find_matches(func.overloads, argtypes)
 
-    if not matches:
+    if not candidates:
         raise OverloadError(
             "No overload for function %s matches for argtypes (%s)" % (
                                     func, ", ".join(map(str, argtypes))))
@@ -162,7 +139,6 @@ def best_match(func, argtypes, constraints=None):
     # -------------------------------------------------
     # Return candidate with minimum weight
 
-    candidates = matches[min(matches)]
     if len(candidates) > 1:
         raise OverloadError(
             "Ambiguous overload for function %s with\ninput types:\n%s\nambiguous candidates:\n%s" % (
@@ -172,60 +148,18 @@ def best_match(func, argtypes, constraints=None):
     else:
         return candidates[0]
 
-def match_by_weight(func, argtypes, constraints=None):
-    """
-    Return all matched overloads for function `func` given `argtypes`.
 
-    Parameters
-    ----------
-    func: Dispatcher
-        Overloaded Blaze function
-
-    argtypes: [Mono]
-        List of input argument types
-
-    constraints: [(TypeVar, Mono)]
-        Optional set of constraints, see unification.py
-
-    Returns
-    -------
-    { weight : [Overload] }
-    """
-    from datashape import coercion_cost
-    overloads = func.overloads
-
-    # -------------------------------------------------
-    # Find candidates
-
-    candidates = find_matches(overloads, argtypes, constraints or [])
-
-    # -------------------------------------------------
-    # Weigh candidates
-
-    matches = defaultdict(list)
-    for match in candidates:
-        in_signature = T.Function(*list(argtypes) + [T.TypeVar('R')])
-        signature = match.sig
-        try:
-            weight = coercion_cost(in_signature, signature)
-        except CoercionError:
-            pass
-        else:
-            matches[weight].append(match)
-
-    return matches
-
-
-def find_matches(overloads, argtypes, constraints=()):
+def find_matches(overloads, argtypes):
     """Find all overloads that unify with the given inputs"""
     result = []
-    input = T.Function(*list(argtypes) + [T.TypeVar('R')])
+    err = None
+    min_cost = inf
     for func, sig, kwds in overloads:
         assert isinstance(sig, T.Function), sig
 
         # -------------------------------------------------
         # Error checking
-        l1, l2 = len(sig.argtypes), len(argtypes)
+        l1, l2 = len(sig.argtypes), len(argtypes.dshapes)
         if l1 != l2:
             raise TypeError(
                 "Expected %d args, got %d for function %s" % (l1, l2, func))
@@ -233,15 +167,28 @@ def find_matches(overloads, argtypes, constraints=()):
         # -------------------------------------------------
         # Unification
 
-        equations = list(chain([(input, sig)], constraints))
-
         try:
-            unified, remaining = unify(equations)
+            matched_sig, cost = match_argtypes_to_signature(argtypes, sig,
+                                                            min_cost)
+        except PrunedMatchProcessing:
+            pass
         except UnificationError as e:
-            continue
+            err = e
+            pass
+        except CoercionError as e:
+            err = e
+            pass
         else:
-            dst_sig = unified[0]
-            result.append(Overload(dst_sig, sig, func, remaining, kwds))
+            if cost <= min_cost:
+                if cost < min_cost:
+                    result = []
+                min_cost = cost
+                result.append(Overload(matched_sig, sig, func, kwds))
+    # If a coercion error was caught while matching,
+    # reraise it.
+    # TODO: The particular error we raise is arbitrary, make it user friendly!
+    if len(result) == 0 and err is not None:
+        raise err
     return result
 
 #------------------------------------------------------------------------

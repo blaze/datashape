@@ -44,12 +44,8 @@ def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
     # Pull the Tuple and Function out of the DataShape wrappers
     if isinstance(argtypes, coretypes.DataShape) and len(argtypes) == 1:
         argtypes = argtypes[0]
-    else:
-        raise TypeError('invalid argtypes %s' % argtypes)
     if isinstance(signature, coretypes.DataShape) and len(signature) == 1:
         signature = signature[0]
-    else:
-        raise TypeError('invalid argtypes %s' % argtypes)
 
     # Validate the argument types
     if not isinstance(argtypes, coretypes.Tuple):
@@ -75,8 +71,7 @@ def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
     for eqn in eqns:
         cost = _process_equation(eqn, dim_tv, dtype_tv)
         if cost == inf:
-            raise TypeError(('Cannot coerce and broadcast arg types %d ' +
-                             'to signature %d') % (argtypes, signature))
+            raise error.CoercionError(argtypes, signature)
         elif cost > max_cost:
             if cost > cutoff_cost:
                 raise PrunedMatchProcessing()

@@ -72,6 +72,16 @@ class UnificationError(DataShapeTypeError):
 
 class CoercionError(DataShapeTypeError):
     """Raised when we can't coerce a type to another type"""
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
+
+    def __str__(self):
+        return 'Cannot broadcast/coerce %s to %s' % (self.src, self.dst)
+
+    def __repr__(self):
+        return str(self)
+
 
 class OverloadError(DataShapeTypeError):
     """
