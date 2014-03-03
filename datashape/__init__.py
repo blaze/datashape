@@ -8,13 +8,9 @@ from .coretypes import *
 from .typesets import *
 from .type_symbol_table import *
 from .util import *
-from .normalization import (normalize,
-                            normalize_ellipses, normalize_broadcasting)
 from .validation import validate
-from .promotion import promote, promote_units
-from .unification import unify, unify_simple, substitute
 from .coercion import coercion_cost
-from .error import DataShapeSyntaxError
+from .error import DataShapeSyntaxError, OverloadError, UnificationError
 
 __version__ = '0.1.1-dev'
 

@@ -17,7 +17,6 @@ from .error import CoercionError, UnificationError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import boolean, complexes, floating, integral, signed, unsigned
 from .coretypes import Implements, Fixed, Var, Ellipsis, DataShape
-from .normalization import normalize, _strip_datashape
 from .util import verify
 from . import coretypes
 
@@ -85,6 +84,20 @@ def transitivity(a, b, table=_table):
 # Coercion function
 #------------------------------------------------------------------------
 
+def dimlist_coercion_cost(src, dst):
+    """
+    Cost of broadcasting one list of dimensions to another
+    """
+    # TODO: This is not handling ellipsis
+    if len(src) > len(dst):
+        return inf
+    # Cost for adding dimensions is 0.1 for a size-one Fixed
+    # dim, 0.2 for anything else
+    leading = len(dst) - len(src)
+    cost = sum(0.1 if x == Fixed(1) else 0.2 for x in dst[:leading])
+    return cost + sum(dim_coercion_cost(x, y)
+                      for x, y in zip(src, dst[leading:]))
+
 
 def dim_coercion_cost(src, dst):
     """
@@ -105,6 +118,8 @@ def dim_coercion_cost(src, dst):
         if isinstance(src, Fixed):
             return 0.1 # broadcasting penalty
         return 0
+    elif isinstance(dst, TypeVar):
+        return 0
     else:
         return inf
 
@@ -118,6 +133,13 @@ def dtype_coercion_cost(src, dst):
             return coercion_cost_table(src, dst)
         except KeyError:
             return inf
+
+
+def _strip_datashape(a):
+    """Strips off the outer DataShape(...) if a is zero-dimensional."""
+    if isinstance(a, DataShape) and len(a) == 1:
+        a = a[0]
+    return a
 
 
 def coercion_cost(a, b, seen=None):
@@ -167,7 +189,8 @@ def _coercion_cost(a, b, seen=None):
             return 0.1 # broadcasting penalty
         return 0
     elif isinstance(a, DataShape) and isinstance(b, DataShape):
-        return coerce_datashape(a, b, seen)
+        return (dimlist_coercion_cost(a[:-1], b[:-1]) +
+                dtype_coercion_cost(a[-1], b[-1]))
     else:
         verify(a, b)
         return max([_coercion_cost(x, y, seen) for x, y in zip(a.parameters,
@@ -179,26 +202,6 @@ def termsize(term):
     if isinstance(term, Mono):
         return sum(termsize(p) for p in term.parameters) + 1
     return 0
-
-
-def coerce_datashape(a, b, seen):
-    # Penalize broadcasting
-    broadcast_penalty = abs(len(a.parameters) - len(b.parameters))
-
-    # Penalize ellipsis if one side has it but not the other
-    ellipses_a = sum(isinstance(p, Ellipsis) for p in a.parameters)
-    ellipses_b = sum(isinstance(p, Ellipsis) for p in b.parameters)
-    ellipsis_penalty = ellipses_a ^ ellipses_b
-
-    penalty = broadcast_penalty + ellipsis_penalty
-
-    # Process rest of parameters
-    [(a, b)] = normalize([(a, b)])
-    verify(a, b)
-    for x, y in zip(a.parameters, b.parameters):
-        penalty += coercion_cost(x, y, seen)
-
-    return penalty
 
 
 #------------------------------------------------------------------------

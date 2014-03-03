@@ -4,7 +4,7 @@ import unittest
 
 from datashape.py2help import skip
 
-from datashape import dshape, dshapes, unify_simple
+from datashape import dshape, dshapes
 from datashape import coretypes
 
 from datashape.overloading import best_match, overload
@@ -84,11 +84,6 @@ class TestOverloading(unittest.TestCase):
         self.assertEqual(str(match.sig),
                          '(X * Y * float32, X * Y * float32) -> X * Y * float32')
 
-        input = dshape('(S * 1 * float32, T * 1 * float32) -> R')
-        print('\n\n\n\n')
-        unified = unify_simple(input, match.resolved_sig)
-        self.assertEqual(str(unified),
-                         '(10 * 1 * float32, 10 * 1 * float32) -> 10 * 1 * float32')
 
     def test_best_match_typevar_dims(self):
         d1 = dshape('3 * 10 * complex[float32]')

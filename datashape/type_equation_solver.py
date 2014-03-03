@@ -158,7 +158,7 @@ def _process_equation(eqn, dim_tv, dtype_tv):
     """
     cost = 0
     for src, dst in eqn:
-        if not isinstance(src, list) and src.cls == coretypes.MEASURE:
+        if not isinstance(src, list) and getattr(src, 'cls', None) == coretypes.MEASURE:
             if isinstance(dst, coretypes.TypeVar):
                 # Add to the dtype typevar dict
                 dtype_tv[dst].append(src)
