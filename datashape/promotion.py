@@ -11,8 +11,9 @@ import numpy as np
 
 from .error import UnificationError
 from .util import gensym, verify
-from . import (DataShape, CType, Fixed, Var, to_numpy, to_numpy_dtype,
-               TypeSet, TypeVar)
+from .coretypes import (DataShape, CType, Fixed, Var, to_numpy, to_numpy_dtype,
+                        TypeVar)
+from .typesets import TypeSet
 
 
 def promote_units(*units):

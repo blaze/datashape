@@ -16,8 +16,12 @@ import datashape
 from .error import CoercionError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import boolean, complexes, floating, integral, signed, unsigned
-from . import verify, Implements, Fixed, Var, Ellipsis, DataShape
+from .coretypes import Implements, Fixed, Var, Ellipsis, DataShape
 from .normalization import normalize, _strip_datashape
+from .util import verify
+from . import coretypes
+
+inf = float('inf')
 
 
 class CoercionTable(object):
@@ -81,6 +85,37 @@ def transitivity(a, b, table=_table):
 # Coercion function
 #------------------------------------------------------------------------
 
+def dim_coercion_cost(src, dst):
+    """
+    Cost of coercing one dimension type to another.
+    """
+    if isinstance(dst, Fixed):
+        if isinstance(src, Var):
+            return 0.1 # broadcasting penalty
+        elif not isinstance(src, Fixed):
+            return inf
+
+        if src.val != dst.val:
+            # broadcasting penalty
+            return 0.1 if src.val == 1 else inf
+        return 0
+    elif isinstance(dst, Var):
+        assert type(a) in [Var, Fixed]
+        if isinstance(a, Fixed):
+            return 0.1 # broadcasting penalty
+        return 0
+    else:
+        return inf
+
+def dtype_coercion_cost(src, dst):
+    """
+    Cost of coercing one data type to another
+    """
+    if isinstance(src, CType) and isinstance(dst, CType):
+        try:
+            return coercion_cost_table(src, dst)
+        except KeyError:
+            return inf
 
 def coercion_cost(a, b, seen=None):
     """
@@ -176,41 +211,41 @@ def add_numeric_rule(types, cost=1):
     for src, dst in zip(types[:-1], types[1:]):
         add_coercion(src, dst, cost)
 
-promotable_unsigned = [datashape.uint8, datashape.uint16, datashape.uint32]
-promoted_signed     = [datashape.int16, datashape.int32, datashape.int64]
+promotable_unsigned = [coretypes.uint8, coretypes.uint16, coretypes.uint32]
+promoted_signed     = [coretypes.int16, coretypes.int32, coretypes.int64]
 
 add_numeric_rule(signed)
 add_numeric_rule(unsigned)
 add_numeric_rule(floating)
 add_numeric_rule(complexes)
 
-add_numeric_rule([datashape.bool_, datashape.int8])
-add_numeric_rule([datashape.uint8, datashape.int16])
-add_numeric_rule([datashape.uint16, datashape.int32])
-add_numeric_rule([datashape.uint32, datashape.int64])
+add_numeric_rule([coretypes.bool_, coretypes.int8])
+add_numeric_rule([coretypes.uint8, coretypes.int16])
+add_numeric_rule([coretypes.uint16, coretypes.int32])
+add_numeric_rule([coretypes.uint32, coretypes.int64])
 
-add_numeric_rule([datashape.int16, datashape.float32])
-add_numeric_rule([datashape.int32, datashape.float64])
-add_numeric_rule([datashape.float32, datashape.complex64])
-add_numeric_rule([datashape.float64, datashape.complex128])
+add_numeric_rule([coretypes.int16, coretypes.float32])
+add_numeric_rule([coretypes.int32, coretypes.float64])
+add_numeric_rule([coretypes.float32, coretypes.complex_float32])
+add_numeric_rule([coretypes.float64, coretypes.complex_float64])
 
 # Potentially lossy conversions
 
 # unsigned -> signed
-add_numeric_rule([datashape.uint8, datashape.int8], 1.5)
-add_numeric_rule([datashape.uint16, datashape.int16], 1.5)
-add_numeric_rule([datashape.uint32, datashape.int32], 1.5)
-add_numeric_rule([datashape.uint64, datashape.int64], 1.5)
+add_numeric_rule([coretypes.uint8, coretypes.int8], 1.5)
+add_numeric_rule([coretypes.uint16, coretypes.int16], 1.5)
+add_numeric_rule([coretypes.uint32, coretypes.int32], 1.5)
+add_numeric_rule([coretypes.uint64, coretypes.int64], 1.5)
 
 # signed -> unsigned
-add_numeric_rule([datashape.int8, datashape.uint8], 1.5)
-add_numeric_rule([datashape.int16, datashape.uint16], 1.5)
-add_numeric_rule([datashape.int32, datashape.uint32], 1.5)
-add_numeric_rule([datashape.int64, datashape.uint64], 1.5)
+add_numeric_rule([coretypes.int8, coretypes.uint8], 1.5)
+add_numeric_rule([coretypes.int16, coretypes.uint16], 1.5)
+add_numeric_rule([coretypes.int32, coretypes.uint32], 1.5)
+add_numeric_rule([coretypes.int64, coretypes.uint64], 1.5)
 
 # int -> float
-add_numeric_rule([datashape.int32, datashape.float32], 1.5)
-add_numeric_rule([datashape.int64, datashape.float64], 1.5)
+add_numeric_rule([coretypes.int32, coretypes.float32], 1.5)
+add_numeric_rule([coretypes.int64, coretypes.float64], 1.5)
 
 # float -> complex
-add_numeric_rule([datashape.float64, datashape.complex64], 1.5)
+add_numeric_rule([coretypes.float64, coretypes.complex_float32], 1.5)
