@@ -13,7 +13,7 @@ from collections import defaultdict
 from itertools import chain, product
 
 import datashape
-from .error import CoercionError
+from .error import CoercionError, UnificationError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import boolean, complexes, floating, integral, signed, unsigned
 from .coretypes import Implements, Fixed, Var, Ellipsis, DataShape
@@ -85,6 +85,7 @@ def transitivity(a, b, table=_table):
 # Coercion function
 #------------------------------------------------------------------------
 
+
 def dim_coercion_cost(src, dst):
     """
     Cost of coercing one dimension type to another.
@@ -100,12 +101,13 @@ def dim_coercion_cost(src, dst):
             return 0.1 if src.val == 1 else inf
         return 0
     elif isinstance(dst, Var):
-        assert type(a) in [Var, Fixed]
-        if isinstance(a, Fixed):
+        assert type(src) in [Var, Fixed]
+        if isinstance(src, Fixed):
             return 0.1 # broadcasting penalty
         return 0
     else:
         return inf
+
 
 def dtype_coercion_cost(src, dst):
     """
@@ -117,17 +119,14 @@ def dtype_coercion_cost(src, dst):
         except KeyError:
             return inf
 
+
 def coercion_cost(a, b, seen=None):
     """
     Determine a coercion cost from type `a` to type `b`.
 
     Type `a` and `b'` must be unifiable and normalized.
     """
-    a, b = _strip_datashape(a), _strip_datashape(b)
-    # Determine the approximate cost and subtract the term size of the
-    # right hand side: the more complicated the RHS, the more specific
-    # the match should be
-    return _coercion_cost(a, b, seen) - (termsize(b) / 100.0)
+    return _coercion_cost(_strip_datashape(a), _strip_datashape(b), seen)
 
 
 def _coercion_cost(a, b, seen=None):

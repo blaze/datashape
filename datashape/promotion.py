@@ -16,6 +16,74 @@ from .coretypes import (DataShape, CType, Fixed, Var, to_numpy, to_numpy_dtype,
 from .typesets import TypeSet
 
 
+def broadcast_dims(dim1, dim2):
+    """
+    Broadcasts two dimension types or two
+    lists of dimension types together.
+    """
+    if isinstance(dim1, list) and isinstance(dim2, list):
+        # Broadcast a list of dimensions
+        if len(dim1) > len(dim2):
+            result = list(dim1)
+            other = dim2
+        else:
+            result = list(dim2)
+            other = dim1
+        offset = len(result) - len(other)
+        for i, dim in enumerate(other):
+            result[offset + i] = broadcast_dims(result[offset + i], dim)
+        return result
+    else:
+        # Broadcast a single dimension
+        if isinstance(dim1, Fixed):
+            if isinstance(dim2, Fixed):
+                if dim1 == Fixed(1):
+                    return dim2
+                elif dim2 == Fixed(1):
+                    return dim1
+                else:
+                    if dim1 == dim2:
+                        return dim1
+                    else:
+                        raise UnificationError(
+                            "Cannot broadcast differing fixed dimensions "
+                            "%s and %s" % (dim1, dim2))
+            elif isinstance(dim2, Var):
+                if dim1 == Fixed(1):
+                    return dim2
+                else:
+                    return dim1
+            else:
+                raise TypeError(("Unknown dim types, cannot broadcast: " +
+                                 "%s and %s") % (dim1, dim2))
+        elif isinstance(dim1, Var):
+            if isinstance(dim2, Fixed):
+                if dim2 == Fixed(1):
+                    return dim1
+                else:
+                    return dim2
+            elif isinstance(dim2, Var):
+                return dim1
+            else:
+                raise TypeError(("Unknown dim types, cannot broadcast: " +
+                                 "%s and %s") % (dim1, dim2))
+
+
+def promote_dtypes(dt1, dt2):
+    if dt1 == dt2:
+        return dt1
+    elif isinstance(dt1, CType) and isinstance(dt2, CType):
+        # Promote CTypes -- this should use coercion_cost()
+        try:
+            return CType.from_numpy_dtype(np.result_type(to_numpy_dtype(dt1),
+                                                         to_numpy_dtype(dt2)))
+        except TypeError as e:
+            raise TypeError("Cannot promote %s and %s: %s" % (dt1, dt2, e))
+    else:
+       raise TypeError(("Unknown data types, cannot promote: " +
+                        "%s and %s") % (dt1, dt2))
+
+
 def promote_units(*units):
     """
     Promote unit types, which are either CTypes or Constants.

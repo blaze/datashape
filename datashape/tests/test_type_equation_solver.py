@@ -5,9 +5,10 @@ import unittest
 from datashape import coretypes as T
 from datashape.type_equation_solver import match_argtypes_to_signature, _match_equation
 from datashape import dshape
+from datashape.coercion import dim_coercion_cost, dtype_coercion_cost
 
 
-class TestCoercion(unittest.TestCase):
+class TestSignatureArgMatching(unittest.TestCase):
     def test_nargs_mismatch(self):
         # Make sure an error is rased when the # of arguments is wrong
         self.assertRaises(TypeError, match_argtypes_to_signature,
@@ -17,7 +18,92 @@ class TestCoercion(unittest.TestCase):
                           dshape('(int32, float64)'),
                           dshape('(int32, float64, int16) -> int32'))
 
-    def test_explode_coercion_eqns_dtype(self):
+    def test_dtype_matches_concrete(self):
+        # Exact match, same signature and zero cost
+        at = dshape('(int32, float64)')
+        sig = dshape('(int32, float64) -> int16')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (sig[0], 0))
+        # Requires a coercion, cost is that of the coercion
+        at = dshape('(int32, int32)')
+        sig = dshape('(int32, float64) -> int16')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (sig[0], dtype_coercion_cost(T.int32, T.float64)))
+        # Requires two coercions, cost is maximum of the two
+        at = dshape('(int16, int32)')
+        sig = dshape('(int32, float64) -> int16')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (sig[0], dtype_coercion_cost(T.int32, T.float64)))
+
+    def test_dtype_coerce_error(self):
+        at = dshape('(int32, float64)')
+        sig = dshape('(int32, int32) -> int16')
+        self.assertRaises(TypeError, match_argtypes_to_signature, at, sig)
+
+    def test_dtype_matches_typevar(self):
+        # Exact match, and zero cost
+        at = dshape('(int32, float64)')
+        sig = dshape('(int32, T) -> T')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (dshape('(int32, float64) -> float64')[0], 0))
+        # Type promotion between the inputs
+        at = dshape('(int32, float64)')
+        sig = dshape('(T, T) -> T')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (dshape('(float64, float64) -> float64')[0], 0))
+        # Type promotion between the inputs
+        at = dshape('(int32, bool, float64)')
+        sig = dshape('(T, S, T) -> S')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (dshape('(float64, bool, float64) -> bool')[0], 0))
+
+    def test_dshape_matches_concrete(self):
+        # Exact match, same signature and zero cost
+        at = dshape('(3 * int32, 2 * var * float64)')
+        sig = dshape('(3 * int32, 2 * var * float64) -> 4 * int16')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (sig[0], 0))
+        # Requires broadcasting
+        at = dshape('(1 * int32, 2 * 4 * float64)')
+        sig = dshape('(3 * int32, 2 * var * float64) -> 4 * int16')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (sig[0], max(dim_coercion_cost(T.Fixed(1), T.Fixed(3)),
+                                      dim_coercion_cost(T.Fixed(4), T.Var()))))
+
+    def test_dshape_matches_typevar(self):
+        # Arrays with matching size
+        at = dshape('(5 * int32, 5 * float64)')
+        sig = dshape('(N * int32, N * float64) -> N * int16')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (dshape('(5 * int32, 5 * float64) -> 5 * int16')[0], 0))
+        # Matrix multiplication
+        at = dshape('(3 * 5 * float64, 5 * 6 * float32)')
+        sig = dshape('(M * N * A, N * R * A) -> M * R * A')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (dshape('(3 * 5 * float64, 5 * 6 * float64) ->' +
+                                 ' 3 * 6 * float64')[0], 0))
+        # Broadcasted matrix multiplication
+        at = dshape('(20 * 3 * 5 * float64, 3 * 1 * 5 * 6 * float32)')
+        sig = dshape('(Dims... * M * N * A, Dims... * N * R * A) ->' +
+                     ' Dims... * M * R * A')
+        self.assertEqual(match_argtypes_to_signature(at, sig),
+                         (dshape('(20 * 3 * 5 * float64,' +
+                                 ' 3 * 1 * 5 * 6 * float64) ->' +
+                                 ' 3 * 20 * 3 * 6 * float64')[0], 0))
+
+    def test_dshape_dim_mismatch_error(self):
+        # Single dimension type variables must match up exactly
+        at = dshape('(1 * int32, 3 * float64)')
+        sig = dshape('(M * int32, M * int32) -> M * int16')
+        self.assertRaises(TypeError, match_argtypes_to_signature, at, sig)
+        # Ellipsis typevars must broadcast
+        at = dshape('(2 * int32, 3 * float64)')
+        sig = dshape('(Dims... * int32, Dims... * int32) -> Dims... * int16')
+        self.assertRaises(TypeError, match_argtypes_to_signature, at, sig)
+
+
+class TestEquationMatching(unittest.TestCase):
+    def test_match_equation_dtype(self):
         # A simple coercion
         eqns = _match_equation(dshape('int32'), dshape('int64'))
         self.assertEqual(eqns, [(T.int32, T.int64)])
@@ -25,7 +111,7 @@ class TestCoercion(unittest.TestCase):
         eqns = _match_equation(dshape('int32'), dshape('D'))
         self.assertEqual(eqns, [(T.int32, T.TypeVar('D'))])
 
-    def test_explode_coercion_eqns_dim(self):
+    def test_match_equation_dim(self):
         # Broadcasting a single dimension
         eqns = _match_equation(dshape('1 * int32'), dshape('10 * int32'))
         self.assertEqual(eqns, [(T.Fixed(1), T.Fixed(10)),
@@ -35,7 +121,7 @@ class TestCoercion(unittest.TestCase):
         self.assertEqual(eqns, [(T.Fixed(3), T.TypeVar('M')),
                                 (T.int32, T.int32)])
 
-    def test_explode_coercion_eqns_ellipsis(self):
+    def test_match_equation_ellipsis(self):
         # Matching an ellipsis
         eqns = _match_equation(dshape('int32'), dshape('... * int32'))
         self.assertEqual(eqns, [([], T.Ellipsis()),
