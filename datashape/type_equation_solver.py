@@ -162,13 +162,23 @@ def _process_equation(eqn, dim_tv, dtype_tv):
             if isinstance(dst, coretypes.TypeVar):
                 # Add to the dtype typevar dict
                 dtype_tv[dst].append(src)
+                # Cost of broadcasting to a typevar
+                cost += 0.125
+                print('adding 0.125 because', dst, src)
             else:
                 # This is a concrete coerciion, evaluate its cost
                 cost += coercion.dtype_coercion_cost(src, dst)
         else:
-            if isinstance(dst, (coretypes.Ellipsis, coretypes.TypeVar)):
+            if isinstance(dst, coretypes.TypeVar):
                 # Add to the dim typevar dict
                 dim_tv[dst].append(src)
+                # Cost of broadcasting to an ellipsis
+                cost += 0.125
+            if isinstance(dst, coretypes.Ellipsis):
+                # Add to the dim typevar dict
+                dim_tv[dst].append(src)
+                # Cost of broadcasting to an ellipsis
+                cost += 0.25
             else:
                 # This is a concrete broadcasting, evaluate its cost
                 cost += coercion.dim_coercion_cost(src, dst)

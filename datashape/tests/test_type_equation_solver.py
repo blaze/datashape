@@ -47,17 +47,17 @@ class TestSignatureArgMatching(unittest.TestCase):
         at = dshape('(int32, float64)')
         sig = dshape('(int32, T) -> T')
         self.assertEqual(match_argtypes_to_signature(at, sig),
-                         (dshape('(int32, float64) -> float64')[0], 0))
+                         (dshape('(int32, float64) -> float64')[0], 0.125))
         # Type promotion between the inputs
         at = dshape('(int32, float64)')
         sig = dshape('(T, T) -> T')
         self.assertEqual(match_argtypes_to_signature(at, sig),
-                         (dshape('(float64, float64) -> float64')[0], 0))
+                         (dshape('(float64, float64) -> float64')[0], 0.125))
         # Type promotion between the inputs
         at = dshape('(int32, bool, float64)')
         sig = dshape('(T, S, T) -> S')
         self.assertEqual(match_argtypes_to_signature(at, sig),
-                         (dshape('(float64, bool, float64) -> bool')[0], 0))
+                         (dshape('(float64, bool, float64) -> bool')[0], 0.125))
 
     def test_dshape_matches_concrete(self):
         # Exact match, same signature and zero cost
@@ -77,13 +77,14 @@ class TestSignatureArgMatching(unittest.TestCase):
         at = dshape('(5 * int32, 5 * float64)')
         sig = dshape('(N * int32, N * float64) -> N * int16')
         self.assertEqual(match_argtypes_to_signature(at, sig),
-                         (dshape('(5 * int32, 5 * float64) -> 5 * int16')[0], 0))
+                         (dshape('(5 * int32, 5 * float64) -> 5 * int16')[0],
+                          0.125))
         # Matrix multiplication
         at = dshape('(3 * 5 * float64, 5 * 6 * float32)')
         sig = dshape('(M * N * A, N * R * A) -> M * R * A')
         self.assertEqual(match_argtypes_to_signature(at, sig),
                          (dshape('(3 * 5 * float64, 5 * 6 * float64) ->' +
-                                 ' 3 * 6 * float64')[0], 0))
+                                 ' 3 * 6 * float64')[0], 0.375))
         # Broadcasted matrix multiplication
         at = dshape('(20 * 3 * 5 * float64, 3 * 1 * 5 * 6 * float32)')
         sig = dshape('(Dims... * M * N * A, Dims... * N * R * A) ->' +
@@ -91,7 +92,7 @@ class TestSignatureArgMatching(unittest.TestCase):
         self.assertEqual(match_argtypes_to_signature(at, sig),
                          (dshape('(20 * 3 * 5 * float64,' +
                                  ' 3 * 1 * 5 * 6 * float64) ->' +
-                                 ' 3 * 20 * 3 * 6 * float64')[0], 0))
+                                 ' 3 * 20 * 3 * 6 * float64')[0], 0.625))
 
     def test_dshape_dim_mismatch_error(self):
         # Single dimension type variables must match up exactly
@@ -104,6 +105,20 @@ class TestSignatureArgMatching(unittest.TestCase):
         sig = dshape('(Dims... * int32, Dims... * int32) -> Dims... * int16')
         self.assertRaises(error.CoercionError, match_argtypes_to_signature,
                           at, sig)
+
+    def test_broadcast_vs_not(self):
+        # Single dimension type variables must match up exactly
+        at = dshape('(int32, float64)')
+        sig_scalar = dshape('(float64, float64) -> int16')
+        sig_bcast = dshape('(A... * float64, A... * float64) -> A... * int16')
+        match_scalar = match_argtypes_to_signature(at, sig_scalar)
+        match_bcast = match_argtypes_to_signature(at, sig_bcast)
+        self.assertEqual(match_scalar[0],
+                         dshape('(float64, float64) -> int16')[0])
+        self.assertEqual(match_bcast[0],
+                         dshape('(float64, float64) -> int16')[0])
+        # Should be cheaper to match without the broadcasting
+        self.assertTrue(match_scalar[1] < match_bcast[1])
 
 
 class TestEquationMatching(unittest.TestCase):
