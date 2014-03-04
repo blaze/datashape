@@ -26,7 +26,6 @@ from .coretypes import (DataShape, Fixed, TypeVar, Record, Ellipsis, String,
                int8, int16, int32, int64,
                float32, float64, complex64, complex128,
                Type, free, type_constructor)
-from .traversal import tmap
 from .typesets import TypeSet
 
 
@@ -49,21 +48,11 @@ POINTER = 1
 
 def dshapes(*args):
     """
-    Parse all datashapes a single context. This means two datashapes
-    'A, B, int32' and 'X, B, float32' will now share type variable 'B'.
+    Parse a bunch of datashapes all at once.
+
+    >>> a, b = dshapes('3 * int32', '2 * var * float64')
     """
-    result = [dshape(arg) for arg in args]
-    S = IdentityDict()
-    for t in result:
-        for typevar in free(t):
-            S.setdefault(typevar.symbol, typevar)
-
-    def f(t):
-        if isinstance(t, TypeVar):
-            return S[t.symbol]
-        return t
-
-    return [tmap(f, t) for t in result]
+    return [dshape(arg) for arg in args]
 
 def dshape(o):
     """
@@ -73,7 +62,8 @@ def dshape(o):
     """
     ds = _dshape(o)
     validate(ds)
-    return _unique_typevars(ds)
+    return ds
+
 
 def _dshape(o):
     if isinstance(o, py2help._strtypes):
@@ -85,21 +75,6 @@ def _dshape(o):
     else:
         raise TypeError('Cannot create dshape from object of type %s' % type(o))
 
-def _unique_typevars(ds):
-    """
-    Build a blaze type, making sure type variables are unique in this context.
-    E.g. in 'T, T, int32', make sure the two type variables 'T' are the same
-    object.
-    """
-    typevars = {}
-    def f(x):
-        if isinstance(x, TypeVar):
-            if x.symbol not in typevars:
-                typevars[x.symbol] = x
-            return typevars[x.symbol]
-        return x
-
-    return tmap(f, ds)
 
 def cat_dshapes(dslist):
     """

@@ -5,8 +5,17 @@ Datashape validation.
 """
 
 from .error import DataShapeError
-from .traversal import traverse
 from . import coretypes as T
+
+
+def traverse(f, t):
+    """
+    Map f over t, calling `f` with type `t` and the map result of the mapping
+    `f` over `t`s parameters.
+    """
+    if isinstance(t, T.Mono) and not isinstance(t, T.Unit):
+        return f(t, [traverse(f, p) for p in t.parameters])
+    return t
 
 
 def validate(ds):
