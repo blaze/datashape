@@ -12,7 +12,6 @@ from __future__ import print_function
 from collections import defaultdict
 from itertools import chain, product
 
-import datashape
 from .error import CoercionError, UnificationError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import boolean, complexes, floating, integral, signed, unsigned
