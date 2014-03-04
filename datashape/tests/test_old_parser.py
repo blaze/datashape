@@ -22,8 +22,8 @@ class TestDataShapeParser(common.BTestCase):
 
         rec = y[-1]
 
-        assert rec.fields['x'] == datashape.int64
-        assert rec.fields['y'] == datashape.int32
+        assert rec.fields['x'] == datashape.dshape(datashape.int64)
+        assert rec.fields['y'] == datashape.dshape(datashape.int32)
 
     def test_compound_record1(self):
         p = parse('6, {x:int32; y:float64; z:string}')

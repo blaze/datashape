@@ -226,10 +226,10 @@ add_numeric_rule([coretypes.uint8, coretypes.int16])
 add_numeric_rule([coretypes.uint16, coretypes.int32])
 add_numeric_rule([coretypes.uint32, coretypes.int64])
 
-add_numeric_rule([coretypes.int16, coretypes.float32])
-add_numeric_rule([coretypes.int32, coretypes.float64])
-add_numeric_rule([coretypes.float32, coretypes.complex_float32])
-add_numeric_rule([coretypes.float64, coretypes.complex_float64])
+add_numeric_rule([coretypes.int16, coretypes.float32], 1.2)
+add_numeric_rule([coretypes.int32, coretypes.float64], 1.2)
+add_numeric_rule([coretypes.float32, coretypes.complex_float32], 1.2)
+add_numeric_rule([coretypes.float64, coretypes.complex_float64], 1.2)
 
 # Potentially lossy conversions
 
