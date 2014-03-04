@@ -7,7 +7,6 @@ from .coretypes import *
 from .typesets import *
 from .type_symbol_table import *
 from .util import *
-from .validation import validate
 from .coercion import coercion_cost
 from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
                     CoercionError)
