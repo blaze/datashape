@@ -3,18 +3,11 @@ from __future__ import print_function, division, absolute_import
 
 import inspect
 import operator
-import itertools
 import ctypes
 import collections
 import string
 import sys
 from functools import partial
-
-try:
-    from collections import MutableMapping
-except ImportError as e:
-    # Python 3
-    from UserDict import DictMixin as MutableMapping
 
 from . import py2help
 from . import parser
@@ -150,7 +143,7 @@ def _from_cffi_internal(ffi, ctype):
             dsparams.append(coretypes.Fixed(ctype.length))
             ctype = ctype.item
         dsparams.append(_from_cffi_internal(ffi, ctype))
-        return DataShape(*dsparams)
+        return coretypes.DataShape(*dsparams)
     elif k == 'primitive':
         cn = ctype.cname
         if cn in ['signed char', 'short', 'int',
@@ -280,7 +273,7 @@ def from_ctypes(ctype):
             dstup.append(coretypes.Fixed(ctype._length_))
             ctype = ctype._type_
         dstup.append(from_ctypes(ctype))
-        return DataShape(*dstup)
+        return coretypes.DataShape(*dstup)
     elif ctype == ctypes.c_int8:
         return coretypes.int8
     elif ctype == ctypes.c_int16:
@@ -356,7 +349,7 @@ def from_llvm(typ, argkind=SCALAR):
                 eltype = from_llvm(argkind[2])
                 obj = [TypeVar('i'+str(n)) for n in range(nd)]
                 obj.append(eltype)
-                ds = DataShape(*obj)
+                ds = coretypes.DataShape(*obj)
                 ds._array_kind = argkind[0]
 
     elif kind == llvm.core.TYPE_STRUCT:
