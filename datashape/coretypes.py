@@ -651,11 +651,12 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        self.__fields = tuple(fields)
-        self.__fdict = dict(fields)
-        self.__fnames = [f[0] for f in fields]
-        self.__ftypes = [f[1] for f in fields]
-        self.parameters = (fields,)
+        self.__fnames = [n for n, t in fields]
+        self.__ftypes = [t if isinstance(t, DataShape) else DataShape(t)
+                         for n, t in fields]
+        self.__fields = tuple(zip(self.__fnames, self.__ftypes))
+        self.__fdict = dict(self.__fields)
+        self.parameters = (self.__fields,)
 
     @property
     def fields(self):

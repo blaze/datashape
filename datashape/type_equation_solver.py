@@ -48,7 +48,7 @@ def matches_datashape_pattern(concrete, symbolic):
     # Ensure that no TypeVar symbol has been used in multiple ways
     _check_inconsistent_tv_usage(dim_tv, dtype_tv)
 
-    # Promote all the TypeVars tegether, to validate that their
+    # Promote all the TypeVars together, to validate that their
     # usage is self-consistent. In this function, we don't need
     # to use the promoted values.
     try:
