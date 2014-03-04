@@ -358,7 +358,7 @@ def from_ctypes(ctype):
                         'a blaze datashape' % ctype)
 
 # Class to hold Pointer temporarily
-def PointerDshape(object):
+def _PointerDshape(object):
     def __init__(self, dshape):
         self.dshape = dshape
 
@@ -399,10 +399,10 @@ def from_llvm(typ, argkind=SCALAR):
             if width == 8:
                 ds = dshape("string")
             else:
-                ds = PointerDshape(from_llvm(pointee))
+                ds = _PointerDshape(from_llvm(pointee))
         if p_kind == llvm.core.TYPE_STRUCT:
             if argkind == POINTER:
-                ds = PointerDshape(from_llvm(pointee))
+                ds = _PointerDshape(from_llvm(pointee))
             else:  # argkind is a tuple of (arrkind, nd, pointer_type)
                 nd = argkind[1]
                 eltype = from_llvm(argkind[2])
@@ -432,28 +432,10 @@ def from_llvm(typ, argkind=SCALAR):
     return ds
 
 
-class AnyType(TypeSet):
-    def __contains__(self, val):
-        return True
-
-class AnyCType(TypeSet):
-    def __contains__(self, val):
-        return isinstance(val, CType)
-
-    def __str__(self):
-        return "*"
-
-
 # FIXME: This is a hack
 def from_numba(nty):
     return Type._registry[str(nty)]
 
-def from_numba_str(numba_str):
-    import numba
-    numba_str = numba_str.strip()
-    if numba_str == '*':
-        return AnyCType()
-    return from_numba(getattr(numba, numba_str))
 
 # Just scalars for now
 # FIXME: This could be improved
