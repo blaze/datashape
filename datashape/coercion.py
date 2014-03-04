@@ -128,11 +128,15 @@ def dtype_coercion_cost(src, dst):
     """
     Cost of coercing one data type to another
     """
-    if isinstance(src, CType) and isinstance(dst, CType):
+    if src == dst:
+        return 0
+    elif isinstance(src, CType) and isinstance(dst, CType):
         try:
             return coercion_cost_table(src, dst)
         except KeyError:
             return inf
+    else:
+        return inf
 
 
 def _strip_datashape(a):
