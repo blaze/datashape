@@ -21,11 +21,7 @@ from . import parser
 from . import type_symbol_table
 from .error import UnificationError
 from .validation import validate
-from .coretypes import (DataShape, Fixed, TypeVar, Record, Ellipsis, String,
-               uint8, uint16, uint32, uint64, CType, Mono, JSON,
-               int8, int16, int32, int64,
-               float32, float64, complex64, complex128,
-               Type, free, type_constructor)
+from . import coretypes
 from .typesets import TypeSet
 
 
@@ -53,26 +49,24 @@ def dshapes(*args):
     """
     return [dshape(arg) for arg in args]
 
+
 def dshape(o):
     """
     Parse a blaze type. For a thorough description see
     http://blaze.pydata.org/docs/datashape.html
 
     """
-    ds = _dshape(o)
-    validate(ds)
-    return ds
-
-
-def _dshape(o):
     if isinstance(o, py2help._strtypes):
-        return parser.parse(o, type_symbol_table.sym)
-    elif isinstance(o, (CType, String, Record, JSON)):
-        return DataShape(o)
-    elif isinstance(o, Mono):
-        return o
+        ds = parser.parse(o, type_symbol_table.sym)
+    elif isinstance(o, (coretypes.CType, coretypes.String,
+                        coretypes.Record, coretypes.JSON)):
+        ds = coretypes.DataShape(o)
+    elif isinstance(o, coretypes.Mono):
+        ds = o
     else:
         raise TypeError('Cannot create dshape from object of type %s' % type(o))
+    validate(ds)
+    return ds
 
 
 def cat_dshapes(dslist):
@@ -101,7 +95,7 @@ def cat_dshapes(dslist):
                             ' all match after'
                             ' the first dimension (%s vs %s)') %
                             (inner_ds, ds[1:]))
-    return DataShape(*[Fixed(outer_dim_size)] + list(inner_ds))
+    return coretypes.DataShape(*[coretypes.Fixed(outer_dim_size)] + list(inner_ds))
 
 
 def dummy_signature(f):
@@ -114,7 +108,7 @@ def dummy_signature(f):
 
 def verify(t1, t2):
     """Verify that two immediate type constructors are valid for unification"""
-    if not isinstance(t1, Mono) or not isinstance(t2, Mono):
+    if not isinstance(t1, coretypes.Mono) or not isinstance(t2, coretypes.Mono):
         if t1 != t2:
             raise UnificationError("%s != %s" % (t1, t2))
         return
@@ -148,12 +142,12 @@ def _from_cffi_internal(ffi, ctype):
         if ctype.length is None:
             # Only the first array can have the size
             # unspecified, so only need a single name
-            dsparams = [TypeVar('N')]
+            dsparams = [coretypes.TypeVar('N')]
         else:
-            dsparams = [Fixed(ctype.length)]
+            dsparams = [coretypes.Fixed(ctype.length)]
         ctype = ctype.item
         while ctype.kind == 'array':
-            dsparams.append(Fixed(ctype.length))
+            dsparams.append(coretypes.Fixed(ctype.length))
             ctype = ctype.item
         dsparams.append(_from_cffi_internal(ffi, ctype))
         return DataShape(*dsparams)
@@ -163,13 +157,13 @@ def _from_cffi_internal(ffi, ctype):
                         'long', 'long long']:
             so = ffi.sizeof(ctype)
             if so == 1:
-                return int8
+                return coretypes.int8
             elif so == 2:
-                return int16
+                return coretypes.int16
             elif so == 4:
-                return int32
+                return coretypes.int32
             elif so == 8:
-                return int64
+                return coretypes.int64
             else:
                 raise TypeError('cffi primitive "%s" has invalid size %d' %
                                 (cn, so))
@@ -178,20 +172,20 @@ def _from_cffi_internal(ffi, ctype):
                         'unsigned long long']:
             so = ffi.sizeof(ctype)
             if so == 1:
-                return uint8
+                return coretypes.uint8
             elif so == 2:
-                return uint16
+                return coretypes.uint16
             elif so == 4:
-                return uint32
+                return coretypes.uint32
             elif so == 8:
-                return uint64
+                return coretypes.uint64
             else:
                 raise TypeError('cffi primitive "%s" has invalid size %d' %
                                 (cn, so))
         elif cn == 'float':
-            return float32
+            return coretypes.float32
         elif cn == 'double':
-            return float64
+            return coretypes.float64
         else:
             raise TypeError('Unrecognized cffi primitive "%s"' % cn)
     elif k == 'pointer':
@@ -215,39 +209,39 @@ def to_ctypes(dshape):
     Constructs a ctypes type from a datashape
     """
     if len(dshape) == 1:
-        if dshape == int8:
+        if dshape == coretypes.int8:
             return ctypes.c_int8
-        elif dshape == int16:
+        elif dshape == coretypes.int16:
             return ctypes.c_int16
-        elif dshape == int32:
+        elif dshape == coretypes.int32:
             return ctypes.c_int32
-        elif dshape == int64:
+        elif dshape == coretypes.int64:
             return ctypes.c_int64
-        elif dshape == uint8:
+        elif dshape == coretypes.uint8:
             return ctypes.c_uint8
-        elif dshape == uint16:
+        elif dshape == coretypes.uint16:
             return ctypes.c_uint16
-        elif dshape == uint32:
+        elif dshape == coretypes.uint32:
             return ctypes.c_uint32
-        elif dshape == uint64:
+        elif dshape == coretypes.uint64:
             return ctypes.c_uint64
-        elif dshape == float32:
+        elif dshape == coretypes.float32:
             return ctypes.c_float
-        elif dshape == float64:
+        elif dshape == coretypes.float64:
             return ctypes.c_double
-        elif dshape == complex64:
+        elif dshape == coretypes.complex_float32:
             class Complex64(ctypes.Structure):
                 _fields_ = [('real', ctypes.c_float),
                             ('imag', ctypes.c_float)]
-                _blaze_type_ = complex64
+                _blaze_type_ = coretypes.complex_float32
             return Complex64
-        elif dshape == complex128:
+        elif dshape == coretypes.complex_float64:
             class Complex128(ctypes.Structure):
                 _fields_ = [('real', ctypes.c_double),
                             ('imag', ctypes.c_double)]
-                _blaze_type_ = complex128
+                _blaze_type_ = coretypes.complex_float64
             return Complex128
-        elif isinstance(dshape, Record):
+        elif isinstance(dshape, coretypes.Record):
             fields = [(name, to_ctypes(dshape.fields[name]))
                                           for name in dshape.names]
             class temp(ctypes.Structure):
@@ -257,7 +251,7 @@ def to_ctypes(dshape):
             raise TypeError("Cannot convert datashape %r into ctype" % dshape)
     # Create arrays
     else:
-        if isinstance(dshape[0], (TypeVar, Ellipsis)):
+        if isinstance(dshape[0], (coretypes.TypeVar, coretypes.Ellipsis)):
             num = 0
         else:
             num = int(dshape[0])
@@ -283,30 +277,30 @@ def from_ctypes(ctype):
     elif issubclass(ctype, ctypes.Array):
         dstup = []
         while issubclass(ctype, ctypes.Array):
-            dstup.append(Fixed(ctype._length_))
+            dstup.append(coretypes.Fixed(ctype._length_))
             ctype = ctype._type_
         dstup.append(from_ctypes(ctype))
         return DataShape(*dstup)
     elif ctype == ctypes.c_int8:
-        return int8
+        return coretypes.int8
     elif ctype == ctypes.c_int16:
-        return int16
+        return coretypes.int16
     elif ctype == ctypes.c_int32:
-        return int32
+        return coretypes.int32
     elif ctype == ctypes.c_int64:
-        return int64
+        return coretypes.int64
     elif ctype == ctypes.c_uint8:
-        return uint8
+        return coretypes.uint8
     elif ctype == ctypes.c_uint16:
-        return uint16
+        return coretypes.uint16
     elif ctype == ctypes.c_uint32:
-        return uint32
+        return coretypes.uint32
     elif ctype == ctypes.c_uint64:
-        return uint64
+        return coretypes.uint64
     elif ctype == ctypes.c_float:
-        return float32
+        return coretypes.float32
     elif ctype == ctypes.c_double:
-        return float64
+        return coretypes.float64
     else:
         raise TypeError('Cannot convert ctypes %r into '
                         'a blaze datashape' % ctype)
@@ -388,7 +382,7 @@ def from_llvm(typ, argkind=SCALAR):
 
 # FIXME: This is a hack
 def from_numba(nty):
-    return Type._registry[str(nty)]
+    return coretypes.Type._registry[str(nty)]
 
 
 # Just scalars for now
