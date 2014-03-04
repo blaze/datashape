@@ -13,10 +13,14 @@ from collections import defaultdict
 from itertools import chain, product
 
 import datashape
-from .error import CoercionError
+from .error import CoercionError, UnificationError
 from .coretypes import CType, TypeVar, Mono
 from .typesets import boolean, complexes, floating, integral, signed, unsigned
-from . import verify, normalize, Implements, Fixed, Var, Ellipsis, DataShape
+from .coretypes import Implements, Fixed, Var, Ellipsis, DataShape
+from .util import verify
+from . import coretypes
+
+inf = float('inf')
 
 
 class CoercionTable(object):
@@ -80,6 +84,63 @@ def transitivity(a, b, table=_table):
 # Coercion function
 #------------------------------------------------------------------------
 
+def dimlist_coercion_cost(src, dst):
+    """
+    Cost of broadcasting one list of dimensions to another
+    """
+    # TODO: This is not handling ellipsis
+    if len(src) > len(dst):
+        return inf
+    # Cost for adding dimensions is 0.1 for a size-one Fixed
+    # dim, 0.2 for anything else
+    leading = len(dst) - len(src)
+    cost = sum(0.1 if x == Fixed(1) else 0.2 for x in dst[:leading])
+    return cost + sum(dim_coercion_cost(x, y)
+                      for x, y in zip(src, dst[leading:]))
+
+
+def dim_coercion_cost(src, dst):
+    """
+    Cost of coercing one dimension type to another.
+    """
+    if isinstance(dst, Fixed):
+        if isinstance(src, Var):
+            return 0.1 # broadcasting penalty
+        elif not isinstance(src, Fixed):
+            return inf
+
+        if src.val != dst.val:
+            # broadcasting penalty
+            return 0.1 if src.val == 1 else inf
+        return 0
+    elif isinstance(dst, Var):
+        assert type(src) in [Var, Fixed]
+        if isinstance(src, Fixed):
+            return 0.1 # broadcasting penalty
+        return 0
+    elif isinstance(dst, TypeVar):
+        return 0
+    else:
+        return inf
+
+
+def dtype_coercion_cost(src, dst):
+    """
+    Cost of coercing one data type to another
+    """
+    if isinstance(src, CType) and isinstance(dst, CType):
+        try:
+            return coercion_cost_table(src, dst)
+        except KeyError:
+            return inf
+
+
+def _strip_datashape(a):
+    """Strips off the outer DataShape(...) if a is zero-dimensional."""
+    if isinstance(a, DataShape) and len(a) == 1:
+        a = a[0]
+    return a
+
 
 def coercion_cost(a, b, seen=None):
     """
@@ -87,10 +148,7 @@ def coercion_cost(a, b, seen=None):
 
     Type `a` and `b'` must be unifiable and normalized.
     """
-    # Determine the approximate cost and subtract the term size of the
-    # right hand side: the more complicated the RHS, the more specific
-    # the match should be
-    return _coercion_cost(a, b, seen) - (termsize(b) / 100.0)
+    return _coercion_cost(_strip_datashape(a), _strip_datashape(b), seen)
 
 
 def _coercion_cost(a, b, seen=None):
@@ -131,7 +189,8 @@ def _coercion_cost(a, b, seen=None):
             return 0.1 # broadcasting penalty
         return 0
     elif isinstance(a, DataShape) and isinstance(b, DataShape):
-        return coerce_datashape(a, b, seen)
+        return (dimlist_coercion_cost(a[:-1], b[:-1]) +
+                dtype_coercion_cost(a[-1], b[-1]))
     else:
         verify(a, b)
         return max([_coercion_cost(x, y, seen) for x, y in zip(a.parameters,
@@ -145,26 +204,6 @@ def termsize(term):
     return 0
 
 
-def coerce_datashape(a, b, seen):
-    # Penalize broadcasting
-    broadcast_penalty = abs(len(a.parameters) - len(b.parameters))
-
-    # Penalize ellipsis if one side has it but not the other
-    ellipses_a = sum(isinstance(p, Ellipsis) for p in a.parameters)
-    ellipses_b = sum(isinstance(p, Ellipsis) for p in b.parameters)
-    ellipsis_penalty = ellipses_a ^ ellipses_b
-
-    penalty = broadcast_penalty + ellipsis_penalty
-
-    # Process rest of parameters
-    [(a, b)], _ = normalize([(a, b)], [True])
-    verify(a, b)
-    for x, y in zip(a.parameters, b.parameters):
-        penalty += coercion_cost(x, y, seen)
-
-    return penalty
-
-
 #------------------------------------------------------------------------
 # Default coercion rules
 #------------------------------------------------------------------------
@@ -174,41 +213,41 @@ def add_numeric_rule(types, cost=1):
     for src, dst in zip(types[:-1], types[1:]):
         add_coercion(src, dst, cost)
 
-promotable_unsigned = [datashape.uint8, datashape.uint16, datashape.uint32]
-promoted_signed     = [datashape.int16, datashape.int32, datashape.int64]
+promotable_unsigned = [coretypes.uint8, coretypes.uint16, coretypes.uint32]
+promoted_signed     = [coretypes.int16, coretypes.int32, coretypes.int64]
 
 add_numeric_rule(signed)
 add_numeric_rule(unsigned)
 add_numeric_rule(floating)
 add_numeric_rule(complexes)
 
-add_numeric_rule([datashape.bool_, datashape.int8])
-add_numeric_rule([datashape.uint8, datashape.int16])
-add_numeric_rule([datashape.uint16, datashape.int32])
-add_numeric_rule([datashape.uint32, datashape.int64])
+add_numeric_rule([coretypes.bool_, coretypes.int8])
+add_numeric_rule([coretypes.uint8, coretypes.int16])
+add_numeric_rule([coretypes.uint16, coretypes.int32])
+add_numeric_rule([coretypes.uint32, coretypes.int64])
 
-add_numeric_rule([datashape.int16, datashape.float32])
-add_numeric_rule([datashape.int32, datashape.float64])
-add_numeric_rule([datashape.float32, datashape.complex64])
-add_numeric_rule([datashape.float64, datashape.complex128])
+add_numeric_rule([coretypes.int16, coretypes.float32], 1.2)
+add_numeric_rule([coretypes.int32, coretypes.float64], 1.2)
+add_numeric_rule([coretypes.float32, coretypes.complex_float32], 1.2)
+add_numeric_rule([coretypes.float64, coretypes.complex_float64], 1.2)
 
 # Potentially lossy conversions
 
 # unsigned -> signed
-add_numeric_rule([datashape.uint8, datashape.int8], 1.5)
-add_numeric_rule([datashape.uint16, datashape.int16], 1.5)
-add_numeric_rule([datashape.uint32, datashape.int32], 1.5)
-add_numeric_rule([datashape.uint64, datashape.int64], 1.5)
+add_numeric_rule([coretypes.uint8, coretypes.int8], 1.5)
+add_numeric_rule([coretypes.uint16, coretypes.int16], 1.5)
+add_numeric_rule([coretypes.uint32, coretypes.int32], 1.5)
+add_numeric_rule([coretypes.uint64, coretypes.int64], 1.5)
 
 # signed -> unsigned
-add_numeric_rule([datashape.int8, datashape.uint8], 1.5)
-add_numeric_rule([datashape.int16, datashape.uint16], 1.5)
-add_numeric_rule([datashape.int32, datashape.uint32], 1.5)
-add_numeric_rule([datashape.int64, datashape.uint64], 1.5)
+add_numeric_rule([coretypes.int8, coretypes.uint8], 1.5)
+add_numeric_rule([coretypes.int16, coretypes.uint16], 1.5)
+add_numeric_rule([coretypes.int32, coretypes.uint32], 1.5)
+add_numeric_rule([coretypes.int64, coretypes.uint64], 1.5)
 
 # int -> float
-add_numeric_rule([datashape.int32, datashape.float32], 1.5)
-add_numeric_rule([datashape.int64, datashape.float64], 1.5)
+add_numeric_rule([coretypes.int32, coretypes.float32], 1.5)
+add_numeric_rule([coretypes.int64, coretypes.float64], 1.5)
 
 # float -> complex
-add_numeric_rule([datashape.float64, datashape.complex64], 1.5)
+add_numeric_rule([coretypes.float64, coretypes.complex_float32], 1.5)

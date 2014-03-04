@@ -38,6 +38,8 @@ class CustomSyntaxError(DataShapeException):
         self.line = text[linestart:lineend]
         self.col_offset = lexpos - linestart
 
+        print(str(self)) # REMOVEME
+
     def __str__(self):
         pointer = ' '*self.col_offset + '^'
 
@@ -70,6 +72,16 @@ class UnificationError(DataShapeTypeError):
 
 class CoercionError(DataShapeTypeError):
     """Raised when we can't coerce a type to another type"""
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
+
+    def __str__(self):
+        return 'Cannot broadcast/coerce %s to %s' % (self.src, self.dst)
+
+    def __repr__(self):
+        return str(self)
+
 
 class OverloadError(DataShapeTypeError):
     """

@@ -8,7 +8,7 @@ syntax for describing structured data.
 
 Some of the basic features include:
 
-* Dimensions are separated by asterisks (\*).
+* Dimensions are separated by asterisks.
 * Lists of types are separated by commas.
 * Types and Typevars are distinguished by the capitalization of the leading
   character. Lowercase for types, and uppercase for typevars.
@@ -64,6 +64,24 @@ Here are some simple examples to motivate the idea::
 
     # Function prototype with broadcasting dimensions
     (A... * int32, A... * int32) -> A... * int32
+
+Syntactic Sugar
+---------------
+
+Many syntax elements in datashape are syntax sugar for particular
+type constructors. For dtypes, this is::
+
+    {x : int32; y : int16}    =>   struct[['x', 'y'], [int32, int16]]
+    (int64, float32)          =>   tuple[[int64, float32]]
+    (int64, float32) -> bool  =>   funcproto[[int64, float32], bool]
+    DTypeVar                  =>   typevar['DTypeVar']
+
+For dims, this is::
+
+    3 * int32                 =>   fixed[3] * int32
+    DimVar * int32            =>   typevar['DimVar'] * int32
+    ... * int32               =>   ellipsis * int32
+    DimVar... * int32         =>   ellipsis['DimVar'] * int32
 
 The DataShape Grammar
 ---------------------
@@ -146,40 +164,42 @@ Tokens::
     NAME_LOWER : [a-z][a-zA-Z0-9_]*
     NAME_UPPER : [A-Z][a-zA-Z0-9_]*
     NAME_OTHER : _[a-zA-Z0-9_]*
-    ASTER : \*
+    ASTERISK : \*
     COMMA : ,
-    RARROW : ->
     EQUAL : =
-    ELLIPSIS : \.\.\.
+    COLON : :
     LBRACKET : \[
     RBRACKET : \]
     LBRACE : \{
     RBRACE : \}
-    INTEGER : 0|[1-9][0-9]*
-    STRING : (?:"(?:[^"\n\r\\]|(?:\\x[0-9a-fA-F]{2})|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*")|(?:\'(?:[^\'\n\r\\]|(?:\\x[0-9a-fA-F]+)|(?:\\u[0-9a-fA-F]{4})|(?:\\.))*\')
+    LPAREN : \(
+    RPAREN : \)
+    ELLIPSIS : \.\.\.
+    RARROW : ->
+    INTEGER : 0(?![0-9])|[1-9][0-9]*
+    STRING : (?:"(?:[^"\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\["bfnrt]))*")|(?:\'(?:[^\'\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\['bfnrt]))*"))*\')
 
 
 Grammar::
 
     # Comma-separated list of dimensions, followed by data type
-    datashape : dim ASTER datashape
+    datashape : dim ASTERISK datashape
               | dtype
 
     # Dimension Type (from the dimension type symbol table)
-    dim : symbol_type
+    dim : typevar
         | ellipsis_typevar
+        | type
+        | type_constr
         | INTEGER
-
+        | ELLIPSIS
 
     # Data Type (from the data type symbol table)
-    dtype : symbol_type
+    dtype : typevar
+          | type
+          | type_constr
           | struct_type
           | funcproto_or_tuple_type
-
-    # A type defined by a symbol
-    symbol_type : typevar
-                | type
-                | type_constr
 
     # A type variable
     typevar : NAME_UPPER
@@ -212,12 +232,10 @@ Grammar::
     type_kwarg : NAME_LOWER EQUAL type_arg
 
     # Type Constructor : single list argument
-    list_type_arg : empty_list
+    list_type_arg : LBRACKET RBRACKET
                   | LBRACKET datashape_list RBRACKET
                   | LBRACKET integer_list RBRACKET
                   | LBRACKET string_list RBRACKET
-
-    empty_list : LBRACKET RBRACKET
 
     datashape_list : datashape COMMA datashape_list
                    | datashape
@@ -249,7 +267,7 @@ Grammar::
     # Tuple type (allowing for a trailing comma)
     tuple_type : LPAREN tuple_item_list RPAREN
                | LPAREN tuple_item_list COMMA RPAREN
-               | LPAREN RPAREN
 
     tuple_item_list : datashape COMMA tuple_item_list
                     | datashape
+

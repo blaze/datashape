@@ -1,16 +1,17 @@
 from __future__ import absolute_import
 
-from . import parser
+from . import old_parser
+from . import lexer, parser
+from . import type_equation_solver
 from .traversal import transform, tmap, tzip, traverse
 from .coretypes import *
 from .typesets import *
+from .type_symbol_table import *
 from .util import *
-from .normalization import (normalize, simplify,
-                            normalize_ellipses, normalize_broadcasting)
 from .validation import validate
-from .promotion import promote, promote_units
-from .unification import unify, unify_simple, substitute
 from .coercion import coercion_cost
+from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
+                    CoercionError)
 
 __version__ = '0.1.1-dev'
 

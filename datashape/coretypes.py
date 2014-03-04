@@ -108,8 +108,8 @@ class Ellipsis(Mono):
     Ellipsis (...). Used to indicate a variable number of dimensions.
     E.g.:
 
-        ..., float32    # float32 array w/ any number of dimensions
-        A..., float32   # float32 array w/ any number of dimensions,
+        ... * float32    # float32 array w/ any number of dimensions
+        A... * float32   # float32 array w/ any number of dimensions,
                         # associated with type variable A
     """
 
@@ -128,8 +128,14 @@ class Ellipsis(Mono):
     def __repr__(self):
         return 'Ellipsis("%s")' % (str(self),)
 
+    def __eq__(self, other):
+        if isinstance(other, Ellipsis):
+             return self.parameters == other.parameters
+        else:
+            return False
+
     def __hash__(self):
-        return hash('...')
+        return hash((self.parameters[0], '...'))
 
 
 class Null(Unit):
@@ -238,6 +244,7 @@ class String(Unit):
             # String()
             self.fixlen = None
             self.encoding = u'U8'
+            self.parameters = (self.encoding,)
         elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
                         encoding is None:
             # String(fixlen)
@@ -246,6 +253,7 @@ class String(Unit):
             else:
                 self.fixlen = fixlen
             self.encoding = u'U8'
+            self.parameters = (self.fixlen, self.encoding,)
         elif isinstance(fixlen, _strtypes + (StringConstant,)) and \
                         encoding is None:
             # String('encoding')
@@ -254,6 +262,7 @@ class String(Unit):
                 self.encoding = fixlen.val
             else:
                 self.encoding = unicode(fixlen)
+            self.parameters = (self.encoding,)
         elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
                         isinstance(encoding, _strtypes + (StringConstant,)):
             # String(fixlen, 'encoding')
@@ -265,6 +274,7 @@ class String(Unit):
                 self.encoding = encoding.val
             else:
                 self.encoding = unicode(encoding)
+            self.parameters = (self.fixlen, self.encoding,)
         else:
             raise ValueError(('Unexpected types to String constructor '
                             '(%s, %s)') % (type(fixlen), type(encoding)))
@@ -281,11 +291,11 @@ class String(Unit):
         if self.fixlen is None and self.encoding == 'U8':
             return 'string'
         elif self.fixlen is not None and self.encoding == 'U8':
-            return 'string(%i)' % self.fixlen
+            return 'string[%i]' % self.fixlen
         elif self.fixlen is None and self.encoding != 'U8':
-            return 'string(%s)' % repr(self.encoding).strip('u')
+            return 'string[%s]' % repr(self.encoding).strip('u')
         else:
-            return 'string(%i, %s)' % \
+            return 'string[%i, %s]' % \
                             (self.fixlen, repr(self.encoding).strip('u'))
 
     def __repr__(self):
@@ -348,7 +358,7 @@ class DataShape(Mono):
         if self.name:
             res = self.name
         else:
-            res = (', '.join(map(str, self.parameters)))
+            res = (' * '.join(map(str, self.parameters)))
 
         return res
 
@@ -401,24 +411,24 @@ class DataShape(Mono):
             return DataShape(*self.parameters[leading:])
 
 
-class Option(DataShape):
+class Option(Mono):
     """
     Measure types which may or may not hold data. Makes no
     indication of how this is implemented in memory.
     """
 
-    def __init__(self, *params):
-        if len(params) != 1:
-            raise TypeError('Option only takes 1 argument')
+    def __init__(self, ds):
+        if isinstance(ds, DataShape) and len(ds) == 1:
+            ds = ds[0]
 
-        if not params[0].cls == MEASURE:
+        if not ds.cls == MEASURE:
             raise TypeError('Option only takes measure argument')
 
-        self.parameters = params
-        self.ty = params[0]
+        self.parameters = (ds,)
+        self.ty = ds
 
     def __str__(self):
-        return 'option(%s)' % str(self.ty)
+        return 'option[%s]' % str(self.ty)
 
     def __repr__(self):
         return str(self)
@@ -551,8 +561,9 @@ class TypeVar(Unit):
     # cls could be MEASURE or DIMENSION, depending on context
 
     def __init__(self, symbol):
-        if symbol.startswith("'"):
-            symbol = symbol[1:]
+        if not symbol[0].isupper():
+            raise ValueError(('TypeVar symbol %r does not ' +
+                              'begin with a capital') % symbol)
         self.symbol = symbol
         self.parameters = (symbol,)
 
@@ -562,16 +573,14 @@ class TypeVar(Unit):
     def __str__(self):
         return str(self.symbol)
 
-    # All TypeVariables compare equal
-    # dshape('M,int32') = dshape('N,int32')
-    # def __eq__(self, other):
-    #     if not isinstance(other, TypeVar):
-    #         return False
-    #     else:
-    #         return True
+    def __eq__(self, other):
+        if isinstance(other, TypeVar):
+            return self.symbol == other.symbol
+        else:
+            return False
 
-    # def __hash__(self):
-    #     return hash(self.__class__)
+    def __hash__(self):
+        return hash(self.symbol)
 
 
 class Implements(Mono):
@@ -614,11 +623,15 @@ class Function(Mono):
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash(('Function',) + self.parameters)
+
     # def __repr__(self):
     #     return " -> ".join(map(repr, self.parameters))
 
     def __str__(self):
-        return " -> ".join(map(str, self.parameters))
+        return ('(' + ', '.join(map(str, self.parameters[:-1])) +
+                ') -> ' + str(self.parameters[-1]))
 
 
 class Record(Mono):
@@ -638,11 +651,12 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        self.__fields = tuple(fields)
-        self.__fdict = dict(fields)
-        self.__fnames = [f[0] for f in fields]
-        self.__ftypes = [f[1] for f in fields]
-        self.parameters = (fields,)
+        self.__fnames = [n for n, t in fields]
+        self.__ftypes = [t if isinstance(t, DataShape) else DataShape(t)
+                         for n, t in fields]
+        self.__fields = tuple(zip(self.__fnames, self.__ftypes))
+        self.__fdict = dict(self.__fields)
+        self.parameters = (self.__fields,)
 
     @property
     def fields(self):
@@ -685,6 +699,42 @@ class Record(Mono):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
 
 
+class Tuple(Mono):
+    """
+    A product type.
+    """
+    cls = MEASURE
+
+    def __init__(self, dshapes):
+        """
+        Parameters
+        ----------
+        dshapes : list of dshapes
+            The datashapes which make up the tuple.
+        """
+        self.__dshapes = tuple(dshapes)
+        self.parameters = (dshapes,)
+
+    @property
+    def dshapes(self):
+        return self.__dshapes
+
+    def __eq__(self, other):
+        if isinstance(other, Tuple):
+            return self.__dshapes == other.__dshapes
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.__dshapes)
+
+    def __str__(self):
+        return '(' + ', '.join(str(x) for x in self.__dshapes) + ')'
+
+    def __repr__(self):
+        return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
+
+
 class JSON(Mono):
     """ JSON measure """
     cls = MEASURE
@@ -699,72 +749,6 @@ class JSON(Mono):
         return isinstance(other, JSON)
 
 
-class TypeConstructor(type):
-    """
-    Generic type constructor.
-
-    Attributes:
-    ===========
-        n: int
-            number of parameters
-
-        flags: [{str: object}]
-            flag for each parameter. Built-in flags include:
-
-                * 'coercible': True/False. The default is False
-    """
-
-    def __new__(cls, name, n, flags, is_vararg=False):
-        def __init__(self, *params):
-            if len(params) != n:
-                if not (is_vararg and len(params) >= n):
-                    raise TypeError(
-                        "Expected %d parameters for constructor %s, got %d" % (
-                            n, name, len(params)))
-            self.parameters = params
-
-        def __eq__(self, other):
-            return (isinstance(other, type(self)) and
-                    self.parameters == other.parameters and
-                    self.flags == other.flags)
-
-        def __hash__(self):
-            return hash((name, n, self.parameters))
-
-        def __str__(self):
-            return "%s[%s]" % (name, ", ".join(map(str, self.parameters)))
-
-        d = {
-            '__init__': __init__,
-            '__repr__': __str__,
-            '__str__': __str__,
-            '__eq__': __eq__,
-            '__ne__': lambda self, other: not (self == other),
-            '__hash__': __hash__,
-            'flags': flags,
-        }
-        self = super(TypeConstructor, cls).__new__(cls, name, (Mono,), d)
-
-        self.name = name
-        self.n = n
-        self.flags = flags
-        return self
-
-    def __init__(self, *args, **kwds):
-        pass # Swallow arguments
-
-    def __eq__(cls, other):
-        return (isinstance(other, TypeConstructor) and
-                cls.name == other.name and cls.n == other.n and
-                cls.flags == other.flags)
-
-    def __ne__(cls, other):
-        return not (cls == other)
-
-    def __hash__(cls):
-        return hash((cls.name, cls.n))
-
-
 bool_ = CType('bool', 1, 1)
 char = CType('char', 1, 1)
 
@@ -772,6 +756,9 @@ int8 = CType('int8', 1, 1)
 int16 = CType('int16', 2, ctypes.alignment(ctypes.c_int16))
 int32 = CType('int32', 4, ctypes.alignment(ctypes.c_int32))
 int64 = CType('int64', 8, ctypes.alignment(ctypes.c_int64))
+
+# int is an alias for int32
+int_ = int32
 
 uint8 = CType('uint8', 1, 1)
 uint16 = CType('uint16', 2, ctypes.alignment(ctypes.c_uint16))
@@ -783,6 +770,9 @@ float32 = CType('float32', 4, ctypes.alignment(ctypes.c_float))
 float64 = CType('float64', 8, ctypes.alignment(ctypes.c_double))
 #float128 = CType('float128', 16)
 
+# real is an alias for float64
+real = float64
+
 complex_float32 = CType('complex[float32]', 8, ctypes.alignment(ctypes.c_float))
 complex_float64 = CType('complex[float64]', 16, ctypes.alignment(ctypes.c_double))
 Type.register('complex64', complex_float32)
@@ -790,6 +780,9 @@ complex64  = complex_float32
 Type.register('complex128', complex_float64)
 complex128 = complex_float64
 #complex256 = CType('complex256', 32)
+
+# complex is an alias for complex[float64]
+complex_ = complex_float64
 
 timedelta64 = CType('timedelta64', 8, ctypes.alignment(ctypes.c_int64))
 datetime64 = CType('datetime64', 8, ctypes.alignment(ctypes.c_int64))
@@ -829,10 +822,6 @@ c_double = float64
 half = float16
 single = float32
 double = float64
-
-# TODO: the semantics of these are still being discussed
-int_ = int32
-float_ = float32
 
 void = CType('void', 0, 1)
 object_ = pyobj = CType('object',
@@ -982,7 +971,7 @@ def record_string(fields, values):
         if (i+1) == count:
             body += '%s : %s' % (k,v)
         else:
-            body += '%s : %s; ' % (k,v)
+            body += '%s : %s, ' % (k,v)
     return '{ ' + body + ' }'
 
 

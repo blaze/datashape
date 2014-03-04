@@ -1,8 +1,11 @@
+from __future__ import absolute_import, division, print_function
+
 import ctypes
 import unittest
 
 import datashape
 from datashape import dshape, error
+from datashape.py2help import skip
 
 
 class TestDataShapeCreation(unittest.TestCase):
@@ -12,7 +15,8 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertRaises(TypeError, dshape, None)
         self.assertRaises(TypeError, dshape, lambda x: x+1)
         # Check issue 11
-        self.assertRaises(datashape.parser.DataShapeSyntaxError, dshape, '1,')
+        self.assertRaises(datashape.DataShapeSyntaxError, dshape, '1 *')
+        self.assertRaises(datashape.DataShapeSyntaxError, dshape, '1,')
 
     def test_reserved_future_bigint(self):
         # The "bigint" datashape is reserved for a future big integer type
@@ -32,8 +36,10 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape('float64'), dshape(datashape.float64))
         self.assertEqual(dshape('complex64'), dshape(datashape.complex64))
         self.assertEqual(dshape('complex128'), dshape(datashape.complex128))
-        self.assertEqual(dshape("string"), datashape.string)
-        self.assertEqual(dshape("json"), datashape.json)
+        self.assertEqual(dshape('complex64'), dshape('complex[float32]'))
+        self.assertEqual(dshape('complex128'), dshape('complex[float64]'))
+        self.assertEqual(dshape("string"), dshape(datashape.string))
+        self.assertEqual(dshape("json"), dshape(datashape.json))
         if ctypes.sizeof(ctypes.c_void_p) == 4:
             self.assertEqual(dshape('intptr'), dshape(datashape.int32))
             self.assertEqual(dshape('uintptr'), dshape(datashape.uint32))
@@ -44,40 +50,42 @@ class TestDataShapeCreation(unittest.TestCase):
     def test_atom_shape_errors(self):
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'boot')
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'int33')
-        self.assertRaises(error.DataShapeTypeError, dshape, '12')
-        self.assertRaises(error.DataShapeTypeError, dshape, 'var')
+        self.assertRaises(error.DataShapeSyntaxError, dshape, '12')
+        self.assertRaises(error.DataShapeSyntaxError, dshape, 'var')
 
+    @skip('implements has not been implemented in the new parser')
     def test_constraints_error(self):
         self.assertRaises(error.DataShapeTypeError, dshape,
-                          'A : integral, B : numeric')
+                          'A : integral * B : numeric')
 
     def test_ellipsis_error(self):
-        self.assertRaises(error.DataShapeTypeError, dshape, 'T, ...')
+        self.assertRaises(error.DataShapeSyntaxError, dshape, 'T * ...')
 
+    @skip('type decl has been removed in the new parser')
     def test_type_decl(self):
         self.assertRaises(error.DataShapeTypeError, dshape, 'type X T = 3, T')
         self.assertEqual(dshape('3, int32'), dshape('type X = 3, int32'))
 
     def test_string_atom(self):
-        self.assertEqual(dshape('string'), dshape("string('U8')"))
-        self.assertEqual(dshape("string('ascii')").encoding, 'A')
-        self.assertEqual(dshape("string('A')").encoding, 'A')
-        self.assertEqual(dshape("string('utf-8')").encoding, 'U8')
-        self.assertEqual(dshape("string('U8')").encoding, 'U8')
-        self.assertEqual(dshape("string('utf-16')").encoding, 'U16')
-        self.assertEqual(dshape("string('U16')").encoding, 'U16')
-        self.assertEqual(dshape("string('utf-32')").encoding, 'U32')
-        self.assertEqual(dshape("string('U32')").encoding, 'U32')
+        self.assertEqual(dshape('string'), dshape("string['U8']"))
+        self.assertEqual(dshape("string['ascii']")[0].encoding, 'A')
+        self.assertEqual(dshape("string['A']")[0].encoding, 'A')
+        self.assertEqual(dshape("string['utf-8']")[0].encoding, 'U8')
+        self.assertEqual(dshape("string['U8']")[0].encoding, 'U8')
+        self.assertEqual(dshape("string['utf-16']")[0].encoding, 'U16')
+        self.assertEqual(dshape("string['U16']")[0].encoding, 'U16')
+        self.assertEqual(dshape("string['utf-32']")[0].encoding, 'U32')
+        self.assertEqual(dshape("string['U32']")[0].encoding, 'U32')
 
     def test_struct_of_array(self):
-        self.assertEqual(str(dshape('5, int32')), '5, int32')
-        self.assertEqual(str(dshape('{field: 5, int32}')),
-                                    '{ field : 5, int32 }')
-        self.assertEqual(str(dshape('{field: M, int32}')),
-                                    '{ field : M, int32 }')
+        self.assertEqual(str(dshape('5 * int32')), '5 * int32')
+        self.assertEqual(str(dshape('{field: 5 * int32}')),
+                                    '{ field : 5 * int32 }')
+        self.assertEqual(str(dshape('{field: M * int32}')),
+                                    '{ field : M * int32 }')
 
     def test_ragged_array(self):
-        self.assertTrue(isinstance(dshape('3, var, int32')[1], datashape.Var))
+        self.assertTrue(isinstance(dshape('3 * var * int32')[1], datashape.Var))
 
     def test_from_numpy_fields(self):
         import numpy as np
@@ -85,11 +93,11 @@ class TestDataShapeCreation(unittest.TestCase):
         ds = datashape.from_numpy((), dt)
         self.assertEqual(ds.names, ['f0', 'f1', 'f2'])
         self.assertEqual(ds.types,
-                         [datashape.int32, datashape.int64, datashape.float64])
+                         [dshape('int32'), dshape('int64'), dshape('float64')])
 
     def test_to_numpy_fields(self):
         import numpy as np
-        ds = datashape.dshape('{x: int32; y: float32}')
+        ds = datashape.dshape('{x: int32, y: float32}')
         shape, dt = datashape.to_numpy(ds)
         self.assertEqual(shape, ())
         self.assertEqual(dt, np.dtype([('x', 'int32'), ('y', 'float32')]))
