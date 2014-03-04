@@ -3,10 +3,32 @@ from __future__ import absolute_import, division, print_function
 import unittest
 
 from datashape import coretypes as T
-from datashape.type_equation_solver import match_argtypes_to_signature, _match_equation
+from datashape.type_equation_solver import (matches_datashape_pattern,
+                                            match_argtypes_to_signature,
+                                            _match_equation)
 from datashape import dshape
 from datashape import error
 from datashape.coercion import dim_coercion_cost, dtype_coercion_cost
+
+
+class TestPatternMatch(unittest.TestCase):
+    def test_simple_matches(self):
+        self.assertTrue(matches_datashape_pattern(dshape('int32'),
+                                                  dshape('int32')))
+        self.assertTrue(matches_datashape_pattern(dshape('int32'),
+                                                  dshape('M')))
+        self.assertTrue(matches_datashape_pattern(dshape('int32'),
+                                                  dshape('A... * int32')))
+        self.assertTrue(matches_datashape_pattern(dshape('int32'),
+                                                  dshape('A... * M')))
+        self.assertFalse(matches_datashape_pattern(dshape('int32'),
+                                                  dshape('int64')))
+        self.assertFalse(matches_datashape_pattern(dshape('3 * int32'),
+                                                  dshape('M')))
+        self.assertFalse(matches_datashape_pattern(dshape('int16'),
+                                                  dshape('A... * int32')))
+        self.assertFalse(matches_datashape_pattern(dshape('4 * int32'),
+                                                  dshape('A... * 3 * M')))
 
 
 class TestSignatureArgMatching(unittest.TestCase):

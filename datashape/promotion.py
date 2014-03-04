@@ -78,7 +78,7 @@ def promote_dtypes(dt1, dt2):
             return CType.from_numpy_dtype(np.result_type(to_numpy_dtype(dt1),
                                                          to_numpy_dtype(dt2)))
         except TypeError as e:
-            raise TypeError("Cannot promote %s and %s: %s" % (dt1, dt2, e))
+            raise UnificationError("Cannot promote %s and %s: %s" % (dt1, dt2, e))
     else:
        raise TypeError(("Unknown data types, cannot promote: " +
                         "%s and %s") % (dt1, dt2))

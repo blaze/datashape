@@ -5,7 +5,8 @@ occur when doing multiple dispatch.
 
 from __future__ import absolute_import, division, print_function
 
-__all__ = ['match_argtypes_to_signature', 'explode_coercion_eqns']
+__all__ = ['matches_datashape_pattern', 'match_argtypes_to_signature',
+           'explode_coercion_eqns']
 
 from collections import defaultdict
 from functools import reduce
@@ -23,6 +24,40 @@ class PrunedMatchProcessing(Exception):
     An exception thrown when a possible match is pruned because
     its cost is higher than the threshold.
     """
+
+
+def matches_datashape_pattern(concrete, symbolic):
+    """
+    Performs a pattern matching of a concrete datashape against
+    a symbolic one which may include type variables. Returns
+    True if it matches, False otherwise.
+    """
+    if not isinstance(concrete, coretypes.DataShape):
+        raise TypeError("Expected a datashape for 'concrete', got %s" % concrete)
+    if not isinstance(symbolic, coretypes.DataShape):
+        raise TypeError("Expected a datashape for 'symbolic', got %s" % symbolic)
+
+    # Match the concrete against the symbolic datashape
+    try:
+        eqn = _match_equation(concrete, symbolic)
+    except error.CoercionError:
+        return False
+    dim_tv, dtype_tv = defaultdict(lambda: []), defaultdict(lambda: [])
+    if not _process_equation_with_equality(eqn, dim_tv, dtype_tv):
+        return False
+    # Ensure that no TypeVar symbol has been used in multiple ways
+    _check_inconsistent_tv_usage(dim_tv, dtype_tv)
+
+    # Promote all the TypeVars tegether, to validate that their
+    # usage is self-consistent. In this function, we don't need
+    # to use the promoted values.
+    try:
+        _promote_dim_typevars(dim_tv)
+        _promote_dtype_typevars(dtype_tv)
+    except error.UnificationError:
+        return False
+
+    return True
 
 
 def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
@@ -69,7 +104,7 @@ def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
     dim_tv, dtype_tv = defaultdict(lambda: []), defaultdict(lambda: [])
     max_cost = 0
     for eqn in eqns:
-        cost = _process_equation(eqn, dim_tv, dtype_tv)
+        cost = _process_equation_with_coercion(eqn, dim_tv, dtype_tv)
         if cost == inf:
             raise error.CoercionError(argtypes, signature)
         elif cost > max_cost:
@@ -78,19 +113,8 @@ def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
             else:
                 max_cost = cost
     # Ensure that no TypeVar symbol has been used in multiple ways
-    for tv in dim_tv:
-        if isinstance(tv, coretypes.Ellipsis):
-            s = tv.typevar
-            if s in dim_tv:
-                raise TypeError(('DataShape typevar %s has been ' +
-                                 'used as both a dim and an ellipsis') % (s))
-            elif s in dtype_tv:
-                raise TypeError(('DataShape typevar %s has been ' +
-                                 'used as both a dtype and an ellipsis') % (s))
-        else:
-            if tv in dtype_tv:
-                raise TypeError(('DataShape typevar %s has been ' +
-                                 'used as both a dtype and a dim') % (tv))
+    _check_inconsistent_tv_usage(dim_tv, dtype_tv)
+
     # Promote all the TypeVars tegether, and merge into one dict
     # since we've ensured there are no name collisions
     tv = _promote_dim_typevars(dim_tv)
@@ -151,10 +175,15 @@ def _match_equation(src, dst):
                          'not yet %s or %s') % (src, dst))
 
 
-def _process_equation(eqn, dim_tv, dtype_tv):
+def _process_equation_with_coercion(eqn, dim_tv, dtype_tv):
     """
     Collects all of the type variable values into the dim_tv and dtype_tv
     dicts, and returns the sum of all the broadcasting and coercion costs.
+
+    dim_tv and dtype_tv should be initialized prior to calling the function
+    like this::
+
+        dim_tv, dtype_tv = defaultdict(lambda: []), defaultdict(lambda: [])
     """
     cost = 0
     for src, dst in eqn:
@@ -164,7 +193,6 @@ def _process_equation(eqn, dim_tv, dtype_tv):
                 dtype_tv[dst].append(src)
                 # Cost of broadcasting to a typevar
                 cost += 0.125
-                print('adding 0.125 because', dst, src)
             else:
                 # This is a concrete coerciion, evaluate its cost
                 cost += coercion.dtype_coercion_cost(src, dst)
@@ -183,6 +211,49 @@ def _process_equation(eqn, dim_tv, dtype_tv):
                 # This is a concrete broadcasting, evaluate its cost
                 cost += coercion.dim_coercion_cost(src, dst)
     return cost
+
+
+def _process_equation_with_equality(eqn, dim_tv, dtype_tv):
+    """
+    Collects all of the type variable values into the dim_tv and dtype_tv
+    dicts. Returns True if all the concrete types matched, False if
+    there was a mismatch (and does not complete the matching in that case).
+
+    dim_tv and dtype_tv should be initialized prior to calling the function
+    like this::
+
+        dim_tv, dtype_tv = defaultdict(lambda: []), defaultdict(lambda: [])
+    """
+    for src, dst in eqn:
+        if not isinstance(src, list) and getattr(src, 'cls', None) == coretypes.MEASURE:
+            if isinstance(dst, coretypes.TypeVar):
+                # Add to the dtype typevar dict
+                dtype_tv[dst].append(src)
+            elif src != dst:
+                return False
+        else:
+            if isinstance(dst, (coretypes.TypeVar, coretypes.Ellipsis)):
+                # Add to the dim typevar dict
+                dim_tv[dst].append(src)
+            elif src != dst:
+                return False
+    return True
+
+
+def _check_inconsistent_tv_usage(dim_tv, dtype_tv):
+    for tv in dim_tv:
+        if isinstance(tv, coretypes.Ellipsis):
+            s = tv.typevar
+            if s in dim_tv:
+                raise TypeError(('DataShape typevar %s has been ' +
+                                 'used as both a dim and an ellipsis') % (s))
+            elif s in dtype_tv:
+                raise TypeError(('DataShape typevar %s has been ' +
+                                 'used as both a dtype and an ellipsis') % (s))
+        else:
+            if tv in dtype_tv:
+                raise TypeError(('DataShape typevar %s has been ' +
+                                 'used as both a dtype and a dim') % (tv))
 
 
 def _promote_dim_typevars(dim_tv):
