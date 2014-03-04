@@ -23,22 +23,6 @@ class TestDataShapeUtil(unittest.TestCase):
         self.assertRaises(ValueError, datashape.cat_dshapes,
                         [dshape('3 * 10 * int32'), dshape('3 * 1 * int32')])
 
-    def test_broadcastable(self):
-        dslist = [dshape('10*20*30*int32'),
-                        dshape('20*30*int32'), dshape('int32')]
-        outshape = datashape.broadcastable(dslist, ranks=[1,1,0])
-        self.assertEqual(outshape, (10,20))
-
-        dslist = [dshape('10*20*30*40*int32'),
-                        dshape('20*30*20*int32'), dshape('int32')]
-        outshape = datashape.broadcastable(dslist, ranks=[1,1,0])
-        self.assertEqual(outshape, (10,20,30))
-
-        dslist = [dshape('10*20*30*40*int32'),
-                        dshape('20*30*40*int32'), dshape('int32')]
-        outshape = datashape.broadcastable(dslist, ranks=[1,1,0],
-                        rankconnect=[set([(0,0),(1,0)])])
-        self.assertEqual(outshape, (10,20,30))
 
 if __name__ == '__main__':
     unittest.main()

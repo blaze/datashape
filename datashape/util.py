@@ -29,10 +29,10 @@ from .coretypes import (DataShape, Fixed, TypeVar, Record, Ellipsis, String,
 from .typesets import TypeSet
 
 
-__all__ = ['dshape', 'dshapes', 'cat_dshapes', 'broadcastable',
+__all__ = ['dshape', 'dshapes', 'cat_dshapes',
            'dummy_signature', 'verify',
            'from_ctypes', 'from_cffi', 'to_ctypes', 'from_llvm',
-           'to_numba', 'from_numba_str', 'gensym']
+           'to_numba', 'from_numba', 'gensym']
 
 
 PY3 = (sys.version_info[:2] >= (3,0))
@@ -129,52 +129,6 @@ def verify(t1, t2):
     if len(args1) != len(args2):
         raise UnificationError("%s got %d and %d arguments" % (
             tcon1, len(args1), len(args2)))
-
-
-def broadcastable(dslist, ranks=None, rankconnect=[]):
-    """Return output (outer) shape if datashapes are broadcastable.
-
-    The default is to assume broadcasting over a scalar operation.
-    However, if the kernel to be applied takes arrays as arguments,
-    then rank and rank-connect provide the inner-shape information with
-    ranks a list of integers indicating the kernel rank of each argument
-    and rank-connect a list of sets of tuples where each set contains the
-    dimensions that must match and each tuple is (argument #, inner-dim #)
-    """
-    if ranks is None:
-        ranks = [0]*len(dslist)
-
-    shapes = [tuple(operator.index(s) for s in dshape.shape) for dshape in dslist]
-
-    # ensure shapes are large enough
-    for i, shape, rank in zip(range(len(dslist)), shapes, ranks):
-        if len(shape) < rank:
-            raise TypeError(('Argument %d is not large-enough '
-                            'for kernel rank') % i)
-
-    splitshapes = [(shape[:len(shape)-rank], shape[len(shape)-rank:])
-                             for shape, rank in zip(shapes, ranks)]
-    outshapes, inshapes = zip(*splitshapes)
-
-    # broadcast outer-dimensions
-    maxshape = max(len(shape) for shape in outshapes)
-    outshapes = [(1,)*(maxshape-len(shape))+shape for shape in outshapes]
-
-    # check rank-connections
-    for shape1, shape2 in itertools.combinations(outshapes, 2):
-        if any((dim1 != 1 and dim2 != 1 and dim1 != dim2)
-                  for dim1, dim2 in zip(shape1,shape2)):
-            raise TypeError('Outer-dimensions are not broadcastable '
-                            'to the same shape')
-    outshape = tuple(map(max, zip(*outshapes)))
-
-    for connect in rankconnect:
-        for (arg1, dim1), (arg2,dim2) in itertools.combinations(connect, 2):
-            if (inshapes[arg1][dim1] != inshapes[arg2][dim2]):
-                raise TypeError("Inner dimensions do not match in " +
-                                "argument %d and argument %d" % (arg1, arg2))
-
-    return tuple(Fixed(s) for s in outshape)
 
 
 #------------------------------------------------------------------------
