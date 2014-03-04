@@ -28,54 +28,21 @@ PY2 = sys.version_info[0] == 2
 
 if PY2:
     import __builtin__
-    def dict_iteritems(d):
-        return d.iteritems()
-    xrange = __builtin__.xrange
-    from itertools import izip
+    reduce = __builtin__.reduce
+    _inttypes = (int, long)
     unicode = __builtin__.unicode
     basestring = __builtin__.basestring
-    reduce = __builtin__.reduce
-
     _strtypes = (str, unicode)
-
-    _inttypes = (int, long)
-    imap = itertools.imap
-    import urlparse
-    def exec_(_code_, _globs_=None, _locs_=None):
-        """Execute code in a namespace."""
-        if _globs_ is None:
-            frame = sys._getframe(1)
-            _globs_ = frame.f_globals
-            if _locs_ is None:
-                _locs_ = frame.f_locals
-            del frame
-        elif _locs_ is None:
-            _locs_ = _globs_
-        exec("""exec _code_ in _globs_, _locs_""")
 else:
-    def dict_iteritems(d):
-        return d.items().__iter__()
-    xrange = range
-    izip = zip
-    _inttypes = (int,)
-    _strtypes = (str,)
-    unicode = str
-    imap = map
-    basestring = str
-    import urllib.parse as urlparse
     from functools import reduce
-    import builtins
-    exec_ = getattr(builtins, "exec")
+    _inttypes = (int,)
+    unicode = str
+    basestring = str
+    _strtypes = (str,)
 
 if sys.version_info[:2] >= (2, 7):
-    from ctypes import c_ssize_t
     from unittest import skip, skipIf
 else:
-    import ctypes
-    if ctypes.sizeof(ctypes.c_void_p) == 4:
-        c_ssize_t = ctypes.c_int32
-    else:
-        c_ssize_t = ctypes.c_int64
     from nose.plugins.skip import SkipTest
     class skip(object):
         def __init__(self, reason):
