@@ -80,6 +80,13 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
         self.assertEqual(parse('complex', self.sym),
                          parse('complex[float64]', self.sym))
 
+    def test_option(self):
+        self.assertEqual(parse('option[int32]', self.sym),
+                         T.DataShape(T.Option(T.int32)))
+        self.assertEqual(parse('2 * 3 * option[int32]', self.sym),
+                         T.DataShape(T.Fixed(2), T.Fixed(3),
+                                     T.Option(T.int32)))
+
     def test_raise(self):
         self.assertRaises(datashape.DataShapeSyntaxError,
                           parse, '', self.sym)
@@ -292,7 +299,6 @@ class TestDataShapeParserDims(unittest.TestCase):
         self.assertEqual(parse('M * 5 * var * bool', self.sym),
                          T.DataShape(T.TypeVar('M'), T.Fixed(5), T.Var(), T.bool_))
 
-    @skip('There is a bug in unification preventing proper equality on ...')
     def test_ellipses(self):
         self.assertEqual(parse('... * bool', self.sym),
                          T.DataShape(T.Ellipsis(), T.bool_))

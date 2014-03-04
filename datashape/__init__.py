@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-from . import old_parser
 from . import lexer, parser
 from . import type_equation_solver
 from .traversal import transform, tmap, tzip, traverse

@@ -17,7 +17,6 @@ except ImportError as e:
     from UserDict import DictMixin as MutableMapping
 
 from . import py2help
-from . import old_parser
 from . import parser
 from . import type_symbol_table
 from .error import UnificationError

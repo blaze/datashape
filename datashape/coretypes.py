@@ -433,6 +433,18 @@ class Option(Mono):
     def __repr__(self):
         return str(self)
 
+    def __eq__(self, other):
+        if type(other) is Option:
+            return self.ty == other.ty
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(('option', self.ty))
+
 
 class CType(Unit):
     """
