@@ -1,7 +1,7 @@
 import unittest
 
 import datashape
-from datashape import dshape
+from datashape import dshape, has_var_dim
 
 
 class TestDataShapeUtil(unittest.TestCase):
@@ -22,6 +22,33 @@ class TestDataShapeUtil(unittest.TestCase):
         # dshapes need to match after the first dimension
         self.assertRaises(ValueError, datashape.cat_dshapes,
                         [dshape('3 * 10 * int32'), dshape('3 * 1 * int32')])
+
+    def test_has_var_dim(self):
+        msg = ""
+        fail = False
+        ds_pos = [dshape("... * float32"),
+                  dshape("A... * float32"),
+                  dshape("var * float32"),
+                  dshape("10 * { f0: int32, f1: A... * float32 }"),
+                  dshape("{ f0 : { g0 : var * int }, f1: int32 }"),
+                  ]
+        ds_false_negatives = filter(lambda ds: not has_var_dim(ds), ds_pos)
+        if len(ds_false_negatives) != 0:
+            fail = True
+            msg += "The following dshapes should have a var dim\n  %s\n" \
+                   % "\n  ".join(map(str, ds_false_negatives))
+        ds_neg = [dshape("float32"),
+                  dshape("10 * float32"),
+                  dshape("10 * { f0: int32, f1: 10 * float32 }"),
+                  dshape("{ f0 : { g0 : 2 * int }, f1: int32 }"),
+                  ]
+        ds_false_positives = filter(has_var_dim, ds_neg)
+        if len(ds_false_positives) != 0:
+            fail = True
+            msg += "The following dshapes should not have a var dim\n  %s \n" \
+                   % "\n  ".join(map(str, ds_false_positives))
+
+        self.assertFalse(fail, msg)
 
 
 if __name__ == '__main__':

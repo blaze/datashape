@@ -18,7 +18,7 @@ from . import coretypes
 from .typesets import TypeSet
 
 
-__all__ = ['dshape', 'dshapes', 'cat_dshapes',
+__all__ = ['dshape', 'dshapes', 'has_var_dim', 'cat_dshapes',
            'dummy_signature', 'verify',
            'from_ctypes', 'from_cffi', 'to_ctypes', 'from_llvm',
            'to_numba', 'from_numba', 'gensym']
@@ -89,6 +89,24 @@ def cat_dshapes(dslist):
                             ' the first dimension (%s vs %s)') %
                             (inner_ds, ds[1:]))
     return coretypes.DataShape(*[coretypes.Fixed(outer_dim_size)] + list(inner_ds))
+
+
+def has_var_dim(ds):
+    """Returns True if datashape has a variable dimension
+
+    Note currently treats variable length string as scalars.
+    """
+    if isinstance(ds, (coretypes.Ellipsis, coretypes.Var)):
+        return True
+    elif isinstance(ds, coretypes.Record):
+        for ds_t in ds.types:
+            if has_var_dim(ds_t):
+                return True
+    elif isinstance(ds, coretypes.Mono):
+        for p in ds.parameters:
+            if has_var_dim(p):
+                return True
+    return False
 
 
 def dummy_signature(f):
