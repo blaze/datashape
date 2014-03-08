@@ -31,6 +31,7 @@ class TestDataShapeUtil(unittest.TestCase):
                   dshape("var * float32"),
                   dshape("10 * { f0: int32, f1: A... * float32 }"),
                   dshape("{ f0 : { g0 : var * int }, f1: int32 }"),
+                  (dshape("var*int32"),),
                   ]
         ds_false_negatives = filter(lambda ds: not has_var_dim(ds), ds_pos)
         if len(ds_false_negatives) != 0:
@@ -41,6 +42,7 @@ class TestDataShapeUtil(unittest.TestCase):
                   dshape("10 * float32"),
                   dshape("10 * { f0: int32, f1: 10 * float32 }"),
                   dshape("{ f0 : { g0 : 2 * int }, f1: int32 }"),
+                  (dshape("int32"),),
                   ]
         ds_false_positives = filter(has_var_dim, ds_neg)
         if len(ds_false_positives) != 0:

@@ -96,16 +96,18 @@ def has_var_dim(ds):
 
     Note currently treats variable length string as scalars.
     """
+    test = []
     if isinstance(ds, (coretypes.Ellipsis, coretypes.Var)):
         return True
     elif isinstance(ds, coretypes.Record):
-        for ds_t in ds.types:
-            if has_var_dim(ds_t):
-                return True
+        test = ds.types
     elif isinstance(ds, coretypes.Mono):
-        for p in ds.parameters:
-            if has_var_dim(p):
-                return True
+        test = ds.parameters
+    elif hasattr(ds, "__iter__"):
+        test = ds
+    for ds_t in test:
+        if has_var_dim(ds_t):
+            return True
     return False
 
 
