@@ -103,7 +103,7 @@ def has_var_dim(ds):
         test = ds.types
     elif isinstance(ds, coretypes.Mono):
         test = ds.parameters
-    elif hasattr(ds, "__iter__"):
+    elif isinstance(ds, (list, tuple)):
         test = ds
     for ds_t in test:
         if has_var_dim(ds_t):

@@ -33,7 +33,7 @@ class TestDataShapeUtil(unittest.TestCase):
                   dshape("{ f0 : { g0 : var * int }, f1: int32 }"),
                   (dshape("var*int32"),),
                   ]
-        ds_false_negatives = filter(lambda ds: not has_var_dim(ds), ds_pos)
+        ds_false_negatives = list(filter(lambda ds: not has_var_dim(ds), ds_pos))
         if len(ds_false_negatives) != 0:
             fail = True
             msg += "The following dshapes should have a var dim\n  %s\n" \
@@ -44,7 +44,7 @@ class TestDataShapeUtil(unittest.TestCase):
                   dshape("{ f0 : { g0 : 2 * int }, f1: int32 }"),
                   (dshape("int32"),),
                   ]
-        ds_false_positives = filter(has_var_dim, ds_neg)
+        ds_false_positives = list(filter(has_var_dim, ds_neg))
         if len(ds_false_positives) != 0:
             fail = True
             msg += "The following dshapes should not have a var dim\n  %s \n" \
