@@ -42,11 +42,15 @@ class OverloadResolver(object):
         self.__overloads.extend(overloads)
         self._rebuild_overload_resolution_accel()
 
+    def __getitem(self, item):
+        # Provide access to the overload signatures through [] operator
+        return self.__overloads[item]
+
     def _rebuild_overload_resolution_accel(self):
         # TODO Create an accelerator data structure here
         pass
 
-    def resolve_overload(self, argstype, resolvetv=None):
+    def resolve_overload(self, argstype, resolver=None):
         """
         Given a tuple type representing input arguments, finds
         the best match of all the overloads and returns a tuple
@@ -57,22 +61,24 @@ class OverloadResolver(object):
         ----------
         argstype : datashape tuple type
             A tuple type of all the input arguments.
-        resolvetv : callable, optional
+        resolver : callable, optional
             A callable that can resolve typevars in the output
             type which are not resolved by the pattern matching
-            of the inputs. It is called as resolvetv(sym, tvdict),
+            of the inputs. It is called as resolver(sym, tvdict),
             where sym is the unresolved symbol and tvdict is a
             dictionary of all the matched symbols.
         """
+        # TODO Use accelerator data structure instead of naive loop
         nargs = len(argstype.dshapes)
         result = []
+        min_cost = inf
         for i, sig in enumerate(self.__overloads):
             # If it's the right number of args, try matching it
             if nargs == len(sig.argtypes):
                 try:
                     matched_sig, cost = match_argtypes_to_signature(argstype,
                                                                     sig,
-                                                                    resolvetv,
+                                                                    resolver,
                                                                     min_cost)
                 except PrunedMatchProcessing:
                     pass
