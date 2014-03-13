@@ -2,10 +2,8 @@ from __future__ import print_function, division, absolute_import
 
 import types
 import inspect
-import functools
 
-from collections import namedtuple, defaultdict
-from itertools import chain
+from collections import namedtuple
 
 from .error import UnificationError, CoercionError, OverloadError
 from . import coretypes as T
@@ -98,13 +96,6 @@ def overload(signature, dispatcher=None, **kwds):
 
     return decorator
 
-
-def overloadable(f):
-    """
-    Make a function overloadable, useful if there's no useful defaults to
-    overload on
-    """
-    return Dispatcher()
 
 #------------------------------------------------------------------------
 # Matching
