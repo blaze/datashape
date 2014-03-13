@@ -142,14 +142,17 @@ class TestSignatureArgMatching(unittest.TestCase):
         # Should be cheaper to match without the broadcasting
         self.assertTrue(match_scalar[1] < match_bcast[1])
 
-    def test_match_with_resolvetv(self):
-        # Test matching with a resolvetv function
+    def test_match_with_resolver(self):
+        # Test matching with a resolver function
+        # This is a contrived resolver which combines the A... and
+        # B typevars in a way that cannot be done with simple pattern
+        # matching. While not a useful example in and of itself, it
+        # exhibits the needed behavior in reduction function signature
+        # matching.
         def resolver(tvar, tvdict):
             if tvar == T.Ellipsis(T.TypeVar('R')):
                 a = tvdict[T.Ellipsis(T.TypeVar('A'))]
                 b = tvdict[T.TypeVar('B')]
-                # Interleave B with the dimensions from A..., something
-                # that can't be done with the simple pattern matching
                 result = [b]
                 for x in a:
                     result.extend([x, b])
