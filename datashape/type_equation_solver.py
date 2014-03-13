@@ -60,7 +60,8 @@ def matches_datashape_pattern(concrete, symbolic):
     return True
 
 
-def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
+def match_argtypes_to_signature(argtypes, signature, resolvetv=None,
+                                cutoff_cost=inf):
     """
     Performs a pattern matching of the argument types against the
     function signature. Raises an exception if it cannot be matched,
@@ -72,6 +73,12 @@ def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
         A datashape tuple type composed of all the input parameter types.
     signature : Function signature datashape object
         A datashape function signature type against which to match.
+    resolvetv : callable, optional
+        A callable that can resolve typevars in the output
+        type which are not resolved by the pattern matching
+        of the inputs. It is called as resolvetv(sym, tvdict),
+        where sym is the unresolved symbol and tvdict is a
+        dictionary of all the matched symbols.
     cutoff_cost : float
         If the cost of this matching is higher than the cutoff,
         a PrunedMatchProcessing exception is raised.
@@ -125,7 +132,7 @@ def match_argtypes_to_signature(argtypes, signature, cutoff_cost=inf):
     for ds, eqn in zip(signature.argtypes, eqns):
         params.append(_substitute_typevars_with_matching(ds, eqn, tv))
     # Create the output type
-    params.append(_substitute_typevars(signature.restype, tv))
+    params.append(_substitute_typevars(signature.restype, tv, resolvetv))
 
     # Return the resulting function signature and cost
     return (coretypes.Function(*params), max_cost)
@@ -287,24 +294,34 @@ def _promote_dtype_typevars(dtype_tv):
     return result
 
 
-def _substitute_typevars(ds, tv):
+def _substitute_typevars(ds, tv, resolvetv):
     """
     Substitutes the type variables in 'ds' using the
-    typevar dictionary. Returns the substituted datashape.
+    typevar dictionary and the resolvetv function for
+    typevars not in 'tv'. Returns the substituted datashape.
     """
     if isinstance(ds, coretypes.DataShape):
         params = []
         for x in ds.parameters:
-            params.extend(_substitute_typevars(x, tv))
+            params.extend(_substitute_typevars(x, tv, resolvetv))
         return coretypes.DataShape(*params)
-    elif isinstance(ds, coretypes.Ellipsis):
-        # Substitute the typevar, leaving it as is if it's not
-        # in the dict
-        return tv.get(ds, ds)
-    elif isinstance(ds, coretypes.TypeVar):
-        # Substitute the typevar, leaving it as is if it's not
-        # in the dict
-        return [tv.get(ds, ds)]
+    elif isinstance(ds, (coretypes.Ellipsis, coretypes.TypeVar)):
+        # Substitute the typevar, first trying 'tv', then
+        # using the 'resolvets' function
+        result = tv.get(ds, None)
+        if result is None:
+            if resolvetv is not None:
+                result = resolvetv(ds, tv)
+            if result is None:
+                raise TypeError(('Could not resolve typevar %s in' +
+                                 ' function signature output') % ds)
+            elif isinstance(ds, coretypes.TypeVar):
+                result = [result]
+            elif not isinstance(result, list):
+                raise TypeError(('When resolving ellipsis typevar %s,' +
+                                 ' %s was returned but a list is required') %
+                                (ds, result))
+        return result
     else:
         # TODO: recursively handle structs and similar types
         return [ds]
