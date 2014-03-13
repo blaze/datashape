@@ -54,7 +54,6 @@ class Dispatcher(object):
             argspec = argspec or inspect.getargspec(f)
             if self.argspec is None:
                 self.argspec = argspec
-            alpha_equivalent(self.argspec, argspec)
 
         # TODO: match signature to be a Function type with correct arity
         self.overloads.append((f, signature, kwds))
@@ -257,33 +256,6 @@ def flatargs(f, args, kwargs, argspec=None):
         unreachable()
 
     return args + tuple(extra_args)
-
-
-def alpha_equivalent(spec1, spec2):
-    """
-    Return whether the inspect argspec `spec1` and `spec2` are equivalent
-    modulo naming.
-    """
-    return (len(spec1.args) == len(spec2.args) and
-            bool(spec1.varargs) == bool(spec2.varargs) and
-            bool(spec1.keywords) == bool(spec2.keywords))
-
-
-def lookup_previous(f, scopes=None):
-    """
-    Lookup a previous function definition in the current namespace, i.e.
-    for overloading purposes.
-    """
-    if scopes is None:
-        scopes = []
-
-    scopes.append(f.__globals__)
-
-    for scope in scopes:
-        if scope.get(f.__name__):
-            return scope[f.__name__]
-
-    return None
 
 
 if __name__ == '__main__':
