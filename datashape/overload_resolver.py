@@ -42,7 +42,7 @@ class OverloadResolver(object):
         self.__overloads.extend(overloads)
         self._rebuild_overload_resolution_accel()
 
-    def __getitem(self, item):
+    def __getitem__(self, item):
         # Provide access to the overload signatures through [] operator
         return self.__overloads[item]
 
@@ -72,6 +72,7 @@ class OverloadResolver(object):
         nargs = len(argstype.dshapes)
         result = []
         min_cost = inf
+        err = None
         for i, sig in enumerate(self.__overloads):
             # If it's the right number of args, try matching it
             if nargs == len(sig.argtypes):
@@ -107,6 +108,6 @@ class OverloadResolver(object):
         elif len(result) > 1:
             raise OverloadError(("%s: ambiguous overload for"
                                  " argtypes %s\nambiguous candidates:\n%s") %
-                                (self.name, "\n".join("    %s" % x[1]
-                                                      for x in result)))
+                                (self.name, argstype,
+                                 "\n".join("    %s" % x[1] for x in result)))
         return result[0]

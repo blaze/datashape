@@ -31,22 +31,34 @@ class Dispatcher(object):
 
     def __init__(self):
         self.overloader = OverloadResolver('<unnamed>')
-        self.kwds_list
+        self.funcs_list = []
+        self.kwds_list = []
+        self.f = None
 
     def add_overload(self, f, signature, kwds, argspec=None):
         # TODO: assert signature is "compatible" with current signatures
-        self.overloader.name = f.__name__
+        if self.f is None:
+            self.f = f
+        if hasattr(f, '__name__'):
+            self.overloader.name = f.__name__
 
         # Add the signature and its data
         self.overloader.extend_overloads([signature])
-        self.kwd_list.append(kwds)
+        self.funcs_list.append(f)
+        self.kwds_list.append(kwds)
 
     def lookup_dispatcher(self, args, kwargs):
         if len(kwargs) != 0:
             raise TypeError('Keyword arguments are not supported in this call')
         types = list(map(T.typeof, args))
         idx, match = self.overloader.resolve_overload(T.Tuple(types))
-        return Overload(match, self.overloader[idx], None, self.kwds_list[idx]), args
+        return Overload(match, self.overloader[idx], self.funcs_list[idx],
+                        self.kwds_list[idx]), args
+
+    def best_match(self, argtypes):
+        idx, match = self.overloader.resolve_overload(argtypes)
+        return Overload(match, self.overloader[idx], self.funcs_list[idx],
+                        self.kwds_list[idx])
 
     def __repr__(self):
         signatures = [sig for f, sig, _ in self.overloads]
