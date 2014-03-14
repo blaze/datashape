@@ -20,15 +20,11 @@ from .typesets import TypeSet
 
 __all__ = ['dshape', 'dshapes', 'has_var_dim', 'cat_dshapes',
            'dummy_signature', 'verify',
-           'from_ctypes', 'from_cffi', 'to_ctypes', 'from_llvm',
-           'to_numba', 'from_numba', 'gensym']
+           'from_ctypes', 'from_cffi', 'to_ctypes',
+           'gensym']
 
 
 PY3 = (sys.version_info[:2] >= (3,0))
-
-# Legacy from blaze.compute.llvm_array. Putting here to just depend on llvmpy
-SCALAR = 0
-POINTER = 1
 
 #------------------------------------------------------------------------
 # Utility Functions for DataShapes
@@ -323,89 +319,6 @@ def _PointerDshape(object):
     def __init__(self, dshape):
         self.dshape = dshape
 
-
-def from_llvm(typ, argkind=SCALAR):
-    """
-    Map an LLVM type to an equivalent datashape type
-
-    argkind is SCALAR, POINTER, or a tuple of (arrkind, nd, el_type) for Arrays
-    """
-    from llvm_array import check_array
-    import llvm.core
-
-    kind = typ.kind
-    if argkind is None and kind == llvm.core.TYPE_POINTER:
-        argkind = check_array(typ.pointee)
-        if argkind is None:
-            argkind = POINTER
-    if kind == llvm.core.TYPE_INTEGER:
-        ds = dshape("int" + str(typ.width))
-
-    elif kind == llvm.core.TYPE_DOUBLE:
-        ds = float64
-
-    elif kind == llvm.core.TYPE_FLOAT:
-        ds = float32
-
-    elif kind == llvm.core.TYPE_VOID:
-        ds = None
-
-    elif kind == llvm.core.TYPE_POINTER:
-        ds = ''
-        pointee = typ.pointee
-        p_kind = pointee.kind
-        if p_kind == llvm.core.TYPE_INTEGER:
-            width = pointee.width
-            # Special case:  char * is mapped to strings
-            if width == 8:
-                ds = dshape("string")
-            else:
-                ds = _PointerDshape(from_llvm(pointee))
-        if p_kind == llvm.core.TYPE_STRUCT:
-            if argkind == POINTER:
-                ds = _PointerDshape(from_llvm(pointee))
-            else:  # argkind is a tuple of (arrkind, nd, pointer_type)
-                nd = argkind[1]
-                eltype = from_llvm(argkind[2])
-                obj = [TypeVar('i'+str(n)) for n in range(nd)]
-                obj.append(eltype)
-                ds = coretypes.DataShape(*obj)
-                ds._array_kind = argkind[0]
-
-    elif kind == llvm.core.TYPE_STRUCT:
-        if not typ.is_literal:
-            struct_name = typ.name.split('.')[-1]
-            if not PY3:
-                struct_name = struct_name.encode('ascii')
-        else:
-            struct_name = ''
-
-        names = [ "e"+str(n) for n in range(typ.element_count) ]
-
-        fields = [(name, from_llvm(elem))
-                   for name, elem in zip(names, typ.elements)]
-        typstr = "{ %s }" % ("; ".join(["{0}: {1}".format(*field)
-                                            for field in fields]))
-
-        ds = dshape(typstr)
-    else:
-        raise TypeError("Unknown type %s" % kind)
-    return ds
-
-
-# FIXME: This is a hack
-def from_numba(nty):
-    return coretypes.Type._registry[str(nty)]
-
-
-# Just scalars for now
-# FIXME: This could be improved
-def to_numba(ds):
-    import numba
-    # Fixup the complex type to how numba does it
-    s = str(ds)
-    s = {'complex[float32]':'complex64', 'complex[float64]':'complex128', 'bool':'bool_'}.get(s, s)
-    return getattr(numba, s)
 
 
 #------------------------------------------------------------------------
