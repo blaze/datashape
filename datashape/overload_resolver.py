@@ -15,6 +15,12 @@ class OverloadResolver(object):
     is designed so that an acceleration structure could be added
     to it for speeding up overload resolution, without breaking
     the interface.
+
+    Parameters
+    ----------
+    name : str
+        This is the name of the function the overloader is for,
+        for error messages to provide some more context.
     """
     def __init__(self, name):
         self.__overloads = []
