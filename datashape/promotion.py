@@ -4,16 +4,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from itertools import product
-from functools import reduce
-
 import numpy as np
 
 from .error import UnificationError
-from .util import gensym, verify
-from .coretypes import (DataShape, CType, Fixed, Var, to_numpy, to_numpy_dtype,
-                        TypeVar)
-from .typesets import TypeSet
+from .coretypes import CType, Fixed, Var, to_numpy_dtype
 
 
 def broadcast_dims(dim1, dim2):
@@ -82,18 +76,3 @@ def promote_dtypes(dt1, dt2):
     else:
        raise TypeError(("Unknown data types, cannot promote: " +
                         "%s and %s") % (dt1, dt2))
-
-
-def eq(a, b):
-    if isinstance(a, TypeVar) and isinstance(b, TypeVar):
-        return True
-    return a == b
-
-
-def promote_scalars(a, b):
-    """Promote two CTypes"""
-    try:
-        return CType.from_numpy_dtype(np.result_type(to_numpy_dtype(a), to_numpy_dtype(b)))
-    except TypeError as e:
-        raise TypeError("Cannot promote %s and %s: %s" % (a, b, e))
-

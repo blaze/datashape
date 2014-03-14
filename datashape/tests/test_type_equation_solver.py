@@ -142,6 +142,35 @@ class TestSignatureArgMatching(unittest.TestCase):
         # Should be cheaper to match without the broadcasting
         self.assertTrue(match_scalar[1] < match_bcast[1])
 
+    def test_match_with_resolver(self):
+        # Test matching with a resolver function
+        # This is a contrived resolver which combines the A... and
+        # B typevars in a way that cannot be done with simple pattern
+        # matching. While not a useful example in and of itself, it
+        # exhibits the needed behavior in reduction function signature
+        # matching.
+        def resolver(tvar, tvdict):
+            if tvar == T.Ellipsis(T.TypeVar('R')):
+                a = tvdict[T.Ellipsis(T.TypeVar('A'))]
+                b = tvdict[T.TypeVar('B')]
+                result = [b]
+                for x in a:
+                    result.extend([x, b])
+                return result
+            elif tvar == T.TypeVar('T'):
+                return T.int16
+        at = dshape('(5 * int32, 4 * float64)')
+        sig = dshape('(B * int32, A... * float64) -> R... * T')
+        self.assertEqual(match_argtypes_to_signature(at, sig, resolver),
+                         (dshape('(5 * int32, 4 * float64) -> 5 * 4 * 5 * int16')[0],
+                          0.25))
+        at = dshape('(5 * var * 2 * int32, 4 * float64)')
+        sig = dshape('(A... * int32, B * float64) -> R... * 2 * T')
+        self.assertEqual(match_argtypes_to_signature(at, sig, resolver),
+                         (dshape('(5 * var * 2 * int32, 4 * float64) ->' +
+                                 ' 4 * 5 * 4 * var * 4 * 2 * 4 * 2 * int16')[0],
+                          0.25))
+
 
 class TestEquationMatching(unittest.TestCase):
     def test_match_equation_dtype(self):
