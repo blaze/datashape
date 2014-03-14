@@ -112,7 +112,7 @@ class OverloadResolver(object):
                                      " for argtypes %s") % (self.name,
                                                               argstype))
         elif len(result) > 1:
-            raise OverloadError(("%s: ambiguous overload for"
+            raise OverloadError(("%s: ambiguous overload for" +
                                  " argtypes %s\nambiguous candidates:\n%s") %
                                 (self.name, argstype,
                                  "\n".join("    %s" % x[1] for x in result)))
