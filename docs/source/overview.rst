@@ -121,7 +121,7 @@ unicode values.
 Endianness
 ~~~~~~~~~~
 
-The data shape does not specify endianness, data types
+The datashape does not specify endianness, data types
 are in native endianness when processed by Blaze functions.
 
 Products
@@ -130,17 +130,17 @@ Products
 A comma between two types signifies a product type. Product types
 correspond to branching possibilities of types.
 
-The product operator ``(,)`` is used to construct product types.
+The product operator ``(*)`` is used to construct product types.
 It is a type constructor of two arguments with a special infix
 sugar.
 
 Example::
 
-    a, b
+    a * b
 
 It is also left associative, namely::
 
-    ((a, b), c) = a, b, c
+    ((a * b) * c) = a * b * c
 
 The outer element a product type is referred to as a **measure**
 while the other elements of the product are referred to as
@@ -152,17 +152,17 @@ while the other elements of the product are referred to as
 The product operator has the additional constraint that the first
 operator cannot be a measure. This permits types of the form::
 
-    1, int32
-    1, 1, int32
+    1 * int32
+    1 * 1 * int32
 
 But forbids types of the form::
 
-    1, 1
-    int32, 1
-    int32, int32
+    1 * 1
+    int32 * 1
+    int32 * int32
 
 There is a algebraic relation between product types and sum types
-( discussed below ).
+(discussed below).
 
 Fixed
 ~~~~~
@@ -171,7 +171,7 @@ The unit shape type is a dimension unit type. They are represented
 as just integer values at the top level of the datatype. These are
 identical to ``shape`` parameters in NumPy. For example::
 
-    2, int32
+    2 * int32
 
 The previous signature Is an equivalent to the shape and dtype of a
 NumPy array of the form::
@@ -180,7 +180,7 @@ NumPy array of the form::
 
 A 2 by 3 matrix of integers has datashape::
 
-    2, 3, int32
+    2 * 3 * int32
 
 With the corresponding NumPy array::
 
@@ -202,24 +202,24 @@ types that are comprised of multiple unit types are called **composite**
 types. The product operator discussed above yields composite types.
 Example::
 
-    2, int32
+    2 * int32
 
 Datashape types with free parameters in their constructor are called
 **parameterized** types. Example::
 
-    type SquareMatrix T = N, N, T
+    type SquareMatrix T = N * N * T
 
 Datashape types without free parameters in their constructor are called
 **alias** types, and are similar to ``typedef`` in C. Alias types don't
 add any additional structure they just ascribe a new name. Example::
 
-    type AliasType N = N, N, int32
+    type AliasType N = N * N * int32
 
 Datashape types can be **anonymous** or labeled. Once a type is
 registered it can be used in dshape expressions just like primitive
 values and to construct even higher order types.
 
-Blaze does not permit recursive type definitions.
+Datashape does not permit recursive type definitions.
 
 Datashape types are split into three equivalence classes.
 
@@ -234,18 +234,18 @@ are themselves type constructors of variable number of type arguments.
 Example 1::
 
     type Person = {
-        name   : string;
-        age    : int;
-        height : int;
+        name   : string,
+        age    : int,
+        height : int,
         weight : int
     }
 
 Example 2::
 
     type RGBA = {
-        r: int32;
-        g: int32;
-        b: int32;
+        r: int32,
+        g: int32,
+        b: int32,
         a: int8
     }
 
@@ -255,20 +255,20 @@ but cannot be self-referential:
 Example 2::
 
     type Point = {
-        x : int;
+        x : int,
         y : int
     }
 
     type Space = {
-        a: Point;
+        a: Point,
         b: Point
     }
 
 Or equivalently::
 
     type Space = {
-        a: { x: int; y: int };
-        b: { x: int; y: int }
+        a: { x: int, y: int };
+        b: { x: int, y: int }
     }
 
 Composite datashapes that terminate in record types are called
@@ -277,11 +277,11 @@ Composite datashapes that terminate in record types are called
 
 Example of array-like::
 
-    type ArrayLike = 2, 3, int32
+    type ArrayLike = 2 * 3 * int32
 
 Example of table-like::
 
-    type TableLike = { x : int; y : float }
+    type TableLike = { x : int, y : float }
 
 
 Type Variables
@@ -298,12 +298,12 @@ Type variables that occur once in a type signature are referred to as
 For example the type capable of expressing all square two dimensional
 matrices could be written as a combination of rigid type vars::
 
-    A, A, int32
+    A * A * int32
 
 A type capable of rectangular variable length arrays of integers
 can be written as two free type vars::
 
-    A, B, int32
+    A * B * int32
 
 Sums
 ----
@@ -326,8 +326,8 @@ A **variant** type is a sum type with two tagged parameters ``left`` and
 ``right`` which represent two possible types. We use the keyword
 ``Either`` to represent the type operator. Examples::
 
-    Either(float,char)
-    Either(int32,float)
+    Either(float, char)
+    Either(int32, float)
     Either({x: int}, {y: float})
 
 ..
@@ -342,11 +342,11 @@ A **union** or **untagged union** is a variant type permitting a
 variable number of variants. Unions behave like unions in C and permit a
 variable number of heterogeneous typed values::
 
-    Union(int8,string)
+    Union(int8, string)
 
 ::
 
-    Union(int8,int16,int32,int64)
+    Union(int8, int16, int32, int64)
 
 ..
     A + B + C ...
@@ -389,7 +389,7 @@ FAQ
 .. doctest::
 
     >>> from datashape import dshape, to_numpy
-    >>> ds = dshape("5, 5, int32")
+    >>> ds = dshape("5 * 5 * int32")
     >>> to_numpy(ds)
     ((5, 5), dtype('int32'))
 
@@ -399,6 +399,6 @@ FAQ
 
     >>> from datashape import dshape, from_numpy
     >>> from numpy import dtype
-    >>> from_numpy((5,5), dtype('int32'))
-    dshape("5, 5, int32")
+    >>> from_numpy((5, 5), dtype('int32'))
+    dshape("5 * 5 * int32")
 

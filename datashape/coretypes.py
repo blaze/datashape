@@ -873,7 +873,7 @@ def to_numpy(ds):
     possible.
 
     >>> from datashape import dshape, to_numpy
-    >>> to_numpy(dshape('5, 5, int32'))
+    >>> to_numpy(dshape('5 * 5 * int32'))
     ((5, 5), dtype('int32'))
     """
 
@@ -917,8 +917,8 @@ def from_numpy(shape, dt):
 
     >>> from datashape import from_numpy
     >>> from numpy import dtype
-    >>> from_numpy((5,5), dtype('int32'))
-    dshape("5, 5, int32")
+    >>> from_numpy((5, 5), dtype('int32'))
+    dshape("5 * 5 * int32")
     """
     dtype = np.dtype(dt)
 
