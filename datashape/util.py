@@ -18,8 +18,8 @@ from . import coretypes
 from .typesets import TypeSet
 
 
-__all__ = ['dshape', 'dshapes', 'has_var_dim', 'cat_dshapes',
-           'dummy_signature', 'verify',
+__all__ = ['dshape', 'dshapes', 'has_var_dim', 'has_ellipsis',
+           'cat_dshapes', 'dummy_signature', 'verify',
            'from_ctypes', 'from_cffi', 'to_ctypes',
            'gensym']
 
@@ -103,6 +103,24 @@ def has_var_dim(ds):
         test = ds
     for ds_t in test:
         if has_var_dim(ds_t):
+            return True
+    return False
+
+
+def has_ellipsis(ds):
+    """Returns True if the datashape has an ellipsis
+    """
+    test = []
+    if isinstance(ds, coretypes.Ellipsis):
+        return True
+    elif isinstance(ds, coretypes.Record):
+        test = ds.types
+    elif isinstance(ds, coretypes.Mono):
+        test = ds.parameters
+    elif isinstance(ds, (list, tuple)):
+        test = ds
+    for ds_t in test:
+        if has_ellipsis(ds_t):
             return True
     return False
 
