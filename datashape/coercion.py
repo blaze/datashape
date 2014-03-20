@@ -5,18 +5,14 @@ it may involve calling a whole bunch of functions with a whole bunch of types
 to figure out whether this is possible in the face of polymorphic overloads.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from collections import defaultdict
-from itertools import chain, product
 
-from .error import CoercionError, UnificationError
+from .error import CoercionError
 from .coretypes import CType, TypeVar, Mono
-from .typesets import boolean, complexes, floating, integral, signed, unsigned
-from .coretypes import Implements, Fixed, Var, Ellipsis, DataShape
-from .util import verify
+from .typesets import complexes, floating, signed, unsigned
+from .coretypes import Implements, Fixed, Var, DataShape
 from . import coretypes
 
 inf = float('inf')
@@ -195,9 +191,8 @@ def _coercion_cost(a, b, seen=None):
         return (dimlist_coercion_cost(a[:-1], b[:-1]) +
                 dtype_coercion_cost(a[-1], b[-1]))
     else:
-        verify(a, b)
-        return max([_coercion_cost(x, y, seen) for x, y in zip(a.parameters,
-                                                               b.parameters)])
+        raise TypeError(('Unhandled coercion cost case of ' +
+                         '%s and %s') % (a, b))
 
 
 def termsize(term):

@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import
 
-import inspect
 import operator
 import ctypes
-import collections
-import string
 import sys
-from functools import partial
 
 from . import py2help
 from . import parser
@@ -15,16 +11,13 @@ from . import type_symbol_table
 from .error import UnificationError
 from .validation import validate
 from . import coretypes
-from .typesets import TypeSet
 
 
 __all__ = ['dshape', 'dshapes', 'has_var_dim', 'has_ellipsis',
-           'cat_dshapes', 'dummy_signature', 'verify',
-           'from_ctypes', 'from_cffi', 'to_ctypes',
-           'gensym']
+           'cat_dshapes', 'from_ctypes', 'from_cffi', 'to_ctypes']
 
 
-PY3 = (sys.version_info[:2] >= (3,0))
+PY3 = (sys.version_info[:2] >= (3, 0))
 
 #------------------------------------------------------------------------
 # Utility Functions for DataShapes
@@ -81,9 +74,9 @@ def cat_dshapes(dslist):
         outer_dim_size += operator.index(ds[0])
         if ds[1:] != inner_ds:
             raise ValueError(('The datashapes to concatenate much'
-                            ' all match after'
-                            ' the first dimension (%s vs %s)') %
-                            (inner_ds, ds[1:]))
+                              ' all match after'
+                              ' the first dimension (%s vs %s)') %
+                              (inner_ds, ds[1:]))
     return coretypes.DataShape(*[coretypes.Fixed(outer_dim_size)] + list(inner_ds))
 
 
@@ -123,33 +116,6 @@ def has_ellipsis(ds):
         if has_ellipsis(ds_t):
             return True
     return False
-
-
-def dummy_signature(f):
-    """Create a dummy signature for `f`"""
-    from . import coretypes as T
-    argspec = inspect.getargspec(f)
-    n = len(argspec.args)
-    return T.Function(*[T.TypeVar(gensym()) for i in range(n + 1)])
-
-
-def verify(t1, t2):
-    """Verify that two immediate type constructors are valid for unification"""
-    if not isinstance(t1, coretypes.Mono) or not isinstance(t2, coretypes.Mono):
-        if t1 != t2:
-            raise UnificationError("%s != %s" % (t1, t2))
-        return
-
-    args1, args2 = t1.parameters, t2.parameters
-    tcon1, tcon2 = type_constructor(t1), type_constructor(t2)
-
-    if tcon1 != tcon2:
-        raise UnificationError(
-            "Got differing type constructors %s and %s" % (tcon1, tcon2))
-
-    if len(args1) != len(args2):
-        raise UnificationError("%s got %d and %d arguments" % (
-            tcon1, len(args1), len(args2)))
 
 
 #------------------------------------------------------------------------
@@ -331,36 +297,3 @@ def from_ctypes(ctype):
     else:
         raise TypeError('Cannot convert ctypes %r into '
                         'a blaze datashape' % ctype)
-
-# Class to hold Pointer temporarily
-def _PointerDshape(object):
-    def __init__(self, dshape):
-        self.dshape = dshape
-
-
-
-#------------------------------------------------------------------------
-# Temporary names
-#------------------------------------------------------------------------
-
-def make_temper():
-    """Return a function that returns temporary names"""
-    temps = collections.defaultdict(int)
-
-    def temper(name=""):
-        varname = name.rstrip(string.digits)
-        count = temps[varname]
-        temps[varname] += 1
-        if varname and count == 0:
-            return varname
-        return varname + str(count)
-
-    return temper
-
-def make_stream(seq, _temp=make_temper()):
-    """Create a stream of temporaries seeded by seq"""
-    while 1:
-        for x in seq:
-            yield _temp(x)
-
-gensym = partial(next, make_stream(string.ascii_uppercase))
