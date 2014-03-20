@@ -5,6 +5,8 @@ from .error import UnificationError, CoercionError, OverloadError
 from .type_equation_solver import (match_argtypes_to_signature,
                                    PrunedMatchProcessing)
 
+__all__ = ['OverloadResolver']
+
 inf = float('inf')
 
 
@@ -110,7 +112,7 @@ class OverloadResolver(object):
             else:
                 raise OverloadError(("%s: no overload matches" +
                                      " for argtypes %s") % (self.name,
-                                                              argstype))
+                                                            argstype))
         elif len(result) > 1:
             raise OverloadError(("%s: ambiguous overload for" +
                                  " argtypes %s\nambiguous candidates:\n%s") %
