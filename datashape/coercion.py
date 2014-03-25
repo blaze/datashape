@@ -211,15 +211,11 @@ def add_numeric_rule(types, cost=1):
     for src, dst in zip(types[:-1], types[1:]):
         add_coercion(src, dst, cost)
 
-promotable_unsigned = [coretypes.uint8, coretypes.uint16, coretypes.uint32]
-promoted_signed     = [coretypes.int16, coretypes.int32, coretypes.int64]
-
 add_numeric_rule(signed)
 add_numeric_rule(unsigned)
 add_numeric_rule(floating)
 add_numeric_rule(complexes)
 
-add_numeric_rule([coretypes.bool_, coretypes.int8])
 add_numeric_rule([coretypes.uint8, coretypes.int16])
 add_numeric_rule([coretypes.uint16, coretypes.int32])
 add_numeric_rule([coretypes.uint32, coretypes.int64])
@@ -249,3 +245,7 @@ add_numeric_rule([coretypes.int64, coretypes.float64], 1.5)
 
 # float -> complex
 add_numeric_rule([coretypes.float64, coretypes.complex_float32], 1.5)
+
+# Anything -> bool
+for tp in (list(signed) + list(unsigned) + list(floating) + list(complexes)):
+    add_numeric_rule([tp, coretypes.bool_], 1000.)
