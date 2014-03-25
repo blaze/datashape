@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import unittest
 
-from datashape import coercion_cost, dshapes, error
+from datashape import coercion_cost, dshape, dshapes, error
 from datashape.tests import common
 from datashape.py2help import skip
 
@@ -86,12 +86,27 @@ class TestCoercion(common.BTestCase):
                           'X * ... * float64')
         self.assertGreater(coercion_cost(a, b), coercion_cost(a, c))
 
+    def test_allow_anything_to_bool(self):
+        # The cost should be large
+        min_cost = coercion_cost(dshape('int8'), dshape('complex[float64]'))
+        for ds in ['int8', 'int16', 'int32', 'int64', 'uint8', 'uint16',
+                   'uint32', 'uint64', 'float32', 'float64',
+                   'complex[float32]', 'complex[float64]']:
+            self.assertGreater(coercion_cost(dshape(ds), dshape('bool')),
+                               min_cost)
 
 class TestCoercionErrors(unittest.TestCase):
 
     def test_downcast(self):
         a, b = dshapes('float32', 'int32')
         self.assertRaises(error.CoercionError, coercion_cost, a, b)
+
+    def test_disallow_bool_to_anything(self):
+        for ds in ['int8', 'int16', 'int32', 'int64', 'uint8', 'uint16',
+                   'uint32', 'uint64', 'float32', 'float64',
+                   'complex[float32]', 'complex[float64]']:
+            self.assertRaises(error.CoercionError, coercion_cost,
+                              dshape('bool'), dshape(ds))
 
 
 if __name__ == '__main__':
