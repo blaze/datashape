@@ -290,4 +290,33 @@ Pointer
 
 Constructs a type whose value is a pointer to values of the target type.
 
+Date, Time, and DateTime
+------------------------
+
+``date``
+
+A type which represents a single date in the Gregorian calendar.
+In DyND and Blaze, it is represented as a 32-bit signed integer offset
+from the date ``1970-01-01``.
+
+``time``
+
+Represents a time in an abstract day (no time zone). Represented
+as a 64-bit integer offset from midnight, stored as microseconds.
+
+``time[tz='UTC']``
+
+Represents a time in a day using the specified time zone.
+
+``datetime``
+
+Represents a moment in time in an abstract time zone (not anchored
+to a physical time like UTC). Represented as a 64-bit signed integer
+offset from ``1970-01-01T00:00:00`` in microseconds.
+
+``datetime[tz='UTC']``
+
+Represents a moment in time using the specified timezone and unit, as
+an offset from midnight of January 1, 1970 in microsecond.
+
 
