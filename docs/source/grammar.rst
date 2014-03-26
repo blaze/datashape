@@ -117,7 +117,7 @@ Data Type Symbol Table::
     decimal64
     decimal128
     # Arbitrary precision integer
-    bigint
+    bignum
     # Alias for int32
     int
     # Alias for float64
