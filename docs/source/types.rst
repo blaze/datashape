@@ -87,10 +87,11 @@ This is an alias for ``int32``.
 Arbitrary-Precision Integer
 ---------------------------
 
-``bignum``
+``bignum`` or ``bigint``
 
 An integer type which has no minimum or maximum value. This is not
-implemented in Blaze or DyND presently.
+implemented in Blaze or DyND presently and the final name for it hasn't
+been locked down.
 
 Signed Integer Types
 --------------------
