@@ -46,7 +46,11 @@ Type Variables
 ``typevar['DimName']``
 
 Constructs a type variable. ``DimName`` is syntactic sugar for
-``typevar['DimName']``.
+``typevar['DimName']``. This is used for pattern matching types,
+particularly for function prototypes. For example the
+datashape ``(M * N * int32) -> N * int32`` accepts an input
+with two dimensions that are type variables, and returns a
+one dimensional array using one of those dimension types.
 
 Ellipsis
 --------
@@ -276,7 +280,10 @@ Type Variables
 ``typevar['DTypeName']``
 
 Constructs a type variable. ``DTypeName`` is syntactic sugar for
-``typevar['DTypeName']``.
+``typevar['DTypeName']``. This is used for pattern matching types,
+particularly for function prototypes. For example the
+datashape ``(T, T) -> T`` accepts any types as input, but requires
+they have the same types.
 
 Option/Missing Data
 -------------------
