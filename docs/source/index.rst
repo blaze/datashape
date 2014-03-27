@@ -13,6 +13,7 @@ Contents:
   
   overview.rst
   grammar.rst
+  types.rst
   pattern_matching.rst
 
 
