@@ -300,23 +300,36 @@ In DyND and Blaze, it is represented as a 32-bit signed integer offset
 from the date ``1970-01-01``.
 
 ``time``
-
-Represents a time in an abstract day (no time zone). Represented
-as a 64-bit integer offset from midnight, stored as microseconds.
-
 ``time[tz='UTC']``
 
-Represents a time in a day using the specified time zone.
+Represents a time in an abstract day (no time zone), or a day
+with the specified time zone.
+
+Represented as a 64-bit integer offset from midnight,
+stored as ticks (100 ns units).
+
 
 ``datetime``
-
-Represents a moment in time in an abstract time zone (not anchored
-to a physical time like UTC). Represented as a 64-bit signed integer
-offset from ``1970-01-01T00:00:00`` in microseconds.
-
 ``datetime[tz='UTC']``
 
-Represents a moment in time using the specified timezone and unit, as
-an offset from midnight of January 1, 1970 in microsecond.
+Represents a moment in time in an abstract time zone if no time
+zone is provided, otherwise stored as UTC but representing time
+in the specified time zone.
 
+Stored as a 64-bit signed integer offset from
+``0001-01-01T00:00:00`` in ticks (100 ns units), the "universal
+time scale" from the ICU library. Follows the POSIX convention
+of ignoring leap seconds.
 
+http://userguide.icu-project.org/datetime/universaltimescale
+
+``units['second', int64]``
+
+A type which represents a value with the units and type specified.
+Initially only supporting time units, to support the datetime
+functionality without adding a special "timedelta" type.
+
+Initial valid units are: '100*nanosecond' (ticks as in the datetime storage),
+'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+Need to decide on valid shortcuts in a context with more physical units,
+probably by adopting conventions from a good physical units library.
