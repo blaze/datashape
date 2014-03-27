@@ -36,6 +36,9 @@ Strided Dimension
 A dimension whose size is fixed across the array, but whose
 size is no known ahead of time. This is not commonly used in Blaze,
 but is in DyND where it is how NumPy-like dimensions are created.
+For example, a two dimensional strided array has type
+``strided * strided * int32``, and does not bake in particular
+dimension sizes like with fixed dimensions in ``10 * 15 * int32``.
 
 Type Variables
 --------------
