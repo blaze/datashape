@@ -316,9 +316,8 @@ from the date ``1970-01-01``.
 Represents a time in an abstract day (no time zone), or a day
 with the specified time zone.
 
-Represented as a 64-bit integer offset from midnight,
+Stored as a 64-bit integer offset from midnight,
 stored as ticks (100 ns units).
-
 
 ``datetime``
 ``datetime[tz='UTC']``
@@ -344,3 +343,10 @@ Initial valid units are: '100*nanosecond' (ticks as in the datetime storage),
 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
 Need to decide on valid shortcuts in a context with more physical units,
 probably by adopting conventions from a good physical units library.
+
+``timetz``
+``datetimetz``
+
+Represents a time/datetime with the time zone attached to the data. Not
+implemented in Blaze/DyND.
+
