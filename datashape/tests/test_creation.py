@@ -46,6 +46,9 @@ class TestDataShapeCreation(unittest.TestCase):
         else:
             self.assertEqual(dshape('intptr'), dshape(datashape.int64))
             self.assertEqual(dshape('uintptr'), dshape(datashape.uint64))
+        self.assertEqual(dshape("date"), dshape(datashape.date_))
+        self.assertEqual(dshape("time"), dshape(datashape.time_))
+        self.assertEqual(dshape("datetime"), dshape(datashape.datetime_))
 
     def test_atom_shape_errors(self):
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'boot')
@@ -60,6 +63,7 @@ class TestDataShapeCreation(unittest.TestCase):
 
     def test_ellipsis_error(self):
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'T * ...')
+        self.assertRaises(error.DataShapeSyntaxError, dshape, 'T * S...')
 
     @skip('type decl has been removed in the new parser')
     def test_type_decl(self):
@@ -77,12 +81,31 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape("string['utf-32']")[0].encoding, 'U32')
         self.assertEqual(dshape("string['U32']")[0].encoding, 'U32')
 
+    def test_time(self):
+        self.assertEqual(dshape('time')[0].tz, None)
+        self.assertEqual(dshape('time[tz="UTC"]')[0].tz, 'UTC')
+        self.assertEqual(dshape('time[tz="America/Vancouver"]')[0].tz,
+                         'America/Vancouver')
+
+    def test_datetime(self):
+        self.assertEqual(dshape('datetime')[0].tz, None)
+        self.assertEqual(dshape('datetime[tz="UTC"]')[0].tz, 'UTC')
+        self.assertEqual(dshape('datetime[tz="America/Vancouver"]')[0].tz,
+                         'America/Vancouver')
+
+    def test_units(self):
+        self.assertEqual(dshape('units["second"]')[0].unit, 'second')
+        self.assertEqual(dshape('units["second"]')[0].tp, dshape('float64'))
+        self.assertEqual(dshape('units["second", int32]')[0].unit, 'second')
+        self.assertEqual(dshape('units["second", int32]')[0].tp,
+                         dshape('int32'))
+
     def test_struct_of_array(self):
         self.assertEqual(str(dshape('5 * int32')), '5 * int32')
         self.assertEqual(str(dshape('{field: 5 * int32}')),
-                                    '{ field : 5 * int32 }')
+                         '{ field : 5 * int32 }')
         self.assertEqual(str(dshape('{field: M * int32}')),
-                                    '{ field : M * int32 }')
+                         '{ field : M * int32 }')
 
     def test_ragged_array(self):
         self.assertTrue(isinstance(dshape('3 * var * int32')[1], datashape.Var))

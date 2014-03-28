@@ -41,7 +41,9 @@ def dshape(o):
     if isinstance(o, py2help._strtypes):
         ds = parser.parse(o, type_symbol_table.sym)
     elif isinstance(o, (coretypes.CType, coretypes.String,
-                        coretypes.Record, coretypes.JSON)):
+                        coretypes.Record, coretypes.JSON,
+                        coretypes.Date, coretypes.Time, coretypes.DateTime,
+                        coretypes.Unit)):
         ds = coretypes.DataShape(o)
     elif isinstance(o, coretypes.Mono):
         ds = o

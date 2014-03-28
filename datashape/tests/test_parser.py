@@ -8,9 +8,8 @@ import unittest
 
 import datashape
 from datashape.parser import parse
-from datashape import coretypes as T
+from datashape import coretypes as ct
 from datashape import DataShapeSyntaxError
-from datashape.py2help import skip
 
 class TestDataShapeParseBasicDType(unittest.TestCase):
     def setUp(self):
@@ -19,73 +18,73 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
 
     def test_bool(self):
         self.assertEqual(parse('bool', self.sym),
-                         T.DataShape(T.bool_))
+                         ct.DataShape(ct.bool_))
 
     def test_signed_integers(self):
         self.assertEqual(parse('int8', self.sym),
-                         T.DataShape(T.int8))
+                         ct.DataShape(ct.int8))
         self.assertEqual(parse('int16', self.sym),
-                         T.DataShape(T.int16))
+                         ct.DataShape(ct.int16))
         self.assertEqual(parse('int32', self.sym),
-                         T.DataShape(T.int32))
+                         ct.DataShape(ct.int32))
         self.assertEqual(parse('int64', self.sym),
-                         T.DataShape(T.int64))
+                         ct.DataShape(ct.int64))
         #self.assertEqual(parse('int128', self.sym),
-        #                 T.DataShape(T.int128))
+        #                 ct.DataShape(ct.int128))
         self.assertEqual(parse('int', self.sym),
-                         T.DataShape(T.int_))
+                         ct.DataShape(ct.int_))
         # 'int' is an alias for 'int32'
         self.assertEqual(parse('int', self.sym),
                          parse('int32', self.sym))
         self.assertEqual(parse('intptr', self.sym),
-                         T.DataShape(T.intptr))
+                         ct.DataShape(ct.intptr))
 
     def test_unsigned_integers(self):
         self.assertEqual(parse('uint8', self.sym),
-                         T.DataShape(T.uint8))
+                         ct.DataShape(ct.uint8))
         self.assertEqual(parse('uint16', self.sym),
-                         T.DataShape(T.uint16))
+                         ct.DataShape(ct.uint16))
         self.assertEqual(parse('uint32', self.sym),
-                         T.DataShape(T.uint32))
+                         ct.DataShape(ct.uint32))
         self.assertEqual(parse('uint64', self.sym),
-                         T.DataShape(T.uint64))
+                         ct.DataShape(ct.uint64))
         #self.assertEqual(parse('uint128', self.sym),
-        #                 T.DataShape(T.uint128))
+        #                 ct.DataShape(ct.uint128))
         self.assertEqual(parse('uintptr', self.sym),
-                         T.DataShape(T.uintptr))
+                         ct.DataShape(ct.uintptr))
 
     def test_float(self):
         #self.assertEqual(parse('float16', self.sym),
-        #                 T.DataShape(T.float16))
+        #                 ct.DataShape(ct.float16))
         self.assertEqual(parse('float32', self.sym),
-                         T.DataShape(T.float32))
+                         ct.DataShape(ct.float32))
         self.assertEqual(parse('float64', self.sym),
-                         T.DataShape(T.float64))
+                         ct.DataShape(ct.float64))
         #self.assertEqual(parse('float128', self.sym),
-        #                 T.DataShape(T.float128))
+        #                 ct.DataShape(ct.float128))
         self.assertEqual(parse('real', self.sym),
-                         T.DataShape(T.real))
+                         ct.DataShape(ct.real))
         # 'real' is an alias for 'float64'
         self.assertEqual(parse('real', self.sym),
                          parse('float64', self.sym))
 
     def test_complex(self):
         self.assertEqual(parse('complex[float32]', self.sym),
-                         T.DataShape(T.complex_float32))
+                         ct.DataShape(ct.complex_float32))
         self.assertEqual(parse('complex[float64]', self.sym),
-                         T.DataShape(T.complex_float64))
+                         ct.DataShape(ct.complex_float64))
         self.assertEqual(parse('complex', self.sym),
-                         T.DataShape(T.complex_))
+                         ct.DataShape(ct.complex_))
         # 'complex' is an alias for 'complex[float64]'
         self.assertEqual(parse('complex', self.sym),
                          parse('complex[float64]', self.sym))
 
     def test_option(self):
         self.assertEqual(parse('option[int32]', self.sym),
-                         T.DataShape(T.Option(T.int32)))
+                         ct.DataShape(ct.Option(ct.int32)))
         self.assertEqual(parse('2 * 3 * option[int32]', self.sym),
-                         T.DataShape(T.Fixed(2), T.Fixed(3),
-                                     T.Option(T.int32)))
+                         ct.DataShape(ct.Fixed(2), ct.Fixed(3),
+                                     ct.Option(ct.int32)))
 
     def test_raise(self):
         self.assertRaises(datashape.DataShapeSyntaxError,
@@ -101,23 +100,23 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         # make some isolated type constructors for testing
         sym = datashape.TypeSymbolTable(bare=True)
         # A limited set of dtypes for testing
-        sym.dtype['int8'] = T.int8
-        sym.dtype['uint16'] = T.uint16
-        sym.dtype['float64'] = T.float64
+        sym.dtype['int8'] = ct.int8
+        sym.dtype['uint16'] = ct.uint16
+        sym.dtype['float64'] = ct.float64
         # TypeVar type constructor
-        sym.dtype_constr['typevar'] = T.TypeVar
+        sym.dtype_constr['typevar'] = ct.TypeVar
         # Unary dtype constructor that asserts on the argument value
         expected_blah = [None]
         def _unary_type_constr(blah):
             self.assertEqual(blah, expected_blah[0])
             expected_blah[0] = None
-            return T.float32
+            return ct.float32
         sym.dtype_constr['unary'] = _unary_type_constr
 
         def assertExpectedParse(ds_str, expected):
             # Set the expected value, and call the parser
             expected_blah[0] = expected
-            self.assertEqual(parse(ds_str, sym), T.DataShape(T.float32))
+            self.assertEqual(parse(ds_str, sym), ct.DataShape(ct.float32))
             # Make sure the expected value was actually run by
             # check that it reset the expected value to None
             self.assertEqual(expected_blah[0], None,
@@ -132,8 +131,8 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         assertExpectedParse('unary["\\uc548\\ub155"]', u'\uc548\ub155')
         assertExpectedParse(u'unary["\uc548\ub155"]', u'\uc548\ub155')
         # DataShape parameter (positional)
-        assertExpectedParse('unary[int8]', T.DataShape(T.int8))
-        assertExpectedParse('unary[X]', T.DataShape(T.TypeVar('X')))
+        assertExpectedParse('unary[int8]', ct.DataShape(ct.int8))
+        assertExpectedParse('unary[X]', ct.DataShape(ct.TypeVar('X')))
         # Empty list parameter (positional)
         assertExpectedParse('unary[[]]', [])
         # List of integers parameter (positional)
@@ -143,8 +142,8 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
                             ["test", "one", "two"])
         # List of datashapes parameter (positional)
         assertExpectedParse('unary[[float64, int8, uint16]]',
-                            [T.DataShape(T.float64), T.DataShape(T.int8),
-                             T.DataShape(T.uint16)])
+                            [ct.DataShape(ct.float64), ct.DataShape(ct.int8),
+                             ct.DataShape(ct.uint16)])
 
         # Integer parameter (keyword)
         assertExpectedParse('unary[blah=0]', 0)
@@ -155,8 +154,8 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         assertExpectedParse('unary[blah="\\uc548\\ub155"]', u'\uc548\ub155')
         assertExpectedParse(u'unary[blah="\uc548\ub155"]', u'\uc548\ub155')
         # DataShape parameter (keyword)
-        assertExpectedParse('unary[blah=int8]', T.DataShape(T.int8))
-        assertExpectedParse('unary[blah=X]', T.DataShape(T.TypeVar('X')))
+        assertExpectedParse('unary[blah=int8]', ct.DataShape(ct.int8))
+        assertExpectedParse('unary[blah=X]', ct.DataShape(ct.TypeVar('X')))
         # Empty list parameter (keyword)
         assertExpectedParse('unary[blah=[]]', [])
         # List of integers parameter (keyword)
@@ -166,19 +165,19 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
                             ["test", "one", "two"])
         # List of datashapes parameter (keyword)
         assertExpectedParse('unary[blah=[float64, int8, uint16]]',
-                            [T.DataShape(T.float64), T.DataShape(T.int8),
-                             T.DataShape(T.uint16)])
+                            [ct.DataShape(ct.float64), ct.DataShape(ct.int8),
+                             ct.DataShape(ct.uint16)])
 
     def test_binary_dtype_constr(self):
         # Create a symbol table with no types in it, so we can
         # make some isolated type constructors for testing
         sym = datashape.TypeSymbolTable(bare=True)
         # A limited set of dtypes for testing
-        sym.dtype['int8'] = T.int8
-        sym.dtype['uint16'] = T.uint16
-        sym.dtype['float64'] = T.float64
+        sym.dtype['int8'] = ct.int8
+        sym.dtype['uint16'] = ct.uint16
+        sym.dtype['float64'] = ct.float64
         # TypeVar type constructor
-        sym.dtype_constr['typevar'] = T.TypeVar
+        sym.dtype_constr['typevar'] = ct.TypeVar
         # Binary dtype constructor that asserts on the argument values
         expected_arg = [None, None]
         def _binary_type_constr(a, b):
@@ -186,14 +185,14 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
             self.assertEqual(b, expected_arg[1])
             expected_arg[0] = None
             expected_arg[1] = None
-            return T.float32
+            return ct.float32
         sym.dtype_constr['binary'] = _binary_type_constr
 
         def assertExpectedParse(ds_str, expected_a, expected_b):
             # Set the expected value, and call the parser
             expected_arg[0] = expected_a
             expected_arg[1] = expected_b
-            self.assertEqual(parse(ds_str, sym), T.DataShape(T.float32))
+            self.assertEqual(parse(ds_str, sym), ct.DataShape(ct.float32))
             # Make sure the expected value was actually run by
             # check that it reset the expected value to None
             self.assertEqual(expected_arg, [None, None],
@@ -203,22 +202,22 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         assertExpectedParse('binary[1, 0]', 1, 0)
         assertExpectedParse('binary[0, "test"]', 0, 'test')
         assertExpectedParse('binary[int8, "test"]',
-                            T.DataShape(T.int8), 'test')
+                            ct.DataShape(ct.int8), 'test')
         assertExpectedParse('binary[[1,3,5], "test"]', [1, 3, 5], 'test')
         # Positional and keyword args
         assertExpectedParse('binary[0, b=1]', 0, 1)
         assertExpectedParse('binary["test", b=A]', 'test',
-                            T.DataShape(T.TypeVar('A')))
+                            ct.DataShape(ct.TypeVar('A')))
         assertExpectedParse('binary[[3, 6], b=int8]', [3, 6],
-                            T.DataShape(T.int8))
+                            ct.DataShape(ct.int8))
         assertExpectedParse('binary[Arg, b=["x", "test"]]',
-                            T.DataShape(T.TypeVar('Arg')), ['x', 'test'])
+                            ct.DataShape(ct.TypeVar('Arg')), ['x', 'test'])
         # Keyword args
         assertExpectedParse('binary[a=1, b=0]', 1, 0)
         assertExpectedParse('binary[a=[int8, A, uint16], b="x"]',
-                            [T.DataShape(T.int8),
-                             T.DataShape(T.TypeVar('A')),
-                             T.DataShape(T.uint16)],
+                            [ct.DataShape(ct.int8),
+                             ct.DataShape(ct.TypeVar('A')),
+                             ct.DataShape(ct.uint16)],
                             'x')
 
     def test_dtype_constr_errors(self):
@@ -226,12 +225,12 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         # make some isolated type constructors for testing
         sym = datashape.TypeSymbolTable(bare=True)
         # A limited set of dtypes for testing
-        sym.dtype['int8'] = T.int8
-        sym.dtype['uint16'] = T.uint16
-        sym.dtype['float64'] = T.float64
+        sym.dtype['int8'] = ct.int8
+        sym.dtype['uint16'] = ct.uint16
+        sym.dtype['float64'] = ct.float64
         # Arbitrary dtype constructor that does nothing
         def _type_constr(*args, **kwargs):
-            return T.float32
+            return ct.float32
         sym.dtype_constr['tcon'] = _type_constr
 
         # Require closing "]"
@@ -272,41 +271,41 @@ class TestDataShapeParserDims(unittest.TestCase):
 
     def test_fixed_dims(self):
         self.assertEqual(parse('3 * bool', self.sym),
-                         T.DataShape(T.Fixed(3), T.bool_))
+                         ct.DataShape(ct.Fixed(3), ct.bool_))
         self.assertEqual(parse('7 * 3 * bool', self.sym),
-                         T.DataShape(T.Fixed(7), T.Fixed(3), T.bool_))
+                         ct.DataShape(ct.Fixed(7), ct.Fixed(3), ct.bool_))
         self.assertEqual(parse('5 * 3 * 12 * bool', self.sym),
-                         T.DataShape(T.Fixed(5), T.Fixed(3),
-                                     T.Fixed(12), T.bool_))
+                         ct.DataShape(ct.Fixed(5), ct.Fixed(3),
+                                     ct.Fixed(12), ct.bool_))
         self.assertEqual(parse('2 * 3 * 4 * 5 * bool', self.sym),
-                         T.DataShape(T.Fixed(2), T.Fixed(3),
-                                     T.Fixed(4), T.Fixed(5), T.bool_))
+                         ct.DataShape(ct.Fixed(2), ct.Fixed(3),
+                                     ct.Fixed(4), ct.Fixed(5), ct.bool_))
 
     def test_typevar_dims(self):
         self.assertEqual(parse('M * bool', self.sym),
-                         T.DataShape(T.TypeVar('M'), T.bool_))
+                         ct.DataShape(ct.TypeVar('M'), ct.bool_))
         self.assertEqual(parse('A * B * bool', self.sym),
-                         T.DataShape(T.TypeVar('A'), T.TypeVar('B'), T.bool_))
+                         ct.DataShape(ct.TypeVar('A'), ct.TypeVar('B'), ct.bool_))
         self.assertEqual(parse('A... * X * 3 * bool', self.sym),
-                         T.DataShape(T.Ellipsis(T.TypeVar('A')), T.TypeVar('X'),
-                                     T.Fixed(3), T.bool_))
+                         ct.DataShape(ct.Ellipsis(ct.TypeVar('A')), ct.TypeVar('X'),
+                                     ct.Fixed(3), ct.bool_))
 
     def test_var_dims(self):
         self.assertEqual(parse('var * bool', self.sym),
-                         T.DataShape(T.Var(), T.bool_))
+                         ct.DataShape(ct.Var(), ct.bool_))
         self.assertEqual(parse('var * var * bool', self.sym),
-                         T.DataShape(T.Var(), T.Var(), T.bool_))
+                         ct.DataShape(ct.Var(), ct.Var(), ct.bool_))
         self.assertEqual(parse('M * 5 * var * bool', self.sym),
-                         T.DataShape(T.TypeVar('M'), T.Fixed(5), T.Var(), T.bool_))
+                         ct.DataShape(ct.TypeVar('M'), ct.Fixed(5), ct.Var(), ct.bool_))
 
     def test_ellipses(self):
         self.assertEqual(parse('... * bool', self.sym),
-                         T.DataShape(T.Ellipsis(), T.bool_))
+                         ct.DataShape(ct.Ellipsis(), ct.bool_))
         self.assertEqual(parse('M * ... * bool', self.sym),
-                         T.DataShape(T.TypeVar('M'), T.Ellipsis(), T.bool_))
+                         ct.DataShape(ct.TypeVar('M'), ct.Ellipsis(), ct.bool_))
         self.assertEqual(parse('M * ... * 3 * bool', self.sym),
-                         T.DataShape(T.TypeVar('M'), T.Ellipsis(),
-                                     T.Fixed(3), T.bool_))
+                         ct.DataShape(ct.TypeVar('M'), ct.Ellipsis(),
+                                     ct.Fixed(3), ct.bool_))
 
 
 class TestDataShapeParseStruct(unittest.TestCase):
@@ -317,16 +316,16 @@ class TestDataShapeParseStruct(unittest.TestCase):
     def test_struct(self):
         # Simple struct
         self.assertEqual(parse('{x: int16, y: int32}', self.sym),
-                         T.DataShape(T.Record([('x', T.DataShape(T.int16)),
-                                               ('y', T.DataShape(T.int32))])))
+                         ct.DataShape(ct.Record([('x', ct.DataShape(ct.int16)),
+                                               ('y', ct.DataShape(ct.int32))])))
         # A trailing comma is ok
         self.assertEqual(parse('{x: int16, y: int32,}', self.sym),
-                         T.DataShape(T.Record([('x', T.DataShape(T.int16)),
-                                               ('y', T.DataShape(T.int32))])))
+                         ct.DataShape(ct.Record([('x', ct.DataShape(ct.int16)),
+                                               ('y', ct.DataShape(ct.int32))])))
         # Field names starting with _ and caps
         self.assertEqual(parse('{_x: int16, Zed: int32,}', self.sym),
-                         T.DataShape(T.Record([('_x', T.DataShape(T.int16)),
-                                               ('Zed', T.DataShape(T.int32))])))
+                         ct.DataShape(ct.Record([('_x', ct.DataShape(ct.int16)),
+                                               ('Zed', ct.DataShape(ct.int32))])))
         # A slightly bigger example
         ds_str = """3 * var * {
                         id : int32,
@@ -340,18 +339,18 @@ class TestDataShapeParseStruct(unittest.TestCase):
                             text : string
                         }
                     }"""
-        int32 = T.DataShape(T.int32)
-        string = T.DataShape(T.string)
-        date = T.DataShape(T.date)
-        ds = (T.Fixed(3), T.Var(),
-              T.Record([('id', int32),
+        int32 = ct.DataShape(ct.int32)
+        string = ct.DataShape(ct.string)
+        date = ct.DataShape(ct.date_)
+        ds = (ct.Fixed(3), ct.Var(),
+              ct.Record([('id', int32),
                         ('name', string),
-                        ('description', T.DataShape(T.Record([('language', string),
+                        ('description', ct.DataShape(ct.Record([('language', string),
                                                               ('text', string)]))),
-                        ('entries', T.DataShape(T.Var(),
-                                                T.Record([('date', date),
+                        ('entries', ct.DataShape(ct.Var(),
+                                                ct.Record([('date', date),
                                                           ('text', string)])))]))
-        self.assertEqual(parse(ds_str, self.sym), T.DataShape(*ds))
+        self.assertEqual(parse(ds_str, self.sym), ct.DataShape(*ds))
 
     def test_fields_with_dshape_names(self):
         # Should be able to name a field 'type', 'int64', etc
@@ -387,7 +386,7 @@ class TestDataShapeParseStruct(unittest.TestCase):
                 json: string,
                 var: string,
             }""", self.sym)
-        self.assertEqual(type(ds[-1]), T.Record)
+        self.assertEqual(type(ds[-1]), ct.Record)
         self.assertEqual(len(ds[-1].names), 30)
 
     def test_kiva_datashape(self):
@@ -470,7 +469,7 @@ class TestDataShapeParseStruct(unittest.TestCase):
               },
             }
         """, self.sym)
-        self.assertEqual(type(ds[-1]), T.Record)
+        self.assertEqual(type(ds[-1]), ct.Record)
         self.assertEqual(len(ds[-1].names), 25)
 
     def test_struct_errors(self):
@@ -506,16 +505,16 @@ class TestDataShapeParseTuple(unittest.TestCase):
     def test_tuple(self):
         # Simple tuple
         self.assertEqual(parse('(float32)', self.sym),
-                         T.DataShape(T.Tuple([T.DataShape(T.float32)])))
+                         ct.DataShape(ct.Tuple([ct.DataShape(ct.float32)])))
         self.assertEqual(parse('(int16, int32)', self.sym),
-                         T.DataShape(T.Tuple([T.DataShape(T.int16),
-                                              T.DataShape(T.int32)])))
+                         ct.DataShape(ct.Tuple([ct.DataShape(ct.int16),
+                                              ct.DataShape(ct.int32)])))
         # A trailing comma is ok
         self.assertEqual(parse('(float32,)', self.sym),
-                         T.DataShape(T.Tuple([T.DataShape(T.float32)])))
+                         ct.DataShape(ct.Tuple([ct.DataShape(ct.float32)])))
         self.assertEqual(parse('(int16, int32,)', self.sym),
-                         T.DataShape(T.Tuple([T.DataShape(T.int16),
-                                              T.DataShape(T.int32)])))
+                         ct.DataShape(ct.Tuple([ct.DataShape(ct.int16),
+                                              ct.DataShape(ct.int32)])))
 
 
 class TestDataShapeParseFuncProto(unittest.TestCase):
@@ -526,20 +525,20 @@ class TestDataShapeParseFuncProto(unittest.TestCase):
     def test_funcproto(self):
         # Simple funcproto
         self.assertEqual(parse('(float32) -> float64', self.sym),
-                         T.DataShape(T.Function(T.DataShape(T.float32),
-                                                T.DataShape(T.float64))))
+                         ct.DataShape(ct.Function(ct.DataShape(ct.float32),
+                                                ct.DataShape(ct.float64))))
         self.assertEqual(parse('(int16, int32) -> bool', self.sym),
-                         T.DataShape(T.Function(T.DataShape(T.int16),
-                                                T.DataShape(T.int32),
-                                                T.DataShape(T.bool_))))
+                         ct.DataShape(ct.Function(ct.DataShape(ct.int16),
+                                                ct.DataShape(ct.int32),
+                                                ct.DataShape(ct.bool_))))
         # A trailing comma is ok
         self.assertEqual(parse('(float32,) -> float64', self.sym),
-                         T.DataShape(T.Function(T.DataShape(T.float32),
-                                                T.DataShape(T.float64))))
+                         ct.DataShape(ct.Function(ct.DataShape(ct.float32),
+                                                ct.DataShape(ct.float64))))
         self.assertEqual(parse('(int16, int32,) -> bool', self.sym),
-                         T.DataShape(T.Function(T.DataShape(T.int16),
-                                                T.DataShape(T.int32),
-                                                T.DataShape(T.bool_))))
+                         ct.DataShape(ct.Function(ct.DataShape(ct.int16),
+                                                ct.DataShape(ct.int32),
+                                                ct.DataShape(ct.bool_))))
 
 if __name__ == '__main__':
     unittest.main()
