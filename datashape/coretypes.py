@@ -205,6 +205,89 @@ class StringConstant(Unit):
         return hash(self.val)
 
 
+class Date(Unit):
+    """ Date type """
+    cls = MEASURE
+
+    def __str__(self):
+        return 'date'
+
+    def __eq__(self, other):
+        return isinstance(other, Date)
+
+
+class Time(Unit):
+    """ Time type """
+    cls = MEASURE
+
+    def __init__(self, tz=None):
+        if tz is not None and not isinstance(tz, _strtypes):
+            raise ValueError('tz parameter to time datashape must be a string')
+        # TODO validate against Olson tz database
+        self.tz = tz
+        self.parameters = (tz,)
+
+    def __str__(self):
+        if self.tz is None:
+            return 'time'
+        else:
+            return 'time[tz=%r]' % self.tz
+
+    def __eq__(self, other):
+        return isinstance(other, Time) and self.tz == other.tz
+
+
+class DateTime(Unit):
+    """ DateTime type """
+    cls = MEASURE
+
+    def __init__(self, tz=None):
+        if tz is not None and not isinstance(tz, _strtypes):
+            raise ValueError('tz parameter to datetime datashape ' +
+                             'must be a string')
+        # TODO validate against Olson tz database
+        self.tz = tz
+        self.parameters = (tz,)
+
+    def __str__(self):
+        if self.tz is None:
+            return 'datetime'
+        else:
+            return 'datetime[tz=%r]' % self.tz
+
+    def __eq__(self, other):
+        return isinstance(other, DateTime) and self.tz == other.tz
+
+
+class Units(Unit):
+    """ Units type for values with physical units """
+    cls = MEASURE
+
+    def __init__(self, unit, tp=None):
+        if not isinstance(unit, _strtypes):
+            raise ValueError('unit parameter to units datashape ' +
+                             'must be a string')
+        if tp is None:
+            tp = DataShape(float64)
+        elif not isinstance(tp, DataShape):
+            raise ValueError('tp parameter to units datashape ' +
+                             'must be a datashape type')
+        self.unit = unit
+        self.tp = tp
+        self.parameters = (unit, tp)
+
+    def __str__(self):
+        if self.tp == DataShape(float64):
+            return 'units[%r]' % (self.unit)
+        else:
+            return 'units[%r, %s]' % (self.unit, self.tp)
+
+    def __eq__(self, other):
+        return (isinstance(other, Units) and
+                self.unit == other.unit and
+                self.tp == other.tp)
+
+
 class Bytes(Unit):
     """ Bytes type """
     cls = MEASURE
@@ -796,9 +879,9 @@ complex128 = complex_float64
 # complex is an alias for complex[float64]
 complex_ = complex_float64
 
-timedelta64 = CType('timedelta64', 8, ctypes.alignment(ctypes.c_int64))
-datetime64 = CType('datetime64', 8, ctypes.alignment(ctypes.c_int64))
-date = CType('date', 4, 4)
+date_ = Date()
+time_ = Time()
+datetime_ = DateTime()
 
 c_byte = int8
 c_short = int16

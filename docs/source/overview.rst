@@ -1,9 +1,7 @@
 Datashape Overview
 ==================
 
-.. highlight:: ocaml
-
-Datashape is a generalization of ``dtype`` and ``shape`` into a micro
+Datashape is a generalization of ``dtype`` and ``shape`` into a
 type system which lets us overlay high level structure on existing
 data in Table and Array objects.
 
@@ -39,17 +37,17 @@ Datashape types that are single values are called **unit** types. They
 represent a fixed type that has no internal structure. For example
 ``int32``.
 
-In Blaze there are two classes of units: **measures** and
+In Blaze there are two classes of units: **dtypes** and
 **dimensions**. Measures are units of data, while dimensions are
-units of shape. The combination of measure and dimension in datashape
-constructors uniquely describe the space of possible values or
-**dataspace** of a table or array object.
+units of shape. The combination of dtype and dimension in datashape
+constructors uniquely describe the space of possible values
+of a table or array object.
 
-Bit Types
-~~~~~~~~~
+Primitive Types
+~~~~~~~~~~~~~~~
 
-The native bit types or **CType** objects are unit types standing for
-unboxed machine types. These inherit the notation from NumPy.
+DataShape includes a variety of dtypes corresponding to C/C++
+types, similar to NumPy.
 
 .. cssclass:: table-striped
 
@@ -58,9 +56,9 @@ Bit type         Description
 ================ =========================================================
 bool             Boolean (True or False) stored as a byte
 int8             Byte (-128 to 127)
-int16            Integer (-32768 to 32767)
-int32            Integer (-2147483648 to 2147483647)
-int64            Integer (-9223372036854775808 to 9223372036854775807)
+int16            Two's Complement Integer (-32768 to 32767)
+int32            Two's Complement Integer (-2147483648 to 2147483647)
+int64            Two's Complement Integer (-9223372036854775808 to 9223372036854775807)
 uint8            Unsigned integer (0 to 255)
 uint16           Unsigned integer (0 to 65535)
 uint32           Unsigned integer (0 to 4294967295)
@@ -77,38 +75,45 @@ complex[float64] omplex number, represented by two 64-bit floats (real
                  and imaginary components)
 ================ =========================================================
 
-
-Blaze also adds a variety of bit-like types which are implemented
-a subset of specialized storage and computation backends.
+Additionally, there are types which are not fully specified at the
+bit/byte level.
 
 .. cssclass:: table-striped
 
 ==========  =========================================================
 Bit type    Description
 ==========  =========================================================
-string      Variable length UTF-8 string.
+string      Variable length Unicode string.
 bytes       Variable length arrays of bytes.
-json        Variable length UTF-8 string which contains JSON.
+json        Variable length Unicode string which contains JSON.
+date        Dates in the proleptic Gregorian calendar.
+time        Times not attached to a date.
+datetime    Points in time, combination of date and time.
+units       Associates physical units with numerical values.
 ==========  =========================================================
 
 
-Several python types are can be mapped directly on to datashape types:
+Many python types can be mapped to datashape types:
 
 .. cssclass:: table-striped
 
-===========  =========================================================
-Python type  Datashape
-===========  =========================================================
-int          int32
-bool         bool
-float        float64
-complex      complex[float64]
-str          string
-unicode      string
-bytes        bytes
-bytearray    bytes
-buffer       bytes
-===========  =========================================================
+==================  =========================================================
+Python type         Datashape
+==================  =========================================================
+int                 int32
+bool                bool
+float               float64
+complex             complex[float64]
+str                 string
+unicode             string
+datetime.date       date
+datetime.time       time
+datetime.datetime   datetime or datetime[tz='<timezone>']
+datetime.timedelta  units['microsecond', int64]
+bytes               bytes
+bytearray           bytes
+buffer              bytes
+==================  =========================================================
 
 String Types
 ~~~~~~~~~~~~
@@ -124,33 +129,18 @@ Endianness
 The datashape does not specify endianness, data types
 are in native endianness when processed by Blaze functions.
 
-Products
+Dimensions
 --------
 
-A comma between two types signifies a product type. Product types
-correspond to branching possibilities of types.
-
-The product operator ``(*)`` is used to construct product types.
-It is a type constructor of two arguments with a special infix
-sugar.
+An asterisk (*) between two types signifies an array. A datashape
+consists of 0 or more **dimensions** followed by a **dtype**.
 
 Example::
 
-    a * b
+    A * B
 
-It is also left associative, namely::
-
-    ((a * b) * c) = a * b * c
-
-The outer element a product type is referred to as a **measure**
-while the other elements of the product are referred to as
-**dimensions**.
-
-.. image:: svg/type_expand.png
-    :align: center
-
-The product operator has the additional constraint that the first
-operator cannot be a measure. This permits types of the form::
+The array operator has the additional constraint that the first
+operand cannot be a dtype. This permits types of the form::
 
     1 * int32
     1 * 1 * int32
@@ -160,9 +150,6 @@ But forbids types of the form::
     1 * 1
     int32 * 1
     int32 * int32
-
-There is a algebraic relation between product types and sum types
-(discussed below).
 
 Fixed
 ~~~~~
@@ -176,7 +163,7 @@ identical to ``shape`` parameters in NumPy. For example::
 The previous signature Is an equivalent to the shape and dtype of a
 NumPy array of the form::
 
-    ndarray(dtype('int32'), shape=(1,2))
+    np.empty(2, 'int32')
 
 A 2 by 3 matrix of integers has datashape::
 
@@ -184,56 +171,19 @@ A 2 by 3 matrix of integers has datashape::
 
 With the corresponding NumPy array::
 
-    ndarray(dtype('int32'), shape=(2,3))
-
-Constructors
-~~~~~~~~~~~~
-
-A type constructor is a parameterized type definition for specifying a
-function which produces new types given inputs.
-
-For example type constructor with no parameters has the base
-kind ``(*)``, a type constructor with two parameters has kind ``(*
--> *)``.
-
-By supplying a type constructor with one or more **concrete types**, new
-**type instances** can be constructed and added to the system. Datashape
-types that are comprised of multiple unit types are called **composite**
-types. The product operator discussed above yields composite types.
-Example::
-
-    2 * int32
-
-Datashape types with free parameters in their constructor are called
-**parameterized** types. Example::
-
-    type SquareMatrix T = N * N * T
-
-Datashape types without free parameters in their constructor are called
-**alias** types, and are similar to ``typedef`` in C. Alias types don't
-add any additional structure they just ascribe a new name. Example::
-
-    type AliasType N = N * N * int32
-
-Datashape types can be **anonymous** or labeled. Once a type is
-registered it can be used in dshape expressions just like primitive
-values and to construct even higher order types.
-
-Datashape does not permit recursive type definitions.
-
-Datashape types are split into three equivalence classes.
+    np.empty((2, 3), 'int32')
 
 Records
 ~~~~~~~
 
 Record types are ordered struct-like objects which hold a collection of
-types keyed by labels. Records are also an in the class of **measure**
-types. Records are sugard to look like Python dictionaries but
+types keyed by labels. Records are also in the class of **dtypes**.
+Records are sugared to look like Python dictionaries but
 are themselves type constructors of variable number of type arguments.
 
 Example 1::
 
-    type Person = {
+    {
         name   : string,
         age    : int,
         height : int,
@@ -242,7 +192,7 @@ Example 1::
 
 Example 2::
 
-    type RGBA = {
+    {
         r: int32,
         g: int32,
         b: int32,
@@ -254,19 +204,7 @@ but cannot be self-referential:
 
 Example 2::
 
-    type Point = {
-        x : int,
-        y : int
-    }
-
-    type Space = {
-        a: Point,
-        b: Point
-    }
-
-Or equivalently::
-
-    type Space = {
+    {
         a: { x: int, y: int };
         b: { x: int, y: int }
     }
@@ -275,13 +213,13 @@ Composite datashapes that terminate in record types are called
 **table-like**, while any other terminating type is called
 **array-like**.
 
-Example of array-like::
-
-    type ArrayLike = 2 * 3 * int32
-
 Example of table-like::
 
-    type TableLike = { x : int, y : float }
+    3 * { x : int, y : float }
+
+Example of array-like::
+
+    2 * 3 * int32
 
 
 Type Variables
@@ -309,47 +247,9 @@ Sums
 ----
 
 A **sum type** is a type representing a collection of heterogeneously
-typed values. There are four instances of sum types in Blaze's type
-system:
+typed values.
 
-* :ref:`variant`
-* :ref:`union`
 * :ref:`option`
-* :ref:`range`
-
-.. _variant:
-
-Variant
-~~~~~~~
-
-A **variant** type is a sum type with two tagged parameters ``left`` and
-``right`` which represent two possible types. We use the keyword
-``Either`` to represent the type operator. Examples::
-
-    Either(float, char)
-    Either(int32, float)
-    Either({x: int}, {y: float})
-
-..
-    1 + B + C ...
-
-.. _union:
-
-Union
-~~~~~
-
-A **union** or **untagged union** is a variant type permitting a
-variable number of variants. Unions behave like unions in C and permit a
-variable number of heterogeneous typed values::
-
-    Union(int8, string)
-
-::
-
-    Union(int8, int16, int32, int64)
-
-..
-    A + B + C ...
 
 .. _option:
 
@@ -363,22 +263,17 @@ reference.
 
 For example a optional int field::
 
-    Option(int32)
+    option[int32]
 
-Indicates the presense or absense of a integer. For example a (``5,
-Option int32``) array could be model the Python data structure:
+Indicates the presense or absense of a integer. For example a
+(``5 * option[int32]``) array could be model the Python data structure:
 
 ::
 
-    [1, 2, 3, na, na, 4]
+    [1, 2, 3, None, None, 4]
 
-Option types are only defined for type arguments of unit measures and
-Records.
-
-..
-    1 + A
-
-.. _range:
+Option types are only defined for type arguments of unit dtypes and
+records.
 
 FAQ
 ---

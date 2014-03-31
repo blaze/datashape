@@ -8,39 +8,39 @@ __all__ = ['TypeSymbolTable', 'sym']
 
 import ctypes
 
-from . import coretypes as T
+from . import coretypes as ct
 
 _is_64bit = (ctypes.sizeof(ctypes.c_void_p) == 8)
 
 def _complex(tp):
     """Simple temporary type constructor for complex"""
-    if tp == T.DataShape(T.float32):
-        return T.complex_float32
-    elif tp == T.DataShape(T.float64):
-        return T.complex_float64
+    if tp == ct.DataShape(ct.float32):
+        return ct.complex_float32
+    elif tp == ct.DataShape(ct.float64):
+        return ct.complex_float64
     else:
         raise TypeError('Cannot contruct a complex type with real component %s' % tp)
 
 def _struct(names, dshapes):
     """Simple temporary type constructor for struct"""
-    return T.Record(list(zip(names, dshapes)))
+    return ct.Record(list(zip(names, dshapes)))
 
 def _funcproto(args, ret):
     """Simple temporary type constructor for funcproto"""
-    return T.Function(*(args + [ret]))
+    return ct.Function(*(args + [ret]))
 
 def _typevar_dim(name):
     """Simple temporary type constructor for typevar as a dim"""
     # Note: Presently no difference between dim and dtype typevar
-    return T.TypeVar(name)
+    return ct.TypeVar(name)
 
 def _typevar_dtype(name):
     """Simple temporary type constructor for typevar as a dtype"""
     # Note: Presently no difference between dim and dtype typevar
-    return T.TypeVar(name)
+    return ct.TypeVar(name)
 
 def _ellipsis(name):
-    return T.Ellipsis(T.TypeVar(name))
+    return ct.Ellipsis(ct.TypeVar(name))
 
 class TypeSymbolTable(object):
     """
@@ -74,40 +74,45 @@ class TypeSymbolTable(object):
         Adds all the default datashape types to the symbol table.
         """
         # data types with no type constructor
-        self.dtype.update([('bool', T.bool_),
-                           ('int8', T.int8),
-                           ('int16', T.int16),
-                           ('int32', T.int32),
-                           ('int64', T.int64),
-                           ('intptr', T.int64 if _is_64bit else T.int32),
-                           ('int', T.int32),
-                           ('uint8', T.uint8),
-                           ('uint16', T.uint16),
-                           ('uint32', T.uint32),
-                           ('uint64', T.uint64),
-                           ('uintptr', T.uint64 if _is_64bit else T.uint32),
-                           ('float32', T.float32),
-                           ('float64', T.float64),
-                           ('complex64', T.complex64),
-                           ('complex128', T.complex128),
-                           ('real', T.float64),
-                           ('complex', T.complex_float64),
-                           ('string', T.string),
-                           ('json', T.json),
-                           ('date', T.date)])
+        self.dtype.update([('bool', ct.bool_),
+                           ('int8', ct.int8),
+                           ('int16', ct.int16),
+                           ('int32', ct.int32),
+                           ('int64', ct.int64),
+                           ('intptr', ct.int64 if _is_64bit else ct.int32),
+                           ('int', ct.int32),
+                           ('uint8', ct.uint8),
+                           ('uint16', ct.uint16),
+                           ('uint32', ct.uint32),
+                           ('uint64', ct.uint64),
+                           ('uintptr', ct.uint64 if _is_64bit else ct.uint32),
+                           ('float32', ct.float32),
+                           ('float64', ct.float64),
+                           ('complex64', ct.complex64),
+                           ('complex128', ct.complex128),
+                           ('real', ct.float64),
+                           ('complex', ct.complex_float64),
+                           ('string', ct.string),
+                           ('json', ct.json),
+                           ('date', ct.date_),
+                           ('time', ct.time_),
+                           ('datetime', ct.datetime_)])
         # data types with a type constructor
         self.dtype_constr.update([('complex', _complex),
-                                  ('string', T.String),
+                                  ('string', ct.String),
                                   ('struct', _struct),
-                                  ('tuple', T.Tuple),
+                                  ('tuple', ct.Tuple),
                                   ('funcproto', _funcproto),
                                   ('typevar', _typevar_dtype),
-                                  ('option', T.Option)])
+                                  ('option', ct.Option),
+                                  ('time', ct.Time),
+                                  ('datetime', ct.DateTime),
+                                  ('units', ct.Units)])
         # dim types with no type constructor
-        self.dim.update([('var', T.Var()),
-                         ('ellipsis', T.Ellipsis())])
+        self.dim.update([('var', ct.Var()),
+                         ('ellipsis', ct.Ellipsis())])
         # dim types with a type constructor
-        self.dim_constr.update([('fixed', T.Fixed),
+        self.dim_constr.update([('fixed', ct.Fixed),
                                 ('typevar', _typevar_dim),
                                 ('ellipsis', _ellipsis)])
 
