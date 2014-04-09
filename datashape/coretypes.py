@@ -779,10 +779,7 @@ class Record(Mono):
         return self.__fdict[key]
 
     def __eq__(self, other):
-        if isinstance(other, Record):
-            return self.__fdict == other.__fdict
-        else:
-            return False
+        return isinstance(other, Record) and self.__fields == other.__fields
 
     def __hash__(self):
         return hash(self.__fields)
