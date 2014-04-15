@@ -50,6 +50,8 @@ def dshape(o):
         ds = coretypes.DataShape(o)
     elif isinstance(o, coretypes.Mono):
         ds = o
+    elif isinstance(o, (list, tuple)):
+        ds = coretypes.DataShape(*o)
     else:
         raise TypeError('Cannot create dshape from object of type %s' % type(o))
     validate(ds)

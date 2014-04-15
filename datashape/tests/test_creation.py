@@ -139,5 +139,16 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(3 * datashape.int32,
                          dshape('3 * int32'))
 
+    def test_python_containers(self):
+        var = datashape.Var()
+        int32 = datashape.int32
+        self.assertEqual(dshape('3 * int32'),
+                         dshape((3, int32)))
+        self.assertEqual(dshape('3 * int32'),
+                         dshape([3, int32]))
+        self.assertEqual(dshape('var * 3 * int32'),
+                         dshape((var, 3, int32)))
+
+
 if __name__ == '__main__':
     unittest.main()
