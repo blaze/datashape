@@ -4,20 +4,26 @@ from .util import dshape
 import sys
 from datetime import date, time, datetime
 
+
 __all__ = ['validate', 'issubschema']
+
 
 basetypes = np.generic, int, float, str, date, time, datetime
 
+
 def isdimension(unit):
     return isinstance(unit, (Fixed, Var))
+
 
 @dispatch(np.dtype, basetypes)
 def validate(schema, value):
     return np.issubdtype(type(value), schema)
 
+
 @dispatch(CType, basetypes)
 def validate(schema, value):
     return validate(to_numpy_dtype(schema), value)
+
 
 @dispatch(DataShape, (tuple, list))
 def validate(schema, value):
@@ -27,61 +33,73 @@ def validate(schema, value):
        and (isinstance(head, Var) or int(head) == len(value))
        and all(validate(DataShape(*schema[1:]), item) for item in value)))
 
+
 @dispatch(DataShape, object)
 def validate(schema, value):
     if len(schema) == 1:
         return validate(schema[0], value)
 
+
 @dispatch(Record, dict)
 def validate(schema, d):
     return all(validate(sch, d.get(k)) for k, sch in schema.parameters[0])
 
+
 @dispatch(String, str)
 def validate(schema, value):
     return True
+
 
 @dispatch(Record, (tuple, list))
 def validate(schema, seq):
     return all(validate(sch, item) for (k, sch), item
                                     in zip(schema.parameters[0], seq))
 
+
 @dispatch(str, object)
 def validate(schema, value):
     return validate(dshape(schema), value)
+
 
 @dispatch(type, object)
 def validate(schema, value):
     return isinstance(value, schema)
 
+
 @dispatch(tuple, object)
 def validate(schemas, value):
     return any(validate(schema, value) for schema in schemas)
+
 
 @dispatch(object, object)
 def validate(schema, value):
     return False
 
+
 @dispatch(Time, time)
 def validate(schema, value):
     return True
+
 
 @dispatch(Date, date)
 def validate(schema, value):
     return True
 
+
 @dispatch(DateTime, datetime)
 def validate(schema, value):
     return True
+
 
 @dispatch(DataShape, np.ndarray)
 def validate(schema, value):
     return issubschema(from_numpy(value.shape, value.dtype), schema)
 
 
-
 @dispatch(object, object)
 def issubschema(a, b):
     return issubschema(dshape(a), dshape(b))
+
 
 @dispatch(DataShape, DataShape)
 def issubschema(a, b):
@@ -90,4 +108,4 @@ def issubschema(a, b):
     # TODO, handle cases like float < real
     # TODO, handle records {x: int, y: int, z: int} < {x: int, y: int}
 
-
+    return None  # We don't know, return something falsey
