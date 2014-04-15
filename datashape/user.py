@@ -29,7 +29,6 @@ def validate(schema, value):
 
 @dispatch(DataShape, object)
 def validate(schema, value):
-    print(schema, value)
     if len(schema) == 1:
         return validate(schema[0], value)
 
@@ -39,13 +38,11 @@ def validate(schema, d):
 
 @dispatch(Record, (tuple, list))
 def validate(schema, seq):
-    print(schema, seq)
     return all(validate(sch, item) for (k, sch), item
                                     in zip(schema.parameters[0], seq))
 
 @dispatch(str, object)
 def validate(schema, value):
-    print(schema, value)
     return validate(dshape(schema), value)
 
 @dispatch(type, object)
