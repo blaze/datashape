@@ -125,5 +125,13 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(shape, ())
         self.assertEqual(dt, np.dtype([('x', 'int32'), ('y', 'float32')]))
 
+    def test_syntax(self):
+        self.assertEqual(datashape.Fixed(3) * dshape('int32'),
+                         dshape('3 * int32'))
+        self.assertEqual(3 * dshape('int32'),
+                         dshape('3 * int32'))
+        self.assertEqual(datashape.Var() * dshape('int32'),
+                         dshape('var * int32'))
+
 if __name__ == '__main__':
     unittest.main()

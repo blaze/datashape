@@ -499,6 +499,12 @@ class DataShape(Mono):
         else:
             return DataShape(*self.parameters[leading:])
 
+    def __rmul__(self, other):
+        if isinstance(other, _inttypes):
+            other = Fixed(other)
+        return DataShape(other, *self)
+
+
 
 class Option(Mono):
     """
