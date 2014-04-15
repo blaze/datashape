@@ -27,15 +27,15 @@ def validate(ds):
         dshape("10 * int32")
         >>> dshape('... * int32')
         dshape("... * int32")
-        >>> dshape('... * ... * int32')
+        >>> dshape('... * ... * int32') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         DataShapeError: Can only use a single wildcard
-        >>> dshape('T * ... * X * ... * X')
+        >>> dshape('T * ... * X * ... * X') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         DataShapeError: Can only use a single wildcard
-        >>> dshape('T * ...')
+        >>> dshape('T * ...') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         DataShapeSyntaxError: Expected a dtype
