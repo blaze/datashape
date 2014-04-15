@@ -56,7 +56,15 @@ class TypeSet(Unit):
 
 
 def matches_typeset(types, signature):
-    """Match argument types to the parameter types of a signature"""
+    """Match argument types to the parameter types of a signature
+
+    >>> matches_typeset(int32, integral)
+    True
+    >>> matches_typeset(float32, integral)
+    False
+    >>> matches_typeset(integral, real)
+    True
+    """
     match = True
     for a, b in zip(types, signature):
         check = isinstance(b, TypeSet)
