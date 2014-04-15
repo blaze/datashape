@@ -11,6 +11,7 @@ from . import type_symbol_table
 from .error import UnificationError
 from .validation import validate
 from . import coretypes
+from itertools import chain
 
 
 __all__ = ['dshape', 'dshapes', 'has_var_dim', 'has_ellipsis',
@@ -88,6 +89,31 @@ def cat_dshapes(dslist):
                               ' the first dimension (%s vs %s)') %
                               (inner_ds, ds[1:]))
     return coretypes.DataShape(*[coretypes.Fixed(outer_dim_size)] + list(inner_ds))
+
+
+def collect(pred, expr):
+    """ Collect terms in expression that match predicate
+
+    >>> from datashape import Unit, dshape
+    >>> sorted(set(collect(lambda term: isinstance(term, Unit),
+    ...                    dshape('var * {value: int64, loc: 2 * int32}'))))
+    [Fixed(2), ctype("int32"), ctype("int64"), Var()]
+    """
+
+    if pred(expr):
+        yield expr
+    if isinstance(expr, coretypes.Record):
+        for x in chain.from_iterable(collect(pred, typ)
+                                     for typ in expr.types):
+            yield x
+    if isinstance(expr, coretypes.Mono):
+        for x in chain.from_iterable(collect(pred, typ)
+                                     for typ in expr.parameters):
+            yield x
+    if isinstance(expr, (list, tuple)):
+        for x in chain.from_iterable(collect(pred, item)
+                                     for item in expr):
+            yield x
 
 
 def has_var_dim(ds):
