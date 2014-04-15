@@ -4,6 +4,8 @@ from .util import dshape
 import sys
 from datetime import date, time, datetime
 
+__all__ = ['validate', 'issubschema']
+
 basetypes = np.generic, int, float, str, date, time, datetime
 
 def isdimension(unit):

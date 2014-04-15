@@ -4,6 +4,7 @@ from . import lexer, parser
 from . import type_equation_solver
 from .coretypes import *
 from .typesets import *
+from .user import *
 from .type_symbol_table import *
 from .overload_resolver import *
 from .util import *
