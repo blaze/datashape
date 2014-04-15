@@ -65,6 +65,8 @@ def matches_typeset(types, signature):
     >>> matches_typeset(integral, real)
     True
     """
+    if types in signature:
+        return True
     match = True
     for a, b in zip(types, signature):
         check = isinstance(b, TypeSet)
