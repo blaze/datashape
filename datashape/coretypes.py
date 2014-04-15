@@ -96,6 +96,26 @@ class Mono(object):
         else:
             return self
 
+    def __mul__(self, other):
+        if isinstance(other, basestring):
+            import datashape
+            return datashape.dshape(other).__rmul__(self)
+        if isinstance(other, _inttypes):
+            other = Fixed(other)
+        if isinstance(other, DataShape):
+            return other.__rmul__(self)
+
+        return DataShape(self, other)
+
+    def __rmul__(self, other):
+        if isinstance(other, basestring):
+            import datashape
+            return self * datashape.dshape(other)
+        if isinstance(other, _inttypes):
+            other = Fixed(other)
+
+        return DataShape(other, self)
+
 
 class Unit(Mono):
     """
