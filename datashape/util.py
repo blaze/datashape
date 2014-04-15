@@ -37,6 +37,9 @@ def dshape(o):
     Parse a blaze type. For a thorough description see
     http://blaze.pydata.org/docs/datashape.html
 
+    >>> ds = dshape('2 * int32')
+    >>> ds[1]
+    ctype("int32")
     """
     if isinstance(o, py2help._strtypes):
         ds = parser.parse(o, type_symbol_table.sym)
@@ -64,6 +67,9 @@ def cat_dshapes(dslist):
     size for all data shapes.
     TODO: Relax this restriction to support
           streaming dimensions.
+
+    >>> cat_dshapes(dshapes('10 * int32', '5 * int32'))
+    dshape("15 * int32")
     """
     if len(dslist) == 0:
         raise ValueError('Cannot concatenate an empty list of dshapes')
@@ -86,6 +92,11 @@ def has_var_dim(ds):
     """Returns True if datashape has a variable dimension
 
     Note currently treats variable length string as scalars.
+
+    >>> has_var_dim(dshape('2 * int32'))
+    False
+    >>> has_var_dim(dshape('var * 2 * int32'))
+    True
     """
     test = []
     if isinstance(ds, (coretypes.Ellipsis, coretypes.Var)):
@@ -102,22 +113,27 @@ def has_var_dim(ds):
     return False
 
 
+def has(typ, ds):
+    if isinstance(ds, typ):
+        return True
+    if isinstance(ds, coretypes.Record):
+        return any(has(typ, t) for t in ds.types)
+    if isinstance(ds, coretypes.Mono):
+        return any(has(typ, p) for p in ds.parameters)
+    if isinstance(ds, (list, tuple)):
+        return any(has(typ, item) for item in ds)
+    return False
+
+
 def has_ellipsis(ds):
     """Returns True if the datashape has an ellipsis
+
+    >>> has_ellipsis(dshape('2 * int'))
+    False
+    >>> has_ellipsis(dshape('... * int'))
+    True
     """
-    test = []
-    if isinstance(ds, coretypes.Ellipsis):
-        return True
-    elif isinstance(ds, coretypes.Record):
-        test = ds.types
-    elif isinstance(ds, coretypes.Mono):
-        test = ds.parameters
-    elif isinstance(ds, (list, tuple)):
-        test = ds
-    for ds_t in test:
-        if has_ellipsis(ds_t):
-            return True
-    return False
+    return has(coretypes.Ellipsis, ds)
 
 
 #------------------------------------------------------------------------
