@@ -1,4 +1,4 @@
-from multipledispatch import dispatch
+from datashape.dispatch import dispatch
 from .coretypes import *
 from .util import dshape
 import sys
@@ -35,6 +35,10 @@ def validate(schema, value):
 @dispatch(Record, dict)
 def validate(schema, d):
     return all(validate(sch, d.get(k)) for k, sch in schema.parameters[0])
+
+@dispatch(String, str)
+def validate(schema, value):
+    return True
 
 @dispatch(Record, (tuple, list))
 def validate(schema, seq):

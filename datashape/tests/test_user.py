@@ -1,10 +1,13 @@
-from datashape.operations import *
+from datashape.user import *
 from datashape import dshape
 from datetime import date, time, datetime
+import numpy as np
 
 def test_validate():
     assert validate(int, 1)
     assert validate('int', 1)
+    assert validate(str, 'Alice')
+    assert validate(dshape('string'), 'Alice')
     assert validate(dshape('int'), 1)
     assert validate(dshape('int')[0], 1)
     assert validate('real', 2.0)
@@ -50,3 +53,7 @@ def test_issubschema():
     assert not issubschema('2 * int', '3 * int')
 
     # assert issubschema('float32', 'real')
+
+def test_integration():
+    assert validate('{name: string, arrived: date}',
+                    {'name': 'Alice', 'arrived': date(2012, 01, 05)})
