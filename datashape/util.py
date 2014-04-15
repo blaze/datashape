@@ -228,6 +228,7 @@ typedict = {ctypes.c_int8:   coretypes.int8,
             ctypes.c_float:  coretypes.float32,
             ctypes.c_double: coretypes.float64}
 
+
 def reverse_dict(d):
     """
 
@@ -241,6 +242,10 @@ def reverse_dict(d):
         new[v] = k
     return new
 
+
+revtypedict = reverse_dict(typedict)
+
+
 def to_ctypes(dshape):
     """
     Constructs a ctypes type from a datashape
@@ -249,7 +254,7 @@ def to_ctypes(dshape):
     <class 'ctypes.c_int'>
     """
     if len(dshape) == 1:
-        ctype = reverse_dict(typedict).get(dshape)
+        ctype = revtypedict.get(dshape)
         if ctype:
             return ctype
         if dshape == coretypes.complex_float32:
