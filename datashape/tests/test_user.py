@@ -56,4 +56,4 @@ def test_issubschema():
 
 def test_integration():
     assert validate('{name: string, arrived: date}',
-                    {'name': 'Alice', 'arrived': date(2012, 01, 05)})
+                    {'name': 'Alice', 'arrived': date(2012, 1, 5)})
