@@ -64,6 +64,15 @@ def broadcast_dims(dim1, dim2):
 
 
 def promote_dtypes(dt1, dt2):
+    """
+
+    >>> from datashape.coretypes import int32, int64, float32
+    >>> promote_dtypes(int32, int64)
+    ctype("int64")
+
+    >>> promote_dtypes(int64, float32)
+    ctype("float64")
+    """
     if dt1 == dt2:
         return dt1
     elif isinstance(dt1, CType) and isinstance(dt2, CType):

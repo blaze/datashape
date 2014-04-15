@@ -42,6 +42,56 @@ def _typevar_dtype(name):
 def _ellipsis(name):
     return ct.Ellipsis(ct.TypeVar(name))
 
+# data types with no type constructor
+no_constructor_types = \
+    [('bool', ct.bool_),
+     ('int8', ct.int8),
+     ('int16', ct.int16),
+     ('int32', ct.int32),
+     ('int64', ct.int64),
+     ('intptr', ct.int64 if _is_64bit else ct.int32),
+     ('int', ct.int32),
+     ('uint8', ct.uint8),
+     ('uint16', ct.uint16),
+     ('uint32', ct.uint32),
+     ('uint64', ct.uint64),
+     ('uintptr', ct.uint64 if _is_64bit else ct.uint32),
+     ('float32', ct.float32),
+     ('float64', ct.float64),
+     ('complex64', ct.complex64),
+     ('complex128', ct.complex128),
+     ('real', ct.float64),
+     ('complex', ct.complex_float64),
+     ('string', ct.string),
+     ('json', ct.json),
+     ('date', ct.date_),
+     ('time', ct.time_),
+     ('datetime', ct.datetime_)]
+
+# data types with a type constructor
+constructor_types = \
+    [('complex', _complex),
+     ('string', ct.String),
+     ('struct', _struct),
+     ('tuple', ct.Tuple),
+     ('funcproto', _funcproto),
+     ('typevar', _typevar_dtype),
+     ('option', ct.Option),
+     ('time', ct.Time),
+     ('datetime', ct.DateTime),
+     ('units', ct.Units)]
+
+# dim types with no type constructor
+dim_no_constructor = \
+    [('var', ct.Var()),
+     ('ellipsis', ct.Ellipsis())]
+
+# dim types with a type constructor
+dim_constructor = \
+    [('fixed', ct.Fixed),
+     ('typevar', _typevar_dim),
+     ('ellipsis', _ellipsis)]
+
 class TypeSymbolTable(object):
     """
     This is a class which holds symbols for types and type constructors,
@@ -73,48 +123,10 @@ class TypeSymbolTable(object):
         """
         Adds all the default datashape types to the symbol table.
         """
-        # data types with no type constructor
-        self.dtype.update([('bool', ct.bool_),
-                           ('int8', ct.int8),
-                           ('int16', ct.int16),
-                           ('int32', ct.int32),
-                           ('int64', ct.int64),
-                           ('intptr', ct.int64 if _is_64bit else ct.int32),
-                           ('int', ct.int32),
-                           ('uint8', ct.uint8),
-                           ('uint16', ct.uint16),
-                           ('uint32', ct.uint32),
-                           ('uint64', ct.uint64),
-                           ('uintptr', ct.uint64 if _is_64bit else ct.uint32),
-                           ('float32', ct.float32),
-                           ('float64', ct.float64),
-                           ('complex64', ct.complex64),
-                           ('complex128', ct.complex128),
-                           ('real', ct.float64),
-                           ('complex', ct.complex_float64),
-                           ('string', ct.string),
-                           ('json', ct.json),
-                           ('date', ct.date_),
-                           ('time', ct.time_),
-                           ('datetime', ct.datetime_)])
-        # data types with a type constructor
-        self.dtype_constr.update([('complex', _complex),
-                                  ('string', ct.String),
-                                  ('struct', _struct),
-                                  ('tuple', ct.Tuple),
-                                  ('funcproto', _funcproto),
-                                  ('typevar', _typevar_dtype),
-                                  ('option', ct.Option),
-                                  ('time', ct.Time),
-                                  ('datetime', ct.DateTime),
-                                  ('units', ct.Units)])
-        # dim types with no type constructor
-        self.dim.update([('var', ct.Var()),
-                         ('ellipsis', ct.Ellipsis())])
-        # dim types with a type constructor
-        self.dim_constr.update([('fixed', ct.Fixed),
-                                ('typevar', _typevar_dim),
-                                ('ellipsis', _ellipsis)])
+        self.dtype.update(no_constructor_types)
+        self.dtype_constr.update(constructor_types)
+        self.dim.update(dim_no_constructor)
+        self.dim_constr.update(dim_constructor)
 
 # Create the default global type symbol table
 sym = TypeSymbolTable()

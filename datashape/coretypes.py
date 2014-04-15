@@ -96,6 +96,26 @@ class Mono(object):
         else:
             return self
 
+    def __mul__(self, other):
+        if isinstance(other, _strtypes):
+            import datashape
+            return datashape.dshape(other).__rmul__(self)
+        if isinstance(other, _inttypes):
+            other = Fixed(other)
+        if isinstance(other, DataShape):
+            return other.__rmul__(self)
+
+        return DataShape(self, other)
+
+    def __rmul__(self, other):
+        if isinstance(other, _strtypes):
+            import datashape
+            return self * datashape.dshape(other)
+        if isinstance(other, _inttypes):
+            other = Fixed(other)
+
+        return DataShape(other, self)
+
 
 class Unit(Mono):
     """
@@ -484,6 +504,12 @@ class DataShape(Mono):
     def subarray(self, leading):
         """Returns a data shape object of the subarray with 'leading'
         dimensions removed.
+
+        >>> from datashape import dshape
+        >>> dshape('1 * 2 * 3 * int32').subarray(1)
+        dshape("2 * 3 * int32")
+        >>> dshape('1 * 2 * 3 * int32').subarray(2)
+        dshape("3 * int32")
         """
         if leading >= len(self.parameters):
             raise IndexError(('Not enough dimensions in data shape '
@@ -492,6 +518,12 @@ class DataShape(Mono):
             return self.parameters[-1]
         else:
             return DataShape(*self.parameters[leading:])
+
+    def __rmul__(self, other):
+        if isinstance(other, _inttypes):
+            other = Fixed(other)
+        return DataShape(other, *self)
+
 
 
 class Option(Mono):

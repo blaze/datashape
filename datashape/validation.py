@@ -20,25 +20,25 @@ def traverse(f, t):
 
 def validate(ds):
     """
-    Validate a Blaze type to see whether it is well-formed.
+    Validate a datashape to see whether it is well-formed.
 
-        >>> import blaze
-        >>> blaze.dshape('10, int32')
-        dshape("10, int32")
-        >>> blaze.dshape('..., int32')
-        dshape("..., int32")
-        >>> blaze.dshape('..., ..., int32')
+        >>> from datashape import dshape
+        >>> dshape('10 * int32')
+        dshape("10 * int32")
+        >>> dshape('... * int32')
+        dshape("... * int32")
+        >>> dshape('... * ... * int32') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         DataShapeError: Can only use a single wildcard
-        >>> blaze.dshape('T, ..., T2, ..., int32 -> T, X')
+        >>> dshape('T * ... * X * ... * X') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         DataShapeError: Can only use a single wildcard
-        >>> blaze.dshape('T, ...')
+        >>> dshape('T * ...') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
-        DataShapeError: Measure may not be an Ellipsis (...)
+        DataShapeSyntaxError: Expected a dtype
     """
     traverse(_validate, ds)
 

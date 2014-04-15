@@ -37,6 +37,9 @@ def dshape(o):
     Parse a blaze type. For a thorough description see
     http://blaze.pydata.org/docs/datashape.html
 
+    >>> ds = dshape('2 * int32')
+    >>> ds[1]
+    ctype("int32")
     """
     if isinstance(o, py2help._strtypes):
         ds = parser.parse(o, type_symbol_table.sym)
@@ -47,6 +50,8 @@ def dshape(o):
         ds = coretypes.DataShape(o)
     elif isinstance(o, coretypes.Mono):
         ds = o
+    elif isinstance(o, (list, tuple)):
+        ds = coretypes.DataShape(*o)
     else:
         raise TypeError('Cannot create dshape from object of type %s' % type(o))
     validate(ds)
@@ -64,6 +69,9 @@ def cat_dshapes(dslist):
     size for all data shapes.
     TODO: Relax this restriction to support
           streaming dimensions.
+
+    >>> cat_dshapes(dshapes('10 * int32', '5 * int32'))
+    dshape("15 * int32")
     """
     if len(dslist) == 0:
         raise ValueError('Cannot concatenate an empty list of dshapes')
@@ -86,6 +94,11 @@ def has_var_dim(ds):
     """Returns True if datashape has a variable dimension
 
     Note currently treats variable length string as scalars.
+
+    >>> has_var_dim(dshape('2 * int32'))
+    False
+    >>> has_var_dim(dshape('var * 2 * int32'))
+    True
     """
     test = []
     if isinstance(ds, (coretypes.Ellipsis, coretypes.Var)):
@@ -102,22 +115,27 @@ def has_var_dim(ds):
     return False
 
 
+def has(typ, ds):
+    if isinstance(ds, typ):
+        return True
+    if isinstance(ds, coretypes.Record):
+        return any(has(typ, t) for t in ds.types)
+    if isinstance(ds, coretypes.Mono):
+        return any(has(typ, p) for p in ds.parameters)
+    if isinstance(ds, (list, tuple)):
+        return any(has(typ, item) for item in ds)
+    return False
+
+
 def has_ellipsis(ds):
     """Returns True if the datashape has an ellipsis
+
+    >>> has_ellipsis(dshape('2 * int'))
+    False
+    >>> has_ellipsis(dshape('... * int'))
+    True
     """
-    test = []
-    if isinstance(ds, coretypes.Ellipsis):
-        return True
-    elif isinstance(ds, coretypes.Record):
-        test = ds.types
-    elif isinstance(ds, coretypes.Mono):
-        test = ds.parameters
-    elif isinstance(ds, (list, tuple)):
-        test = ds
-    for ds_t in test:
-        if has_ellipsis(ds_t):
-            return True
-    return False
+    return has(coretypes.Ellipsis, ds)
 
 
 #------------------------------------------------------------------------
@@ -199,32 +217,47 @@ def from_cffi(ffi, ctype):
         ctype = ctype.item
     return _from_cffi_internal(ffi, ctype)
 
+typedict = {ctypes.c_int8:   coretypes.int8,
+            ctypes.c_int16:  coretypes.int16,
+            ctypes.c_int32:  coretypes.int32,
+            ctypes.c_int64:  coretypes.int64,
+            ctypes.c_uint8:  coretypes.uint8,
+            ctypes.c_uint16: coretypes.uint16,
+            ctypes.c_uint32: coretypes.uint32,
+            ctypes.c_uint64: coretypes.uint64,
+            ctypes.c_float:  coretypes.float32,
+            ctypes.c_double: coretypes.float64}
+
+
+def reverse_dict(d):
+    """
+
+    >>> reverse_dict({1: 'one', 2: 'two'}) # doctest: +SKIP
+    {'one': 1, 'two': 2}
+    """
+    new = dict()
+    for k, v in d.items():
+        if v in d:
+            raise ValueError("Repated values")
+        new[v] = k
+    return new
+
+
+revtypedict = reverse_dict(typedict)
+
+
 def to_ctypes(dshape):
     """
     Constructs a ctypes type from a datashape
+
+    >>> to_ctypes(coretypes.int32)
+    <class 'ctypes.c_int'>
     """
     if len(dshape) == 1:
-        if dshape == coretypes.int8:
-            return ctypes.c_int8
-        elif dshape == coretypes.int16:
-            return ctypes.c_int16
-        elif dshape == coretypes.int32:
-            return ctypes.c_int32
-        elif dshape == coretypes.int64:
-            return ctypes.c_int64
-        elif dshape == coretypes.uint8:
-            return ctypes.c_uint8
-        elif dshape == coretypes.uint16:
-            return ctypes.c_uint16
-        elif dshape == coretypes.uint32:
-            return ctypes.c_uint32
-        elif dshape == coretypes.uint64:
-            return ctypes.c_uint64
-        elif dshape == coretypes.float32:
-            return ctypes.c_float
-        elif dshape == coretypes.float64:
-            return ctypes.c_double
-        elif dshape == coretypes.complex_float32:
+        ctype = revtypedict.get(dshape)
+        if ctype:
+            return ctype
+        if dshape == coretypes.complex_float32:
             class Complex64(ctypes.Structure):
                 _fields_ = [('real', ctypes.c_float),
                             ('imag', ctypes.c_float)]
@@ -252,11 +285,13 @@ def to_ctypes(dshape):
             num = int(dshape[0])
         return num*to_ctypes(dshape.subarray(1))
 
-
 # FIXME: Add a field
 def from_ctypes(ctype):
     """
     Constructs a blaze dshape from a ctypes type.
+
+    >>> from_ctypes(ctypes.c_int)
+    ctype("int32")
     """
     if issubclass(ctype, ctypes.Structure):
         fields = []
@@ -276,26 +311,11 @@ def from_ctypes(ctype):
             ctype = ctype._type_
         dstup.append(from_ctypes(ctype))
         return coretypes.DataShape(*dstup)
-    elif ctype == ctypes.c_int8:
-        return coretypes.int8
-    elif ctype == ctypes.c_int16:
-        return coretypes.int16
-    elif ctype == ctypes.c_int32:
-        return coretypes.int32
-    elif ctype == ctypes.c_int64:
-        return coretypes.int64
-    elif ctype == ctypes.c_uint8:
-        return coretypes.uint8
-    elif ctype == ctypes.c_uint16:
-        return coretypes.uint16
-    elif ctype == ctypes.c_uint32:
-        return coretypes.uint32
-    elif ctype == ctypes.c_uint64:
-        return coretypes.uint64
-    elif ctype == ctypes.c_float:
-        return coretypes.float32
-    elif ctype == ctypes.c_double:
-        return coretypes.float64
+
+    coretype = typedict.get(ctype)
+
+    if coretype:
+        return coretype
     else:
         raise TypeError('Cannot convert ctypes %r into '
                         'a blaze datashape' % ctype)
