@@ -97,7 +97,7 @@ class Mono(object):
             return self
 
     def __mul__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, _strtypes):
             import datashape
             return datashape.dshape(other).__rmul__(self)
         if isinstance(other, _inttypes):
@@ -108,7 +108,7 @@ class Mono(object):
         return DataShape(self, other)
 
     def __rmul__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, _strtypes):
             import datashape
             return self * datashape.dshape(other)
         if isinstance(other, _inttypes):
