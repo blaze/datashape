@@ -242,6 +242,9 @@ def reverse_dict(d):
 def to_ctypes(dshape):
     """
     Constructs a ctypes type from a datashape
+
+    >>> to_ctypes(coretypes.int32)
+    <class 'ctypes.c_int'>
     """
     if len(dshape) == 1:
         ctype = reverse_dict(typedict).get(dshape)
@@ -279,6 +282,9 @@ def to_ctypes(dshape):
 def from_ctypes(ctype):
     """
     Constructs a blaze dshape from a ctypes type.
+
+    >>> from_ctypes(ctypes.c_int)
+    ctype("int32")
     """
     if issubclass(ctype, ctypes.Structure):
         fields = []
@@ -299,7 +305,7 @@ def from_ctypes(ctype):
         dstup.append(from_ctypes(ctype))
         return coretypes.DataShape(*dstup)
 
-    coretype = typesdict.get(ctype)
+    coretype = typedict.get(ctype)
 
     if coretype:
         return coretype
