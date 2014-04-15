@@ -215,32 +215,39 @@ def from_cffi(ffi, ctype):
         ctype = ctype.item
     return _from_cffi_internal(ffi, ctype)
 
+typedict = {ctypes.c_int8:   coretypes.int8,
+            ctypes.c_int16:  coretypes.int16,
+            ctypes.c_int32:  coretypes.int32,
+            ctypes.c_int64:  coretypes.int64,
+            ctypes.c_uint8:  coretypes.uint8,
+            ctypes.c_uint16: coretypes.uint16,
+            ctypes.c_uint32: coretypes.uint32,
+            ctypes.c_uint64: coretypes.uint64,
+            ctypes.c_float:  coretypes.float32,
+            ctypes.c_double: coretypes.float64}
+
+def reverse_dict(d):
+    """
+
+    >>> reverse_dict({1: 'one', 2: 'two'}) # doctest: +SKIP
+    {'one': 1, 'two': 2}
+    """
+    new = dict()
+    for k, v in d.items():
+        if v in d:
+            raise ValueError("Repated values")
+        new[v] = k
+    return new
+
 def to_ctypes(dshape):
     """
     Constructs a ctypes type from a datashape
     """
     if len(dshape) == 1:
-        if dshape == coretypes.int8:
-            return ctypes.c_int8
-        elif dshape == coretypes.int16:
-            return ctypes.c_int16
-        elif dshape == coretypes.int32:
-            return ctypes.c_int32
-        elif dshape == coretypes.int64:
-            return ctypes.c_int64
-        elif dshape == coretypes.uint8:
-            return ctypes.c_uint8
-        elif dshape == coretypes.uint16:
-            return ctypes.c_uint16
-        elif dshape == coretypes.uint32:
-            return ctypes.c_uint32
-        elif dshape == coretypes.uint64:
-            return ctypes.c_uint64
-        elif dshape == coretypes.float32:
-            return ctypes.c_float
-        elif dshape == coretypes.float64:
-            return ctypes.c_double
-        elif dshape == coretypes.complex_float32:
+        ctype = reverse_dict(typedict).get(dshape)
+        if ctype:
+            return ctype
+        if dshape == coretypes.complex_float32:
             class Complex64(ctypes.Structure):
                 _fields_ = [('real', ctypes.c_float),
                             ('imag', ctypes.c_float)]
@@ -268,7 +275,6 @@ def to_ctypes(dshape):
             num = int(dshape[0])
         return num*to_ctypes(dshape.subarray(1))
 
-
 # FIXME: Add a field
 def from_ctypes(ctype):
     """
@@ -292,26 +298,11 @@ def from_ctypes(ctype):
             ctype = ctype._type_
         dstup.append(from_ctypes(ctype))
         return coretypes.DataShape(*dstup)
-    elif ctype == ctypes.c_int8:
-        return coretypes.int8
-    elif ctype == ctypes.c_int16:
-        return coretypes.int16
-    elif ctype == ctypes.c_int32:
-        return coretypes.int32
-    elif ctype == ctypes.c_int64:
-        return coretypes.int64
-    elif ctype == ctypes.c_uint8:
-        return coretypes.uint8
-    elif ctype == ctypes.c_uint16:
-        return coretypes.uint16
-    elif ctype == ctypes.c_uint32:
-        return coretypes.uint32
-    elif ctype == ctypes.c_uint64:
-        return coretypes.uint64
-    elif ctype == ctypes.c_float:
-        return coretypes.float32
-    elif ctype == ctypes.c_double:
-        return coretypes.float64
+
+    coretype = typesdict.get(ctype)
+
+    if coretype:
+        return coretype
     else:
         raise TypeError('Cannot convert ctypes %r into '
                         'a blaze datashape' % ctype)
