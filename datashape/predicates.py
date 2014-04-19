@@ -30,8 +30,7 @@ def ishomogeneous(ds):
     >>> ishomogeneous('var * {name: string, amount: int}')
     False
     """
-    if not isinstance(ds, DataShape):
-        ds = dshape(ds)
+    ds = dshape(ds)
     return len(set(remove(isdimension, collect(isunit, ds)))) == 1
 
 
@@ -49,8 +48,7 @@ def dimensions(ds):
     >>> dimensions('var * {name: string, amount: int}')
     2
     """
-    if not isinstance(ds, DataShape):
-        ds = dshape(ds)
+    ds = dshape(ds)
     if isdimension(ds[0]):
         return 1 + dimensions(ds.subarray(1))
     if isinstance(ds[0], Record):
@@ -72,8 +70,7 @@ def isfixed(ds):
     >>> isfixed('10 * {name: string, amounts: var * int}')
     False
     """
-    if not isinstance(ds, DataShape):
-        ds = dshape(ds)
+    ds = dshape(ds)
     if isinstance(ds[0], Var):
         return False
     if isinstance(ds[0], Record):
@@ -95,6 +92,5 @@ def istabular(ds):
     >>> istabular('10 * var * int')
     False
     """
-    if not isinstance(ds, DataShape):
-        ds = dshape(ds)
+    ds = dshape(ds)
     return dimensions(ds) == 2 and isfixed(ds.subarray(1))
