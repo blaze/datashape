@@ -101,19 +101,13 @@ def collect(pred, expr):
     """
 
     if pred(expr):
-        yield expr
+        return [expr]
     if isinstance(expr, coretypes.Record):
-        for x in chain.from_iterable(collect(pred, typ)
-                                     for typ in expr.types):
-            yield x
+        return chain.from_iterable(collect(pred, typ) for typ in expr.types)
     if isinstance(expr, coretypes.Mono):
-        for x in chain.from_iterable(collect(pred, typ)
-                                     for typ in expr.parameters):
-            yield x
+        return chain.from_iterable(collect(pred, typ) for typ in expr.parameters)
     if isinstance(expr, (list, tuple)):
-        for x in chain.from_iterable(collect(pred, item)
-                                     for item in expr):
-            yield x
+        return chain.from_iterable(collect(pred, item) for item in expr)
 
 
 def has_var_dim(ds):
