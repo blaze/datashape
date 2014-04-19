@@ -79,3 +79,20 @@ def isfixed(ds):
     if len(ds) > 1:
         return isfixed(ds.subarray(1))
     return True
+
+
+def istabular(ds):
+    """ Can be represented by a two dimensional with fixed columns
+
+    >>> istabular('var * 3 * int')
+    True
+    >>> istabular('var * {name: string, amount: int}')
+    True
+    >>> istabular('var * 10 * 3 * int')
+    False
+    >>> istabular('10 * var * int')
+    False
+    """
+    if not isinstance(ds, DataShape):
+        ds = dshape(ds)
+    return dimensions(ds) == 2 and isfixed(ds.subarray(1))
