@@ -95,11 +95,11 @@ def collect(pred, expr):
     """ Collect terms in expression that match predicate
 
     >>> from datashape import Unit, dshape
-    >>> sorted(set(collect(lambda term: isinstance(term, Unit),
-    ...                    dshape('var * {value: int64, loc: 2 * int32}'))))
+    >>> predicate = lambda term: isinstance(term, Unit)
+    >>> dshape = dshape('var * {value: int64, loc: 2 * int32}')
+    >>> sorted(set(collect(predicate, dshape)))
     [Fixed(2), ctype("int32"), ctype("int64"), Var()]
     """
-
     if pred(expr):
         return [expr]
     if isinstance(expr, coretypes.Record):
