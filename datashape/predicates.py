@@ -56,3 +56,26 @@ def dimensions(ds):
     if len(ds) == 1 and isunit(ds[0]):
         return 0
     raise NotImplementedError('Can not compute dimensions for %s' % ds)
+
+
+def isfixed(ds):
+    """ Contains no variable dimensions
+
+    >>> isfixed('10 * int')
+    True
+    >>> isfixed('var * int')
+    False
+    >>> isfixed('10 * {name: string, amount: int}')
+    True
+    >>> isfixed('10 * {name: string, amounts: var * int}')
+    False
+    """
+    if not isinstance(ds, DataShape):
+        ds = dshape(ds)
+    if isinstance(ds[0], Var):
+        return False
+    if isinstance(ds[0], Record):
+        return all(map(isfixed, ds[0].fields.values()))
+    if len(ds) > 1:
+        return isfixed(ds.subarray(1))
+    return True
