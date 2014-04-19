@@ -333,3 +333,6 @@ def from_ctypes(ctype):
     else:
         raise TypeError('Cannot convert ctypes %r into '
                         'a blaze datashape' % ctype)
+
+def remove(predicate, seq):
+    return filter(lambda x: not predicate(x), seq)
