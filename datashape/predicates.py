@@ -20,14 +20,14 @@ def isdimension(ds):
     return isinstance(ds, dimension_types)
 
 
-def ishomogenous(ds):
+def ishomogeneous(ds):
     """ Does datashape contain only one dtype?
 
-    >>> ishomogenous(int32)
+    >>> ishomogeneous(int32)
     True
-    >>> ishomogenous('var * 3 * string')
+    >>> ishomogeneous('var * 3 * string')
     True
-    >>> ishomogenous('var * {name: string, amount: int}')
+    >>> ishomogeneous('var * {name: string, amount: int}')
     False
     """
     if not isinstance(ds, DataShape):
