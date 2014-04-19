@@ -25,11 +25,13 @@ def ishomogenous(ds):
 
     >>> ishomogenous(int32)
     True
-    >>> ishomogenous(var * (3 * string))
+    >>> ishomogenous('var * 3 * string')
     True
-    >>> ishomogenous(var * Record([('name', string), ('amount', int32)]))
+    >>> ishomogenous('var * {name: string, amount: int}')
     False
     """
+    if not isinstance(ds, DataShape):
+        ds = dshape(ds)
     return len(set(remove(isdimension, collect(isunit, ds)))) == 1
 
 
@@ -42,9 +44,9 @@ def dimensions(ds):
     0
     >>> dimensions(10 * int32)
     1
-    >>> dimensions(var * (10 * int32))
+    >>> dimensions('var * 10 * int')
     2
-    >>> dimensions(var * Record([('name', string), ('amount', int32)]))
+    >>> dimensions('var * {name: string, amount: int}')
     2
     """
     if not isinstance(ds, DataShape):
