@@ -126,19 +126,7 @@ def has_var_dim(ds):
     >>> has_var_dim(dshape('var * 2 * int32'))
     True
     """
-    test = []
-    if isinstance(ds, (coretypes.Ellipsis, coretypes.Var)):
-        return True
-    elif isinstance(ds, coretypes.Record):
-        test = ds.types
-    elif isinstance(ds, coretypes.Mono):
-        test = ds.parameters
-    elif isinstance(ds, (list, tuple)):
-        test = ds
-    for ds_t in test:
-        if has_var_dim(ds_t):
-            return True
-    return False
+    return has((coretypes.Ellipsis, coretypes.Var), ds)
 
 
 def has(typ, ds):
