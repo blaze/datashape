@@ -966,6 +966,8 @@ Type.register('bytes', bytes_)
 
 Type.register('string', String())
 
+var = Var()
+
 
 class NotNumpyCompatible(Exception):
     """

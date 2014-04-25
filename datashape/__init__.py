@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from . import lexer, parser
 from . import type_equation_solver
 from .coretypes import *
+from .predicates import *
 from .typesets import *
 from .user import *
 from .type_symbol_table import *

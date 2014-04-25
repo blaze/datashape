@@ -11,6 +11,7 @@ from . import type_symbol_table
 from .error import UnificationError
 from .validation import validate
 from . import coretypes
+from itertools import chain
 
 
 __all__ = ['dshape', 'dshapes', 'has_var_dim', 'has_ellipsis',
@@ -41,6 +42,8 @@ def dshape(o):
     >>> ds[1]
     ctype("int32")
     """
+    if isinstance(o, coretypes.DataShape):
+        return o
     if isinstance(o, py2help._strtypes):
         ds = parser.parse(o, type_symbol_table.sym)
     elif isinstance(o, (coretypes.CType, coretypes.String,
@@ -90,6 +93,25 @@ def cat_dshapes(dslist):
     return coretypes.DataShape(*[coretypes.Fixed(outer_dim_size)] + list(inner_ds))
 
 
+def collect(pred, expr):
+    """ Collect terms in expression that match predicate
+
+    >>> from datashape import Unit, dshape
+    >>> predicate = lambda term: isinstance(term, Unit)
+    >>> dshape = dshape('var * {value: int64, loc: 2 * int32}')
+    >>> sorted(set(collect(predicate, dshape)))
+    [Fixed(2), ctype("int32"), ctype("int64"), Var()]
+    """
+    if pred(expr):
+        return [expr]
+    if isinstance(expr, coretypes.Record):
+        return chain.from_iterable(collect(pred, typ) for typ in expr.types)
+    if isinstance(expr, coretypes.Mono):
+        return chain.from_iterable(collect(pred, typ) for typ in expr.parameters)
+    if isinstance(expr, (list, tuple)):
+        return chain.from_iterable(collect(pred, item) for item in expr)
+
+
 def has_var_dim(ds):
     """Returns True if datashape has a variable dimension
 
@@ -100,19 +122,7 @@ def has_var_dim(ds):
     >>> has_var_dim(dshape('var * 2 * int32'))
     True
     """
-    test = []
-    if isinstance(ds, (coretypes.Ellipsis, coretypes.Var)):
-        return True
-    elif isinstance(ds, coretypes.Record):
-        test = ds.types
-    elif isinstance(ds, coretypes.Mono):
-        test = ds.parameters
-    elif isinstance(ds, (list, tuple)):
-        test = ds
-    for ds_t in test:
-        if has_var_dim(ds_t):
-            return True
-    return False
+    return has((coretypes.Ellipsis, coretypes.Var), ds)
 
 
 def has(typ, ds):
@@ -319,3 +329,6 @@ def from_ctypes(ctype):
     else:
         raise TypeError('Cannot convert ctypes %r into '
                         'a blaze datashape' % ctype)
+
+def remove(predicate, seq):
+    return filter(lambda x: not predicate(x), seq)
