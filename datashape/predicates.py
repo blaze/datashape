@@ -71,6 +71,8 @@ def isfixed(ds):
     False
     """
     ds = dshape(ds)
+    if isinstance(ds[0], TypeVar):
+        return None  # don't know
     if isinstance(ds[0], Var):
         return False
     if isinstance(ds[0], Record):
