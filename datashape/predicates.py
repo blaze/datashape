@@ -34,25 +34,25 @@ def ishomogeneous(ds):
     return len(set(remove(isdimension, collect(isunit, ds)))) == 1
 
 
-def dimensions(ds):
+def _dimensions(ds):
     """ Number of dimensions of datashape
 
     Interprets records as dimensional
 
-    >>> dimensions(int32)
+    >>> _dimensions(int32)
     0
-    >>> dimensions(10 * int32)
+    >>> _dimensions(10 * int32)
     1
-    >>> dimensions('var * 10 * int')
+    >>> _dimensions('var * 10 * int')
     2
-    >>> dimensions('var * {name: string, amount: int}')
+    >>> _dimensions('var * {name: string, amount: int}')
     2
     """
     ds = dshape(ds)
     if isdimension(ds[0]):
-        return 1 + dimensions(ds.subarray(1))
+        return 1 + _dimensions(ds.subarray(1))
     if isinstance(ds[0], Record):
-        return 1 + max(map(dimensions, ds[0].fields.values()))
+        return 1 + max(map(_dimensions, ds[0].fields.values()))
     if len(ds) == 1 and isunit(ds[0]):
         return 0
     raise NotImplementedError('Can not compute dimensions for %s' % ds)
@@ -95,4 +95,4 @@ def istabular(ds):
     False
     """
     ds = dshape(ds)
-    return dimensions(ds) == 2 and isfixed(ds.subarray(1))
+    return _dimensions(ds) == 2 and isfixed(ds.subarray(1))
