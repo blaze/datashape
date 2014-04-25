@@ -481,7 +481,7 @@ class TestDataShapeParseStruct(unittest.TestCase):
              """, self.sym)
         self.assertEqual(len(ds[-1].names), 3)
         ds = parse("""2 * var * {
-             "my field2": string,
+             "AASD @#$@#$ \' sdf": string,
               id: float32,
               id: int64,
               name: string }
@@ -519,7 +519,7 @@ class TestDataShapeParseStruct(unittest.TestCase):
                           "   amount+ float32;\n" +
                           "}\n",
                           self.sym)
-        #Don't except explicitly Unicode string literals
+        #Don't accept explicitly Unicode string literals
         self.assertRaises(datashape.DataShapeSyntaxError,
                           parse,
                           "{\n" +
