@@ -3,6 +3,8 @@ from .coretypes import *
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
+__all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed']
+
 dimension_types = (Fixed, Var, Ellipsis)
 
 isunit = lambda x: isinstance(x, Unit)
