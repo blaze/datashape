@@ -142,6 +142,13 @@ class TestSignatureArgMatching(unittest.TestCase):
         # Should be cheaper to match without the broadcasting
         self.assertTrue(match_scalar[1] < match_bcast[1])
 
+    def test_tv_matches_struct(self):
+        at = dshape('(3 * {x: int, y: string}, 3 * bool)')
+        sig = dshape('(M * T, M * bool) -> var * T')
+        match = match_argtypes_to_signature(at, sig)
+        self.assertEqual(match[0],
+                         dshape('(3 * {x: int, y: string}, 3 * bool) -> var * {x: int, y: string}')[0])
+
     def test_match_with_resolver(self):
         # Test matching with a resolver function
         # This is a contrived resolver which combines the A... and

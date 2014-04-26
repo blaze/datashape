@@ -321,6 +321,8 @@ def _substitute_typevars(ds, tv, resolver):
                 raise TypeError(('When resolving ellipsis typevar %s,' +
                                  ' %s was returned but a list is required') %
                                 (ds, result))
+        elif isinstance(ds, coretypes.TypeVar):
+            result = [result]
         return result
     else:
         # TODO: recursively handle structs and similar types
