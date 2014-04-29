@@ -56,6 +56,14 @@ Here are some simple examples to motivate the idea::
         v: 100 * 100 * float32,
     }
 
+    # Structure with strings for field names
+    {
+        'field 0': 100 * float32,
+        'field 1': float32,
+        'field 2': float32,
+    }
+
+
     # List of Tuples
     20 * (int32, float64)
 
@@ -259,6 +267,7 @@ Grammar::
     struct_field_name : NAME_LOWER
                       | NAME_UPPER
                       | NAME_OTHER
+                      | STRING
 
     # Function prototype is a tuple with an arrow to the output type
     funcproto_or_tuple_type : tuple_type RARROW datashape

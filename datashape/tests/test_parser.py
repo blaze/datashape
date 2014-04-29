@@ -472,6 +472,22 @@ class TestDataShapeParseStruct(unittest.TestCase):
         self.assertEqual(type(ds[-1]), ct.Record)
         self.assertEqual(len(ds[-1].names), 25)
 
+    def test_strings_in_ds(self):
+        #Name the fields with some arbitrary string!
+        ds = parse("""5 * var * {
+              id: int64,
+             'my field': string,
+              name: string }
+             """, self.sym)
+        self.assertEqual(len(ds[-1].names), 3)
+        ds = parse("""2 * var * {
+             "AASD @#$@#$ \' sdf": string,
+              id: float32,
+              id: int64,
+              name: string }
+             """, self.sym)
+        self.assertEqual(len(ds[-1].names), 4)
+
     def test_struct_errors(self):
         self.assertRaises(datashape.DataShapeSyntaxError,
                           parse, '{\n}\n', self.sym)
@@ -495,6 +511,25 @@ class TestDataShapeParseStruct(unittest.TestCase):
                           "   amount+ float32;\n" +
                           "}\n",
                           self.sym)
+        self.assertRaises(datashape.DataShapeSyntaxError,
+                          parse,
+                          "{\n" +
+                          "   id: int64;\n" +
+                          "   'my field 1': string;\n" +
+                          "   amount+ float32;\n" +
+                          "}\n",
+                          self.sym)
+        #Don't accept explicitly Unicode string literals
+        self.assertRaises(datashape.DataShapeSyntaxError,
+                          parse,
+                          "{\n" +
+                          "   id: int64,\n" +
+                          "   u'my field 1': string,\n" +
+                          "   amount: float32\n" +
+                          "}\n",
+                          self.sym)
+
+
 
 
 class TestDataShapeParseTuple(unittest.TestCase):

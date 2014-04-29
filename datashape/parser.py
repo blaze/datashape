@@ -489,11 +489,12 @@ class DataShapeParser(object):
         struct_field_name : NAME_LOWER
                           | NAME_UPPER
                           | NAME_OTHER
+                          | STRING
 
         Returns a tuple (name, datashape object) or None
         """
         if self.tok.id not in [lexer.NAME_LOWER, lexer.NAME_UPPER,
-                               lexer.NAME_OTHER]:
+                               lexer.NAME_OTHER, lexer.STRING]:
             return None
         name = self.tok.val
         self.advance_tok()
