@@ -9,7 +9,6 @@ Welcome to DataShape's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
   
   overview.rst
   grammar.rst

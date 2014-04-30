@@ -97,7 +97,7 @@ unicode values. There is also a fixed-size variant compatible with
 NumPy's strings, like ``string[16, "ascii"]``.
 
 Dimensions
---------
+----------
 
 An asterisk (*) between two types signifies an array. A datashape
 consists of 0 or more ``dimensions`` followed by a ``dtype``.

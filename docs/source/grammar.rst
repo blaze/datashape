@@ -9,16 +9,22 @@ syntax for describing structured data.
 Some of the basic features include:
 
 * Dimensions are separated by asterisks.
+
 * Lists of types are separated by commas.
+
 * Types and Typevars are distinguished by the capitalization of the leading
   character. Lowercase for types, and uppercase for typevars.
+
 * Type constructors operate using square brackets.
+
 * Type constructors accept positional and keyword arguments,
   and their arguments may be:
+
   * datashape, string, integer, list of datashape, list of string,
     list of integer
-* In multi-line datashape strings or files, comments start from
-  # characters to the end of the line.
+
+* In multi-line datashape strings or files, comments start from #
+  characters to the end of the line.
 
 Some Simple Examples
 --------------------
