@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DataShape Types &mdash; DataShape 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="DataShape 0.2 documentation" href="index.html" />
+    <link rel="next" title="Pattern Matching DataShapes" href="pattern_matching.html" />
+    <link rel="prev" title="DataShape Grammar" href="grammar.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pattern_matching.html" title="Pattern Matching DataShapes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="grammar.html" title="DataShape Grammar"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">DataShape 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="datashape-types">
+<h1>DataShape Types<a class="headerlink" href="#datashape-types" title="Permalink to this headline">¶</a></h1>
+<p>In addition to <a class="reference external" href="grammar.rst">defining the grammar</a>, datashape specifies
+a standard set of types and some properties those types should have.
+Type constructors can be classified as <tt class="docutils literal"><span class="pre">dimension</span></tt> or <tt class="docutils literal"><span class="pre">dtype</span></tt>, and a
+datashape is always composed of zero or more dimensions followed by
+a dtype.</p>
+<div class="section" id="dimension-types">
+<h2>Dimension Types<a class="headerlink" href="#dimension-types" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="fixed-dimension">
+<h3>Fixed Dimension<a class="headerlink" href="#fixed-dimension" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">fixed[4]</span></tt></p>
+<p>A dimension whose size is specified. This is the most common
+dimension type used in Blaze, and <tt class="docutils literal"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">int32</span></tt> is syntactic sugar for
+<tt class="docutils literal"><span class="pre">fixed[4]</span> <span class="pre">*</span> <span class="pre">int32</span></tt> in datashape syntax.</p>
+</div>
+<div class="section" id="var-dimension">
+<h3>Var Dimension<a class="headerlink" href="#var-dimension" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">var</span></tt></p>
+<p>A dimension whose size may be different across instances.
+A common use of this is a ragged array like <tt class="docutils literal"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">var</span> <span class="pre">*</span> <span class="pre">int32</span></tt>.</p>
+</div>
+<div class="section" id="strided-dimension">
+<h3>Strided Dimension<a class="headerlink" href="#strided-dimension" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">strided</span></tt></p>
+<p>A dimension whose size is fixed across the array, but whose
+size is no known ahead of time. This is not commonly used in Blaze,
+but is in DyND where it is how NumPy-like dimensions are created.
+For example, a two dimensional strided array has type
+<tt class="docutils literal"><span class="pre">strided</span> <span class="pre">*</span> <span class="pre">strided</span> <span class="pre">*</span> <span class="pre">int32</span></tt>, and does not bake in particular
+dimension sizes like with fixed dimensions in <tt class="docutils literal"><span class="pre">10</span> <span class="pre">*</span> <span class="pre">15</span> <span class="pre">*</span> <span class="pre">int32</span></tt>.</p>
+</div>
+<div class="section" id="type-variables">
+<h3>Type Variables<a class="headerlink" href="#type-variables" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">typevar['DimName']</span></tt></p>
+<p>Constructs a type variable. <tt class="docutils literal"><span class="pre">DimName</span></tt> is syntactic sugar for
+<tt class="docutils literal"><span class="pre">typevar['DimName']</span></tt>. This is used for pattern matching types,
+particularly for function prototypes. For example the
+datashape <tt class="docutils literal"><span class="pre">(M</span> <span class="pre">*</span> <span class="pre">N</span> <span class="pre">*</span> <span class="pre">int32)</span> <span class="pre">-&gt;</span> <span class="pre">N</span> <span class="pre">*</span> <span class="pre">int32</span></tt> accepts an input
+with two dimensions that are type variables, and returns a
+one dimensional array using one of those dimension types.</p>
+</div>
+<div class="section" id="ellipsis">
+<h3>Ellipsis<a class="headerlink" href="#ellipsis" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">ellipsis</span></tt></p>
+<p>Constructs an ellipsis for matching multiple broadcast dimensions.
+<tt class="docutils literal"><span class="pre">...</span></tt> is syntactic sugar for <tt class="docutils literal"><span class="pre">ellipsis</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">ellipsis['DimVar']</span></tt></p>
+<p>Constructs a named ellipsis for matching multiple broadcast dimensions.
+<tt class="docutils literal"><span class="pre">Dim...</span></tt> is syntactic sugar for <tt class="docutils literal"><span class="pre">ellipsis['Dim']</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="dtypes">
+<h2>DTypes<a class="headerlink" href="#dtypes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="boolean-type">
+<h3>Boolean Type<a class="headerlink" href="#boolean-type" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">bool</span></tt></p>
+<p>A boolean type which may take on two values, <tt class="docutils literal"><span class="pre">True</span></tt> and <tt class="docutils literal"><span class="pre">False</span></tt>.
+In Blaze and DyND, this is stored as a single byte which may take on
+the values 1 and 0.</p>
+</div>
+<div class="section" id="default-integer">
+<h3>Default Integer<a class="headerlink" href="#default-integer" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">int</span></tt></p>
+<p>This is an alias for <tt class="docutils literal"><span class="pre">int32</span></tt>.</p>
+</div>
+<div class="section" id="arbitrary-precision-integer">
+<h3>Arbitrary-Precision Integer<a class="headerlink" href="#arbitrary-precision-integer" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">bignum</span></tt> or <tt class="docutils literal"><span class="pre">bigint</span></tt></p>
+<p>An integer type which has no minimum or maximum value. This is not
+implemented in Blaze or DyND presently and the final name for it hasn&#8217;t
+been locked down.</p>
+</div>
+<div class="section" id="signed-integer-types">
+<h3>Signed Integer Types<a class="headerlink" href="#signed-integer-types" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">int8</span></tt>
+<tt class="docutils literal"><span class="pre">int16</span></tt>
+<tt class="docutils literal"><span class="pre">int32</span></tt>
+<tt class="docutils literal"><span class="pre">int64</span></tt>
+<tt class="docutils literal"><span class="pre">int128</span></tt></p>
+<p>Integer types whose behavior follows that of twos-complement integers
+of the given size.</p>
+</div>
+<div class="section" id="unsigned-integer-types">
+<h3>Unsigned Integer Types<a class="headerlink" href="#unsigned-integer-types" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">uint8</span></tt>
+<tt class="docutils literal"><span class="pre">uint16</span></tt>
+<tt class="docutils literal"><span class="pre">uint32</span></tt>
+<tt class="docutils literal"><span class="pre">uint64</span></tt>
+<tt class="docutils literal"><span class="pre">uint128</span></tt></p>
+<p>Integer types whose behavior follows that of unsigned integers of
+the given size.</p>
+</div>
+<div class="section" id="platform-specific-integer-aliases">
+<h3>Platform-Specific Integer Aliases<a class="headerlink" href="#platform-specific-integer-aliases" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">intptr</span></tt>
+<tt class="docutils literal"><span class="pre">uintptr</span></tt></p>
+<p>Aliases for <tt class="docutils literal"><span class="pre">int##</span></tt> and <tt class="docutils literal"><span class="pre">uint##</span></tt> where ## is the size of a pointer type on
+the platform.</p>
+</div>
+<div class="section" id="default-floating-point">
+<h3>Default Floating Point<a class="headerlink" href="#default-floating-point" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">real</span></tt></p>
+<p>This is an alias for <tt class="docutils literal"><span class="pre">float64</span></tt>.</p>
+</div>
+<div class="section" id="binary-floating-point">
+<h3>Binary Floating Point<a class="headerlink" href="#binary-floating-point" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">float16</span></tt>
+<tt class="docutils literal"><span class="pre">float32</span></tt>
+<tt class="docutils literal"><span class="pre">float64</span></tt>
+<tt class="docutils literal"><span class="pre">float128</span></tt></p>
+<p>Binary floating point types as defined by IEEE 754-2008. Each type
+corresponds to the <tt class="docutils literal"><span class="pre">binary##</span></tt> type defined in the standard.</p>
+<p>Note that <tt class="docutils literal"><span class="pre">float128</span></tt> is not a C/C++ <tt class="docutils literal"><span class="pre">long</span> <span class="pre">double</span></tt>, except on such
+platforms where they coincide. NumPy defines a <tt class="docutils literal"><span class="pre">float128</span></tt> on
+some platforms which is not IEEE <tt class="docutils literal"><span class="pre">binary128</span></tt>, and is thus different
+from DataShape&#8217;s type of the same name on those platforms.</p>
+<dl class="docutils">
+<dt>TODO: Support for C/C++ <tt class="docutils literal"><span class="pre">long</span> <span class="pre">double</span></tt>. This is tricky given that</dt>
+<dd>DataShape intends to be cross-platform, and maybe some inspiration
+can be taken from HDF5 for specifying them.</dd>
+</dl>
+</div>
+<div class="section" id="decimal-floating-point">
+<h3>Decimal Floating Point<a class="headerlink" href="#decimal-floating-point" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">decimal32</span></tt>
+<tt class="docutils literal"><span class="pre">decimal64</span></tt>
+<tt class="docutils literal"><span class="pre">decimal128</span></tt></p>
+<p>Decimal floating point types as defined by IEEE 754-2008. These are
+not implemented in Blaze or DyND presently.</p>
+</div>
+<div class="section" id="default-complex">
+<h3>Default Complex<a class="headerlink" href="#default-complex" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">complex</span></tt></p>
+<p>This is an alias for <tt class="docutils literal"><span class="pre">complex[float64]</span></tt>.</p>
+</div>
+<div class="section" id="complex">
+<h3>Complex<a class="headerlink" href="#complex" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">complex[float32]</span></tt></p>
+<p>Constructs a complex number type from a real number type.</p>
+</div>
+<div class="section" id="void">
+<h3>Void<a class="headerlink" href="#void" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">void</span></tt></p>
+<p>A type which can store no data. It is not intended to be constructed
+in concrete arrays, but to allow for things like function prototypes
+with <tt class="docutils literal"><span class="pre">void</span></tt> return type.</p>
+</div>
+<div class="section" id="string">
+<h3>String<a class="headerlink" href="#string" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">string</span></tt></p>
+<p>A unicode string that can be arbitrarily sized. In Blaze and DyND, this
+is a UTF-8 encoded string.</p>
+<p><tt class="docutils literal"><span class="pre">string[16]</span></tt></p>
+<p>A unicode string in a UTF-8 fixed-sized buffer. The string is
+zero-terminated, but as in NumPy, all bytes may be filled with character
+data so the buffer is not valid as a C-style string.</p>
+<p><tt class="docutils literal"><span class="pre">string['utf16']</span></tt></p>
+<p>A unicode string that can be arbitrarily sized, using the specified
+encoding. Valid values for the encoding are <tt class="docutils literal"><span class="pre">'ascii'</span></tt>, <tt class="docutils literal"><span class="pre">'utf8'</span></tt>,
+<tt class="docutils literal"><span class="pre">'utf16'</span></tt>, <tt class="docutils literal"><span class="pre">'utf32'</span></tt>, <tt class="docutils literal"><span class="pre">'ucs2'</span></tt>, and <tt class="docutils literal"><span class="pre">'cp###'</span></tt> for valid
+code pages.</p>
+<p><tt class="docutils literal"><span class="pre">string[16,</span> <span class="pre">'utf16']</span></tt></p>
+<p>A unicode string in a fixed-size buffer of the specified number of bytes,
+encoded as the requested encoding.  The string is
+zero-terminated, but as in NumPy, all bytes may be filled with character
+data so the buffer is not valid as a C-style string.</p>
+</div>
+<div class="section" id="character">
+<h3>Character<a class="headerlink" href="#character" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">char</span></tt></p>
+<p>A value which contains a single unicode code point. Typically stored as
+a 32-bit integer.</p>
+</div>
+<div class="section" id="bytes">
+<h3>Bytes<a class="headerlink" href="#bytes" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">bytes</span></tt></p>
+<p>An arbitrarily sized blob of bytes. This like <tt class="docutils literal"><span class="pre">bytes</span></tt> in Python 3.</p>
+<p><tt class="docutils literal"><span class="pre">bytes[16]</span></tt></p>
+<p>A fixed-size blob of bytes. This is not zero-terminated as in the
+<tt class="docutils literal"><span class="pre">string</span></tt> case, it is always exactly the specified number of bytes.</p>
+</div>
+<div class="section" id="categorical">
+<h3>Categorical<a class="headerlink" href="#categorical" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">categorical[type=string,</span> <span class="pre">values=['low',</span> <span class="pre">'medium',</span> <span class="pre">'high']]</span></tt></p>
+<p>Constructs a type which stores values compactly as small integers
+that are indexes into the list of values provided.</p>
+</div>
+<div class="section" id="json">
+<h3>JSON<a class="headerlink" href="#json" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">json</span></tt></p>
+<p>A unicode string which is known to contain values represented as JSON.</p>
+</div>
+<div class="section" id="records">
+<h3>Records<a class="headerlink" href="#records" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">struct[['name',</span> <span class="pre">'age',</span> <span class="pre">'height'],</span> <span class="pre">[string,</span> <span class="pre">int,</span> <span class="pre">real]]</span></tt></p>
+<p>Constructs a record type with the given field names and types.
+<tt class="docutils literal"><span class="pre">{name:</span> <span class="pre">string,</span> <span class="pre">age:</span> <span class="pre">int}</span></tt> is syntactic sugar for
+<tt class="docutils literal"><span class="pre">struct[['name',</span> <span class="pre">'age'],</span> <span class="pre">[string,</span> <span class="pre">int]]</span></tt>.</p>
+</div>
+<div class="section" id="tuples">
+<h3>Tuples<a class="headerlink" href="#tuples" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">tuple[[string,</span> <span class="pre">int,</span> <span class="pre">real]]</span></tt></p>
+<p>Constructs a tuple type with the given types. <tt class="docutils literal"><span class="pre">(string,</span> <span class="pre">int)</span></tt>
+is syntactic sugar for <tt class="docutils literal"><span class="pre">tuple[[string,</span> <span class="pre">int]]</span></tt>.</p>
+</div>
+<div class="section" id="function-prototype">
+<h3>Function Prototype<a class="headerlink" href="#function-prototype" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">funcproto[[string,</span> <span class="pre">int],</span> <span class="pre">bool]</span></tt></p>
+<p>Constructs a function prototype with the given argument and return types.
+<tt class="docutils literal"><span class="pre">(string,</span> <span class="pre">int)</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></tt> is syntactic sugar for
+<tt class="docutils literal"><span class="pre">funcproto[[string,</span> <span class="pre">int],</span> <span class="pre">bool]</span></tt>.</p>
+</div>
+<div class="section" id="id1">
+<h3>Type Variables<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">typevar['DTypeName']</span></tt></p>
+<p>Constructs a type variable. <tt class="docutils literal"><span class="pre">DTypeName</span></tt> is syntactic sugar for
+<tt class="docutils literal"><span class="pre">typevar['DTypeName']</span></tt>. This is used for pattern matching types,
+particularly for function prototypes. For example the
+datashape <tt class="docutils literal"><span class="pre">(T,</span> <span class="pre">T)</span> <span class="pre">-&gt;</span> <span class="pre">T</span></tt> accepts any types as input, but requires
+they have the same types.</p>
+</div>
+<div class="section" id="option-missing-data">
+<h3>Option/Missing Data<a class="headerlink" href="#option-missing-data" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">option[float32]</span></tt></p>
+<p>Constructs a type based on the provided type which may have missing
+values.</p>
+</div>
+<div class="section" id="pointer">
+<h3>Pointer<a class="headerlink" href="#pointer" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">pointer[target=2</span> <span class="pre">*</span> <span class="pre">3</span> <span class="pre">*</span> <span class="pre">int32]</span></tt></p>
+<p>Constructs a type whose value is a pointer to values of the target type.</p>
+</div>
+<div class="section" id="date-time-and-datetime">
+<h3>Date, Time, and DateTime<a class="headerlink" href="#date-time-and-datetime" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">date</span></tt></p>
+<p>A type which represents a single date in the Gregorian calendar.
+In DyND and Blaze, it is represented as a 32-bit signed integer offset
+from the date <tt class="docutils literal"><span class="pre">1970-01-01</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">time</span></tt>
+<tt class="docutils literal"><span class="pre">time[tz='UTC']</span></tt></p>
+<p>Represents a time in an abstract day (no time zone), or a day
+with the specified time zone.</p>
+<p>Stored as a 64-bit integer offset from midnight,
+stored as ticks (100 ns units).</p>
+<p><tt class="docutils literal"><span class="pre">datetime</span></tt>
+<tt class="docutils literal"><span class="pre">datetime[tz='UTC']</span></tt></p>
+<p>Represents a moment in time in an abstract time zone if no time
+zone is provided, otherwise stored as UTC but representing time
+in the specified time zone.</p>
+<p>Stored as a 64-bit signed integer offset from
+<tt class="docutils literal"><span class="pre">0001-01-01T00:00:00</span></tt> in ticks (100 ns units), the &#8220;universal
+time scale&#8221; from the ICU library. Follows the POSIX convention
+of ignoring leap seconds.</p>
+<p><a class="reference external" href="http://userguide.icu-project.org/datetime/universaltimescale">http://userguide.icu-project.org/datetime/universaltimescale</a></p>
+<p><tt class="docutils literal"><span class="pre">units['second',</span> <span class="pre">int64]</span></tt></p>
+<p>A type which represents a value with the units and type specified.
+Initially only supporting time units, to support the datetime
+functionality without adding a special &#8220;timedelta&#8221; type.</p>
+<p>Initial valid units are: &#8216;100*nanosecond&#8217; (ticks as in the datetime storage),
+&#8216;microsecond&#8217;, &#8216;millisecond&#8217;, &#8216;second&#8217;, &#8216;minute&#8217;, &#8216;hour&#8217;, &#8216;day&#8217;.
+Need to decide on valid shortcuts in a context with more physical units,
+probably by adopting conventions from a good physical units library.</p>
+<p><tt class="docutils literal"><span class="pre">timetz</span></tt>
+<tt class="docutils literal"><span class="pre">datetimetz</span></tt></p>
+<p>Represents a time/datetime with the time zone attached to the data. Not
+implemented in Blaze/DyND.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">DataShape Types</a><ul>
+<li><a class="reference internal" href="#dimension-types">Dimension Types</a><ul>
+<li><a class="reference internal" href="#fixed-dimension">Fixed Dimension</a></li>
+<li><a class="reference internal" href="#var-dimension">Var Dimension</a></li>
+<li><a class="reference internal" href="#strided-dimension">Strided Dimension</a></li>
+<li><a class="reference internal" href="#type-variables">Type Variables</a></li>
+<li><a class="reference internal" href="#ellipsis">Ellipsis</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dtypes">DTypes</a><ul>
+<li><a class="reference internal" href="#boolean-type">Boolean Type</a></li>
+<li><a class="reference internal" href="#default-integer">Default Integer</a></li>
+<li><a class="reference internal" href="#arbitrary-precision-integer">Arbitrary-Precision Integer</a></li>
+<li><a class="reference internal" href="#signed-integer-types">Signed Integer Types</a></li>
+<li><a class="reference internal" href="#unsigned-integer-types">Unsigned Integer Types</a></li>
+<li><a class="reference internal" href="#platform-specific-integer-aliases">Platform-Specific Integer Aliases</a></li>
+<li><a class="reference internal" href="#default-floating-point">Default Floating Point</a></li>
+<li><a class="reference internal" href="#binary-floating-point">Binary Floating Point</a></li>
+<li><a class="reference internal" href="#decimal-floating-point">Decimal Floating Point</a></li>
+<li><a class="reference internal" href="#default-complex">Default Complex</a></li>
+<li><a class="reference internal" href="#complex">Complex</a></li>
+<li><a class="reference internal" href="#void">Void</a></li>
+<li><a class="reference internal" href="#string">String</a></li>
+<li><a class="reference internal" href="#character">Character</a></li>
+<li><a class="reference internal" href="#bytes">Bytes</a></li>
+<li><a class="reference internal" href="#categorical">Categorical</a></li>
+<li><a class="reference internal" href="#json">JSON</a></li>
+<li><a class="reference internal" href="#records">Records</a></li>
+<li><a class="reference internal" href="#tuples">Tuples</a></li>
+<li><a class="reference internal" href="#function-prototype">Function Prototype</a></li>
+<li><a class="reference internal" href="#id1">Type Variables</a></li>
+<li><a class="reference internal" href="#option-missing-data">Option/Missing Data</a></li>
+<li><a class="reference internal" href="#pointer">Pointer</a></li>
+<li><a class="reference internal" href="#date-time-and-datetime">Date, Time, and DateTime</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="grammar.html"
+                        title="previous chapter">DataShape Grammar</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pattern_matching.html"
+                        title="next chapter">Pattern Matching DataShapes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/types.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pattern_matching.html" title="Pattern Matching DataShapes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="grammar.html" title="DataShape Grammar"
+             >previous</a> |</li>
+        <li><a href="index.html">DataShape 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013-2014, Continuum Analytics.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

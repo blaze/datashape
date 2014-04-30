@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Datashape Overview &mdash; DataShape 0.1.0 documentation</title>
+    <title>Datashape Overview &mdash; DataShape 0.2 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="DataShape 0.1.0 documentation" href="index.html" />
+    <link rel="top" title="DataShape 0.2 documentation" href="index.html" />
+    <link rel="next" title="DataShape Grammar" href="grammar.html" />
     <link rel="prev" title="Welcome to DataShape’s documentation!" href="index.html" /> 
   </head>
   <body>
@@ -36,9 +37,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="grammar.html" title="DataShape Grammar"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
           <a href="index.html" title="Welcome to DataShape’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">DataShape 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">DataShape 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -49,60 +53,25 @@
             
   <div class="section" id="datashape-overview">
 <h1>Datashape Overview<a class="headerlink" href="#datashape-overview" title="Permalink to this headline">¶</a></h1>
-<p>Datashape is a generalization of <tt class="docutils literal"><span class="pre">dtype</span></tt> and <tt class="docutils literal"><span class="pre">shape</span></tt> into a micro
-type system which lets us overlay high level structure on existing
-data in Table and Array objects.</p>
-<p>Just like in traditional NumPy, the preferred method of implementing
-generic vector operators is through ad-hoc polymorphism. Numpy&#8217;s style
-of ad-hoc polymorphism allows ufunc objects to have different behaviors
-when &#8220;viewed&#8221; at different types. The runtime system then chooses an
-appropriate implementation for each application of the function, based
-on the types of the arguments. Blaze simply extends this specialization
-to data structure and data layout as well as data type ( dtype ).</p>
-<p>Many of the ideas behind datashape are generalizations and combinations
-of notions found in Numpy:</p>
-<table border="1" class="table-bordered docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Numpy</th>
-<th class="head">Blaze</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>Broadcasting</td>
-<td>Unification</td>
-</tr>
-<tr class="row-odd"><td>Shape</td>
-<td rowspan="2">Datashape</td>
-</tr>
-<tr class="row-even"><td>Dtype</td>
-</tr>
-<tr class="row-odd"><td>Ufunc</td>
-<td>Gufunc</td>
-</tr>
-</tbody>
-</table>
+<p>Datashape is a data layout language for array programming. It is designed
+to describe in-situ structured data without requiring transformation
+into a canonical form.</p>
+<p>Similar to NumPy, datashape includes <tt class="docutils literal"><span class="pre">shape</span></tt> and <tt class="docutils literal"><span class="pre">dtype</span></tt>, but combined
+together in the type system.</p>
 <div class="section" id="units">
 <h2>Units<a class="headerlink" href="#units" title="Permalink to this headline">¶</a></h2>
-<p>Datashape types that are single values are called <strong>unit</strong> types. They
-represent a fixed type that has no internal structure. For example
-<tt class="docutils literal"><span class="pre">int32</span></tt>.</p>
-<p>In Blaze there are two classes of units: <strong>measures</strong> and
-<strong>dimensions</strong>. Measures are units of data, while dimensions are
-units of shape. The combination of measure and dimension in datashape
-constructors uniquely describe the space of possible values or
-<strong>dataspace</strong> of a table or array object.</p>
-<div class="section" id="bit-types">
-<h3>Bit Types<a class="headerlink" href="#bit-types" title="Permalink to this headline">¶</a></h3>
-<p>The native bit types or <strong>CType</strong> objects are unit types standing for
-unboxed machine types. These inherit the notation from NumPy.</p>
+<p>Single named types in datashape are called <tt class="docutils literal"><span class="pre">unit</span></tt> types. They represent
+either a dtype like <tt class="docutils literal"><span class="pre">int32</span></tt> or <tt class="docutils literal"><span class="pre">datetime</span></tt>, or a single dimension
+like <tt class="docutils literal"><span class="pre">var</span></tt>. Dimensions and a single dtype are composed together in
+a datashape type.</p>
+<div class="section" id="primitive-types">
+<h3>Primitive Types<a class="headerlink" href="#primitive-types" title="Permalink to this headline">¶</a></h3>
+<p>DataShape includes a variety of dtypes corresponding to C/C++
+types, similar to NumPy.</p>
 <table border="1" class="table-striped docutils">
 <colgroup>
-<col width="22%" />
-<col width="78%" />
+<col width="19%" />
+<col width="81%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Bit type</th>
@@ -117,13 +86,13 @@ unboxed machine types. These inherit the notation from NumPy.</p>
 <td>Byte (-128 to 127)</td>
 </tr>
 <tr class="row-even"><td>int16</td>
-<td>Integer (-32768 to 32767)</td>
+<td>Two&#8217;s Complement Integer (-32768 to 32767)</td>
 </tr>
 <tr class="row-odd"><td>int32</td>
-<td>Integer (-2147483648 to 2147483647)</td>
+<td>Two&#8217;s Complement Integer (-2147483648 to 2147483647)</td>
 </tr>
 <tr class="row-even"><td>int64</td>
-<td>Integer (-9223372036854775808 to 9223372036854775807)</td>
+<td>Two&#8217;s Complement Integer (-9223372036854775808 to 9223372036854775807)</td>
 </tr>
 <tr class="row-odd"><td>uint8</td>
 <td>Unsigned integer (0 to 255)</td>
@@ -159,8 +128,8 @@ and imaginary components)</td>
 </tr>
 </tbody>
 </table>
-<p>Blaze also adds a variety of bit-like types which are implemented
-a subset of specialized storage and computation backends.</p>
+<p>Additionally, there are types which are not fully specified at the
+bit/byte level.</p>
 <table border="1" class="table-striped docutils">
 <colgroup>
 <col width="15%" />
@@ -173,21 +142,33 @@ a subset of specialized storage and computation backends.</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>string</td>
-<td>Variable length UTF-8 string.</td>
+<td>Variable length Unicode string.</td>
 </tr>
 <tr class="row-odd"><td>bytes</td>
 <td>Variable length arrays of bytes.</td>
 </tr>
 <tr class="row-even"><td>json</td>
-<td>Variable length UTF-8 string which contains JSON.</td>
+<td>Variable length Unicode string which contains JSON.</td>
+</tr>
+<tr class="row-odd"><td>date</td>
+<td>Dates in the proleptic Gregorian calendar.</td>
+</tr>
+<tr class="row-even"><td>time</td>
+<td>Times not attached to a date.</td>
+</tr>
+<tr class="row-odd"><td>datetime</td>
+<td>Points in time, combination of date and time.</td>
+</tr>
+<tr class="row-even"><td>units</td>
+<td>Associates physical units with numerical values.</td>
 </tr>
 </tbody>
 </table>
-<p>Several python types are can be mapped directly on to datashape types:</p>
+<p>Many python types can be mapped to datashape types:</p>
 <table border="1" class="table-striped docutils">
 <colgroup>
-<col width="16%" />
-<col width="84%" />
+<col width="24%" />
+<col width="76%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Python type</th>
@@ -213,6 +194,18 @@ a subset of specialized storage and computation backends.</p>
 <tr class="row-odd"><td>unicode</td>
 <td>string</td>
 </tr>
+<tr class="row-even"><td>datetime.date</td>
+<td>date</td>
+</tr>
+<tr class="row-odd"><td>datetime.time</td>
+<td>time</td>
+</tr>
+<tr class="row-even"><td>datetime.datetime</td>
+<td>datetime or datetime[tz=&#8217;&lt;timezone&gt;&#8217;]</td>
+</tr>
+<tr class="row-odd"><td>datetime.timedelta</td>
+<td>units[&#8216;microsecond&#8217;, int64]</td>
+</tr>
 <tr class="row-even"><td>bytes</td>
 <td>bytes</td>
 </tr>
@@ -230,276 +223,105 @@ a subset of specialized storage and computation backends.</p>
 <p>To Blaze, all strings are sequences of unicode code points, following
 in the footsteps of Python 3. The default Blaze string atom, simply
 called &#8220;string&#8221;, is a variable-length string which can contain any
-unicode values.</p>
-</div>
-<div class="section" id="endianness">
-<h3>Endianness<a class="headerlink" href="#endianness" title="Permalink to this headline">¶</a></h3>
-<p>The data shape does not specify endianness, data types
-are in native endianness when processed by Blaze functions.</p>
+unicode values. There is also a fixed-size variant compatible with
+NumPy&#8217;s strings, like <tt class="docutils literal"><span class="pre">string[16,</span> <span class="pre">&quot;ascii&quot;]</span></tt>.</p>
 </div>
 </div>
-<div class="section" id="products">
-<h2>Products<a class="headerlink" href="#products" title="Permalink to this headline">¶</a></h2>
-<p>A comma between two types signifies a product type. Product types
-correspond to branching possibilities of types.</p>
-<p>The product operator <tt class="docutils literal"><span class="pre">(,)</span></tt> is used to construct product types.
-It is a type constructor of two arguments with a special infix
-sugar.</p>
-<p>Example:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="n">a</span><span class="o">,</span> <span class="n">b</span>
+<div class="section" id="dimensions">
+<h2>Dimensions<a class="headerlink" href="#dimensions" title="Permalink to this headline">¶</a></h2>
+<p>An asterisk (*) between two types signifies an array. A datashape
+consists of 0 or more <tt class="docutils literal"><span class="pre">dimensions</span></tt> followed by a <tt class="docutils literal"><span class="pre">dtype</span></tt>.</p>
+<p>For example, an integer array of size three is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="mi">3</span> <span class="o">*</span> <span class="nb">int</span>
 </pre></div>
 </div>
-<p>It is also left associative, namely:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">),</span> <span class="n">c</span><span class="o">)</span> <span class="o">=</span> <span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">,</span> <span class="n">c</span>
-</pre></div>
-</div>
-<p>The outer element a product type is referred to as a <strong>measure</strong>
-while the other elements of the product are referred to as
-<strong>dimensions</strong>.</p>
-<img alt="_images/type_expand.png" class="align-center" src="_images/type_expand.png" />
-<p>The product operator has the additional constraint that the first
-operator cannot be a measure. This permits types of the form:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="mi">1</span><span class="o">,</span> <span class="n">int32</span>
-<span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>But forbids types of the form:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span>
-<span class="n">int32</span><span class="o">,</span> <span class="mi">1</span>
-<span class="n">int32</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>There is a algebraic relation between product types and sum types
-( discussed below ).</p>
-<div class="section" id="fixed">
-<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this headline">¶</a></h3>
-<p>The unit shape type is a dimension unit type. They are represented
-as just integer values at the top level of the datatype. These are
-identical to <tt class="docutils literal"><span class="pre">shape</span></tt> parameters in NumPy. For example:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="mi">2</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>The previous signature Is an equivalent to the shape and dtype of a
-NumPy array of the form:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="n">ndarray</span><span class="o">(</span><span class="n">dtype</span><span class="o">(</span><span class="k">&#39;</span><span class="n">int32&#39;</span><span class="o">),</span> <span class="n">shape</span><span class="o">=(</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">))</span>
-</pre></div>
-</div>
-<p>A 2 by 3 matrix of integers has datashape:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>With the corresponding NumPy array:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="n">ndarray</span><span class="o">(</span><span class="n">dtype</span><span class="o">(</span><span class="k">&#39;</span><span class="n">int32&#39;</span><span class="o">),</span> <span class="n">shape</span><span class="o">=(</span><span class="mi">2</span><span class="o">,</span><span class="mi">3</span><span class="o">))</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="constructors">
-<h3>Constructors<a class="headerlink" href="#constructors" title="Permalink to this headline">¶</a></h3>
-<p>A type constructor is a parameterized type definition for specifying a
-function which produces new types given inputs.</p>
-<p>For example type constructor with no parameters has the base
-kind <tt class="docutils literal"><span class="pre">(*)</span></tt>, a type constructor with two parameters has kind <tt class="docutils literal"><span class="pre">(*</span>
-<span class="pre">-&gt;</span> <span class="pre">*)</span></tt>.</p>
-<p>By supplying a type constructor with one or more <strong>concrete types</strong>, new
-<strong>type instances</strong> can be constructed and added to the system. Datashape
-types that are comprised of multiple unit types are called <strong>composite</strong>
-types. The product operator discussed above yields composite types.
-Example:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="mi">2</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>Datashape types with free parameters in their constructor are called
-<strong>parameterized</strong> types. Example:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">SquareMatrix</span> <span class="nc">T</span> <span class="o">=</span> <span class="nc">N</span><span class="o">,</span> <span class="nc">N</span><span class="o">,</span> <span class="nc">T</span>
-</pre></div>
-</div>
-<p>Datashape types without free parameters in their constructor are called
-<strong>alias</strong> types, and are similar to <tt class="docutils literal"><span class="pre">typedef</span></tt> in C. Alias types don&#8217;t
-add any additional structure they just ascribe a new name. Example:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">AliasType</span> <span class="nc">N</span> <span class="o">=</span> <span class="nc">N</span><span class="o">,</span> <span class="nc">N</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>Datashape types can be <strong>anonymous</strong> or labeled. Once a type is
-registered it can be used in dshape expressions just like primitive
-values and to construct even higher order types.</p>
-<p>Blaze does not permit recursive type definitions.</p>
-<p>Datashape types are split into three equivalence classes.</p>
-</div>
+<p>In this type, 3 is is a <tt class="docutils literal"><span class="pre">fixed</span></tt> dimension, which means it is a dimension
+whose size is always as given. Other dimension types include <tt class="docutils literal"><span class="pre">strided</span></tt>
+and <tt class="docutils literal"><span class="pre">var</span></tt>.</p>
+<p>Comparing with NumPy, the array created by
+<tt class="docutils literal"><span class="pre">np.empty((2,</span> <span class="pre">3),</span> <span class="pre">'int32')</span></tt> has datashape <tt class="docutils literal"><span class="pre">2</span> <span class="pre">*</span> <span class="pre">3</span> <span class="pre">*</span> <span class="pre">int32</span></tt>.</p>
 <div class="section" id="records">
 <h3>Records<a class="headerlink" href="#records" title="Permalink to this headline">¶</a></h3>
-<p>Record types are ordered struct-like objects which hold a collection of
-types keyed by labels. Records are also an in the class of <strong>measure</strong>
-types. Records are sugard to look like Python dictionaries but
-are themselves type constructors of variable number of type arguments.</p>
+<p>Record types are ordered struct dtypes which hold a collection of
+types keyed by labels. Records look similar to Python
+dictionaries but the order the names appear is important.</p>
 <p>Example 1:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">Person</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="n">name</span>   <span class="o">:</span> <span class="kt">string</span><span class="o">;</span>
-    <span class="n">age</span>    <span class="o">:</span> <span class="kt">int</span><span class="o">;</span>
-    <span class="n">height</span> <span class="o">:</span> <span class="kt">int</span><span class="o">;</span>
-    <span class="n">weight</span> <span class="o">:</span> <span class="kt">int</span>
-<span class="o">}</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="n">name</span>   <span class="p">:</span> <span class="n">string</span><span class="p">,</span>
+    <span class="n">age</span>    <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weight</span> <span class="p">:</span> <span class="nb">int</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Example 2:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">RGBA</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="n">r</span><span class="o">:</span> <span class="n">int32</span><span class="o">;</span>
-    <span class="n">g</span><span class="o">:</span> <span class="n">int32</span><span class="o">;</span>
-    <span class="n">b</span><span class="o">:</span> <span class="n">int32</span><span class="o">;</span>
-    <span class="n">a</span><span class="o">:</span> <span class="n">int8</span>
-<span class="o">}</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="n">r</span><span class="p">:</span> <span class="n">int8</span><span class="p">,</span>
+    <span class="n">g</span><span class="p">:</span> <span class="n">int8</span><span class="p">,</span>
+    <span class="n">b</span><span class="p">:</span> <span class="n">int8</span><span class="p">,</span>
+    <span class="n">a</span><span class="p">:</span> <span class="n">int8</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Records are themselves types declaration so they can be nested,
 but cannot be self-referential:</p>
 <p>Example 2:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">Point</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="n">x</span> <span class="o">:</span> <span class="kt">int</span><span class="o">;</span>
-    <span class="n">y</span> <span class="o">:</span> <span class="kt">int</span>
-<span class="o">}</span>
-
-<span class="k">type</span> <span class="nc">Space</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="n">a</span><span class="o">:</span> <span class="nc">Point</span><span class="o">;</span>
-    <span class="n">b</span><span class="o">:</span> <span class="nc">Point</span>
-<span class="o">}</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="n">a</span><span class="p">:</span> <span class="p">{</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span> <span class="p">},</span>
+    <span class="n">b</span><span class="p">:</span> <span class="p">{</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="nb">int</span> <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>Or equivalently:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">Space</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="n">a</span><span class="o">:</span> <span class="o">{</span> <span class="n">x</span><span class="o">:</span> <span class="kt">int</span><span class="o">;</span> <span class="n">y</span><span class="o">:</span> <span class="kt">int</span> <span class="o">};</span>
-    <span class="n">b</span><span class="o">:</span> <span class="o">{</span> <span class="n">x</span><span class="o">:</span> <span class="kt">int</span><span class="o">;</span> <span class="n">y</span><span class="o">:</span> <span class="kt">int</span> <span class="o">}</span>
-<span class="o">}</span>
+</div>
+<div class="section" id="datashape-traits">
+<h3>Datashape Traits<a class="headerlink" href="#datashape-traits" title="Permalink to this headline">¶</a></h3>
+<p>While datashape is a very general type system, there are a number
+of patterns a datashape might fit in.</p>
+<p>Tabular datashapes have just one dimension, typically <tt class="docutils literal"><span class="pre">fixed</span></tt> or
+<tt class="docutils literal"><span class="pre">var</span></tt>, followed by a record containing only simple types, not
+nested records. This can be intuitively thought of as data which
+will fit in a SQL table.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">var</span> <span class="o">*</span> <span class="p">{</span> <span class="n">x</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span> <span class="p">:</span> <span class="n">real</span><span class="p">,</span> <span class="n">z</span> <span class="p">:</span> <span class="n">date</span> <span class="p">}</span>
 </pre></div>
 </div>
-<p>Composite datashapes that terminate in record types are called
-<strong>table-like</strong>, while any other terminating type is called
-<strong>array-like</strong>.</p>
-<p>Example of array-like:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">ArrayLike</span> <span class="o">=</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>Example of table-like:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="k">type</span> <span class="nc">TableLike</span> <span class="o">=</span> <span class="o">{</span> <span class="n">x</span> <span class="o">:</span> <span class="kt">int</span><span class="o">;</span> <span class="n">y</span> <span class="o">:</span> <span class="kt">float</span> <span class="o">}</span>
+<p>Homogenous datashapes are arrays that have a simple dtype, the kind
+of data typically used in numeric computations. For example,
+a 3D velocity field might look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="mi">100</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">real</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="type-variables">
 <h3>Type Variables<a class="headerlink" href="#type-variables" title="Permalink to this headline">¶</a></h3>
-<p><strong>Type variables</strong> a seperate class of types expressed as free variables
-scoped within the type signature. Holding type variables as first order
+<p>Type variables are a separate class of types that express free variables
+scoped within type signatures. Holding type variables as first order
 terms in the signatures encodes the fact that a term can be used in many
 concrete contexts with different concrete types.</p>
-<p>Type variables that occur once in a type signature are referred to as
-<strong>free</strong>, while type variables that appear multiple types are <strong>rigid</strong>.</p>
 <p>For example the type capable of expressing all square two dimensional
-matrices could be written as a combination of rigid type vars:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">A</span><span class="o">,</span> <span class="nc">A</span><span class="o">,</span> <span class="n">int32</span>
+matrices could be written as a datashape with type variable <tt class="docutils literal"><span class="pre">A</span></tt>,
+constraining the two dimensions to be the same:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">A</span> <span class="o">*</span> <span class="n">A</span> <span class="o">*</span> <span class="n">int32</span>
 </pre></div>
 </div>
 <p>A type capable of rectangular variable length arrays of integers
 can be written as two free type vars:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">A</span><span class="o">,</span> <span class="nc">B</span><span class="o">,</span> <span class="n">int32</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="sums">
-<h2>Sums<a class="headerlink" href="#sums" title="Permalink to this headline">¶</a></h2>
-<p>A <strong>sum type</strong> is a type representing a collection of heterogeneously
-typed values. There are four instances of sum types in Blaze&#8217;s type
-system:</p>
-<ul class="simple">
-<li><a class="reference internal" href="#variant"><em>Variant</em></a></li>
-<li><a class="reference internal" href="#union"><em>Union</em></a></li>
-<li><a class="reference internal" href="#option"><em>Option</em></a></li>
-<li><a class="reference internal" href="#range"><em>Range</em></a></li>
-</ul>
-<div class="section" id="variant">
-<span id="id1"></span><h3>Variant<a class="headerlink" href="#variant" title="Permalink to this headline">¶</a></h3>
-<p>A <strong>variant</strong> type is a sum type with two tagged parameters <tt class="docutils literal"><span class="pre">left</span></tt> and
-<tt class="docutils literal"><span class="pre">right</span></tt> which represent two possible types. We use the keyword
-<tt class="docutils literal"><span class="pre">Either</span></tt> to represent the type operator. Examples:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">Either</span><span class="o">(</span><span class="kt">float</span><span class="o">,</span><span class="kt">char</span><span class="o">)</span>
-<span class="nc">Either</span><span class="o">(</span><span class="n">int32</span><span class="o">,</span><span class="kt">float</span><span class="o">)</span>
-<span class="nc">Either</span><span class="o">({</span><span class="n">x</span><span class="o">:</span> <span class="kt">int</span><span class="o">},</span> <span class="o">{</span><span class="n">y</span><span class="o">:</span> <span class="kt">float</span><span class="o">})</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="union">
-<span id="id2"></span><h3>Union<a class="headerlink" href="#union" title="Permalink to this headline">¶</a></h3>
-<p>A <strong>union</strong> or <strong>untagged union</strong> is a variant type permitting a
-variable number of variants. Unions behave like unions in C and permit a
-variable number of heterogeneous typed values:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">Union</span><span class="o">(</span><span class="n">int8</span><span class="o">,</span><span class="kt">string</span><span class="o">)</span>
-</pre></div>
-</div>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">Union</span><span class="o">(</span><span class="n">int8</span><span class="o">,</span><span class="n">int16</span><span class="o">,</span><span class="n">int32</span><span class="o">,</span><span class="n">int64</span><span class="o">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">A</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">int32</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="option">
-<span id="id3"></span><h3>Option<a class="headerlink" href="#option" title="Permalink to this headline">¶</a></h3>
-<p>A Option is a tagged union representing with the left projection being
-the presence of a value while the right projection being the absence of
-a values. For example in C, all types can be nulled by using <tt class="docutils literal"><span class="pre">NULL</span></tt>
-reference.</p>
+<h3>Option<a class="headerlink" href="#option" title="Permalink to this headline">¶</a></h3>
+<p>An option type represents data which may be there or not. This is like
+data with <tt class="docutils literal"><span class="pre">NA</span></tt> values in R, or nullable columns in SQL.</p>
 <p>For example a optional int field:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">Option</span><span class="o">(</span><span class="n">int32</span><span class="o">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">option</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Indicates the presense or absense of a integer. For example a (<tt class="docutils literal"><span class="pre">5,</span>
-<span class="pre">Option</span> <span class="pre">int32</span></tt>) array could be model the Python data structure:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="o">[</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="n">na</span><span class="o">,</span> <span class="n">na</span><span class="o">,</span> <span class="mi">4</span><span class="o">]</span>
+<p>Indicates the presense or absense of a integer. For example a
+<tt class="docutils literal"><span class="pre">5</span> <span class="pre">*</span> <span class="pre">option[int]</span></tt> array can model the Python data:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Option types are only defined for type arguments of unit measures and
-Records.</p>
-</div>
-<div class="section" id="range">
-<span id="id4"></span><h3>Range<a class="headerlink" href="#range" title="Permalink to this headline">¶</a></h3>
-<p>Ranges are sum types over intervals of Fixed dimensions types.</p>
-<p>Ranges are heterogeneously fixed dimensions within a lower and upper
-bound.</p>
-<p>Example 1:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">Range</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">5</span><span class="o">)</span>
-</pre></div>
-</div>
-<p>A single argument to range is assumes a lower bound of 0.</p>
-<p>The set of values of integer arrays with dimension less than or equal to
-1000 x 1000 is given by the datashape:</p>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="nc">Range</span><span class="o">(</span><span class="mi">1000</span><span class="o">),</span> <span class="nc">Range</span><span class="o">(</span><span class="mi">1000</span><span class="o">),</span> <span class="n">int32</span>
-</pre></div>
-</div>
-<p>The lower bound must be greater than 0. The upper bound must be
-greater than the lower, but may also be unbounded ( i.e. <tt class="docutils literal"><span class="pre">inf</span></tt> ).</p>
-</div>
-<div class="section" id="stream">
-<h3>Stream<a class="headerlink" href="#stream" title="Permalink to this headline">¶</a></h3>
-<p>Ranges are sum types over shape instead of data.</p>
-<p>A case where a <tt class="docutils literal"><span class="pre">Range</span></tt> has no upper bound signifies a potentially infinite
-<strong>stream</strong> of values. Specialized kernels are needed to deal with data
-of this type.</p>
-</div>
-</div>
-<div class="section" id="faq">
-<h2>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>How do I convert from DataShape to NumPy shape and
-dtype?:</li>
-</ul>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">from</span> <span class="n">datashape</span> <span class="n">import</span> <span class="n">dshape</span><span class="o">,</span> <span class="n">to_numpy</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">dshape</span><span class="o">(</span><span class="s2">&quot;5, 5, int32&quot;</span><span class="o">)</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">to_numpy</span><span class="o">(</span><span class="n">ds</span><span class="o">)</span>
-<span class="o">((</span><span class="mi">5</span><span class="o">,</span> <span class="mi">5</span><span class="o">),</span> <span class="n">dtype</span><span class="o">(</span><span class="k">&#39;</span><span class="n">int32&#39;</span><span class="o">))</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li>How do I convert from Numpy Dtype to Datashape?:</li>
-</ul>
-<div class="highlight-ocaml"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">from</span> <span class="n">datashape</span> <span class="n">import</span> <span class="n">dshape</span><span class="o">,</span> <span class="n">from_numpy</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">from</span> <span class="n">numpy</span> <span class="n">import</span> <span class="n">dtype</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">from_numpy</span><span class="o">((</span><span class="mi">5</span><span class="o">,</span><span class="mi">5</span><span class="o">),</span> <span class="n">dtype</span><span class="o">(</span><span class="k">&#39;</span><span class="n">int32&#39;</span><span class="o">))</span>
-<span class="n">dshape</span><span class="o">(</span><span class="s2">&quot;5, 5, int32&quot;</span><span class="o">)</span>
-</pre></div>
 </div>
 </div>
 </div>
@@ -514,27 +336,17 @@ dtype?:</li>
   <ul>
 <li><a class="reference internal" href="#">Datashape Overview</a><ul>
 <li><a class="reference internal" href="#units">Units</a><ul>
-<li><a class="reference internal" href="#bit-types">Bit Types</a></li>
+<li><a class="reference internal" href="#primitive-types">Primitive Types</a></li>
 <li><a class="reference internal" href="#string-types">String Types</a></li>
-<li><a class="reference internal" href="#endianness">Endianness</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#products">Products</a><ul>
-<li><a class="reference internal" href="#fixed">Fixed</a></li>
-<li><a class="reference internal" href="#constructors">Constructors</a></li>
+<li><a class="reference internal" href="#dimensions">Dimensions</a><ul>
 <li><a class="reference internal" href="#records">Records</a></li>
+<li><a class="reference internal" href="#datashape-traits">Datashape Traits</a></li>
 <li><a class="reference internal" href="#type-variables">Type Variables</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sums">Sums</a><ul>
-<li><a class="reference internal" href="#variant">Variant</a></li>
-<li><a class="reference internal" href="#union">Union</a></li>
 <li><a class="reference internal" href="#option">Option</a></li>
-<li><a class="reference internal" href="#range">Range</a></li>
-<li><a class="reference internal" href="#stream">Stream</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#faq">FAQ</a></li>
 </ul>
 </li>
 </ul>
@@ -542,6 +354,9 @@ dtype?:</li>
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
                         title="previous chapter">Welcome to DataShape&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="grammar.html"
+                        title="next chapter">DataShape Grammar</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/overview.txt"
@@ -571,9 +386,12 @@ dtype?:</li>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="grammar.html" title="DataShape Grammar"
+             >next</a> |</li>
+        <li class="right" >
           <a href="index.html" title="Welcome to DataShape’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">DataShape 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">DataShape 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

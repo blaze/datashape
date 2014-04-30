@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to DataShape’s documentation! &mdash; DataShape 0.1.0 documentation</title>
+    <title>Welcome to DataShape’s documentation! &mdash; DataShape 0.2 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="DataShape 0.1.0 documentation" href="#" />
+    <link rel="top" title="DataShape 0.2 documentation" href="#" />
     <link rel="next" title="Datashape Overview" href="overview.html" /> 
   </head>
   <body>
@@ -38,7 +38,7 @@
         <li class="right" >
           <a href="overview.html" title="Datashape Overview"
              accesskey="N">next</a> |</li>
-        <li><a href="#">DataShape 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="#">DataShape 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,27 +54,71 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Datashape Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="overview.html#units">Units</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#bit-types">Bit Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#primitive-types">Primitive Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="overview.html#string-types">String Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#endianness">Endianness</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#products">Products</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#fixed">Fixed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#constructors">Constructors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#dimensions">Dimensions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="overview.html#records">Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#datashape-traits">Datashape Traits</a></li>
 <li class="toctree-l3"><a class="reference internal" href="overview.html#type-variables">Type Variables</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#sums">Sums</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#variant">Variant</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#union">Union</a></li>
 <li class="toctree-l3"><a class="reference internal" href="overview.html#option">Option</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#range">Range</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#stream">Stream</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#faq">FAQ</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="grammar.html">DataShape Grammar</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html#some-simple-examples">Some Simple Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html#syntactic-sugar">Syntactic Sugar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html#the-datashape-grammar">The DataShape Grammar</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">DataShape Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="types.html#dimension-types">Dimension Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="types.html#fixed-dimension">Fixed Dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#var-dimension">Var Dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#strided-dimension">Strided Dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#type-variables">Type Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#ellipsis">Ellipsis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#dtypes">DTypes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="types.html#boolean-type">Boolean Type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#default-integer">Default Integer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#arbitrary-precision-integer">Arbitrary-Precision Integer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#signed-integer-types">Signed Integer Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#unsigned-integer-types">Unsigned Integer Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#platform-specific-integer-aliases">Platform-Specific Integer Aliases</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#default-floating-point">Default Floating Point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#binary-floating-point">Binary Floating Point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#decimal-floating-point">Decimal Floating Point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#default-complex">Default Complex</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#complex">Complex</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#void">Void</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#string">String</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#character">Character</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#bytes">Bytes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#categorical">Categorical</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#json">JSON</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#records">Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#tuples">Tuples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#function-prototype">Function Prototype</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#id1">Type Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#option-missing-data">Option/Missing Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#pointer">Pointer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#date-time-and-datetime">Date, Time, and DateTime</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pattern_matching.html">Pattern Matching DataShapes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pattern_matching.html#numpy-ldexp-ufunc-example">NumPy <cite>ldexp</cite> UFunc Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern_matching.html#ellipsis-for-broadcasting">Ellipsis for Broadcasting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pattern_matching.html#coercions-broadcasting-as-a-system-of-equations">Coercions/Broadcasting as a System of Equations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pattern_matching.html#disallowing-coercion">Disallowing Coercion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern_matching.html#factoring-a-set-of-signatures">Factoring a Set of Signatures</a></li>
 </ul>
 </li>
 </ul>
@@ -137,7 +181,7 @@
         <li class="right" >
           <a href="overview.html" title="Datashape Overview"
              >next</a> |</li>
-        <li><a href="#">DataShape 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="#">DataShape 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>DataShape Grammar &mdash; DataShape 0.1.0 documentation</title>
+    <title>DataShape Grammar &mdash; DataShape 0.2 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="DataShape 0.1.0 documentation" href="index.html" /> 
+    <link rel="top" title="DataShape 0.2 documentation" href="index.html" />
+    <link rel="next" title="DataShape Types" href="types.html" />
+    <link rel="prev" title="Datashape Overview" href="overview.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,7 +36,13 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="index.html">DataShape 0.1.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="types.html" title="DataShape Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Datashape Overview"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">DataShape 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,50 +53,279 @@
             
   <div class="section" id="datashape-grammar">
 <h1>DataShape Grammar<a class="headerlink" href="#datashape-grammar" title="Permalink to this headline">¶</a></h1>
-<p>The DataShape grammar.</p>
+<p>The datashape language is a DSL which describes the structure of data, abstracted from
+a particular implementation in a language or file format. Compared to the Python
+library NumPy, it combines <cite>shape</cite> and <cite>dtype</cite> together, and introduces a
+syntax for describing structured data.</p>
+<p>Some of the basic features include:</p>
+<ul class="simple">
+<li>Dimensions are separated by asterisks.</li>
+<li>Lists of types are separated by commas.</li>
+<li>Types and Typevars are distinguished by the capitalization of the leading
+character. Lowercase for types, and uppercase for typevars.</li>
+<li>Type constructors operate using square brackets.</li>
+<li>Type constructors accept positional and keyword arguments,
+and their arguments may be:<ul>
+<li>datashape, string, integer, list of datashape, list of string,
+list of integer</li>
+</ul>
+</li>
+<li>In multi-line datashape strings or files, comments start from #
+characters to the end of the line.</li>
+</ul>
+<div class="section" id="some-simple-examples">
+<h2>Some Simple Examples<a class="headerlink" href="#some-simple-examples" title="Permalink to this headline">¶</a></h2>
+<p>Here are some simple examples to motivate the idea:</p>
+<div class="highlight-python"><pre># Scalar types
+bool
+int32
+float64
+
+# Arrays
+3 * 4 * int32
+3 * 4 * int32
+10 * var * float64
+3 * complex[float64]
+
+# Array of Structures
+100 * {
+    name: string,
+    birthday: date,
+    address: {
+        street: string,
+        city: string,
+        postalcode: string,
+        country: string
+    }
+}
+
+# Structure of Arrays
+{
+    x: 100 * 100 * float32,
+    y: 100 * 100 * float32,
+    u: 100 * 100 * float32,
+    v: 100 * 100 * float32,
+}
+
+# Structure with strings for field names
+{
+    &#x27;field 0&#x27;: 100 * float32,
+    &#x27;field 1&#x27;: float32,
+    &#x27;field 2&#x27;: float32,
+}
+
+
+# List of Tuples
+20 * (int32, float64)
+
+# Function prototype
+(3 * int32, float64) -&gt; 3 * float64
+
+# Function prototype with broadcasting dimensions
+(A... * int32, A... * int32) -&gt; A... * int32</pre>
+</div>
+</div>
+<div class="section" id="syntactic-sugar">
+<h2>Syntactic Sugar<a class="headerlink" href="#syntactic-sugar" title="Permalink to this headline">¶</a></h2>
+<p>Many syntax elements in datashape are syntax sugar for particular
+type constructors. For dtypes, this is:</p>
+<div class="highlight-python"><pre>{x : int32, y : int16}    =&gt;   struct[[&#x27;x&#x27;, &#x27;y&#x27;], [int32, int16]]
+(int64, float32)          =&gt;   tuple[[int64, float32]]
+(int64, float32) -&gt; bool  =&gt;   funcproto[[int64, float32], bool]
+DTypeVar                  =&gt;   typevar[&#x27;DTypeVar&#x27;]</pre>
+</div>
+<p>For dims, this is:</p>
+<div class="highlight-python"><pre>3 * int32                 =&gt;   fixed[3] * int32
+DimVar * int32            =&gt;   typevar[&#x27;DimVar&#x27;] * int32
+... * int32               =&gt;   ellipsis * int32
+DimVar... * int32         =&gt;   ellipsis[&#x27;DimVar&#x27;] * int32</pre>
+</div>
+</div>
+<div class="section" id="the-datashape-grammar">
+<h2>The DataShape Grammar<a class="headerlink" href="#the-datashape-grammar" title="Permalink to this headline">¶</a></h2>
+<p>Dimension Type Symbol Table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Variable-sized dimension</span>
+<span class="n">var</span>
+</pre></div>
+</div>
+<p>Data Type Symbol Table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Numeric</span>
+<span class="nb">bool</span>
+<span class="c"># Two&#39;s complement binary integers</span>
+<span class="n">int8</span>
+<span class="n">int16</span>
+<span class="n">int32</span>
+<span class="n">int64</span>
+<span class="n">int128</span>
+<span class="c"># Unsigned binary integers</span>
+<span class="n">uint8</span>
+<span class="n">uint16</span>
+<span class="n">uint32</span>
+<span class="n">uint64</span>
+<span class="n">uint128</span>
+<span class="c"># IEEE 754-2008 binary### floating point binary numbers</span>
+<span class="n">float16</span>
+<span class="n">float32</span>
+<span class="n">float64</span>
+<span class="n">float128</span>
+<span class="c"># IEEE 754-2008 decimal### floating point decimal numbers</span>
+<span class="n">decimal32</span>
+<span class="n">decimal64</span>
+<span class="n">decimal128</span>
+<span class="c"># Arbitrary precision integer</span>
+<span class="n">bignum</span>
+<span class="c"># Alias for int32</span>
+<span class="nb">int</span>
+<span class="c"># Alias for float64</span>
+<span class="n">real</span>
+<span class="c"># Alias for complex[float64]</span>
+<span class="nb">complex</span>
+<span class="c"># Alias for int32 or int64 depending on platform</span>
+<span class="n">intptr</span>
+<span class="c"># Alias for uint32 or uint64 depending on platform</span>
+<span class="n">uintptr</span>
+
+<span class="c"># A unicode string</span>
+<span class="n">string</span>
+<span class="c"># A single unicode code point</span>
+<span class="n">char</span>
+<span class="c"># A blob of bytes</span>
+<span class="nb">bytes</span>
+<span class="c"># A date</span>
+<span class="n">date</span>
+<span class="c"># A string containing JSON</span>
+<span class="n">json</span>
+<span class="c"># No data</span>
+<span class="n">void</span>
+</pre></div>
+</div>
+<p>Data Type Constructor Symbol Table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># complex[float32], complex[type=float64]</span>
+<span class="nb">complex</span>
+<span class="c"># string[&#39;ascii&#39;], string[enc=&#39;cp949&#39;]</span>
+<span class="n">string</span>
+<span class="c"># bytes[size=4,align=2]</span>
+<span class="nb">bytes</span>
+<span class="c"># datetime[unit=&#39;minutes&#39;,tz=&#39;CST&#39;]</span>
+<span class="n">datetime</span>
+<span class="c"># categorical[type=string, values=[&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;]]</span>
+<span class="n">categorical</span>
+<span class="c"># option[float64]</span>
+<span class="n">option</span>
+<span class="c"># pointer[target=2 * 3 * int32]</span>
+<span class="n">pointer</span>
+</pre></div>
+</div>
+<p>Tokens:</p>
+<div class="highlight-python"><pre>NAME_LOWER : [a-z][a-zA-Z0-9_]*
+NAME_UPPER : [A-Z][a-zA-Z0-9_]*
+NAME_OTHER : _[a-zA-Z0-9_]*
+ASTERISK : \*
+COMMA : ,
+EQUAL : =
+COLON : :
+LBRACKET : \[
+RBRACKET : \]
+LBRACE : \{
+RBRACE : \}
+LPAREN : \(
+RPAREN : \)
+ELLIPSIS : \.\.\.
+RARROW : -&gt;
+INTEGER : 0(?![0-9])|[1-9][0-9]*
+STRING : (?:&quot;(?:[^&quot;\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\[&quot;bfnrt]))*&quot;)|(?:\&#x27;(?:[^\&#x27;\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\[&#x27;bfnrt]))*&quot;))*\&#x27;)</pre>
+</div>
 <p>Grammar:</p>
-<div class="highlight-python"><pre>top : mod
+<div class="highlight-python"><pre># Comma-separated list of dimensions, followed by data type
+datashape : dim ASTERISK datashape
+          | dtype
 
-mod : mod mod
-    | stmt
+# Dimension Type (from the dimension type symbol table)
+dim : typevar
+    | ellipsis_typevar
+    | type
+    | type_constr
+    | INTEGER
+    | ELLIPSIS
 
-stmt : TYPE lhs_expression EQUALS rhs_expression
-     | rhs_expression
+# Data Type (from the data type symbol table)
+dtype : typevar
+      | type
+      | type_constr
+      | struct_type
+      | funcproto_or_tuple_type
 
-lhs_expression : lhs_expression lhs_expression
-               | NAME
+# A type variable
+typevar : NAME_UPPER
 
-rhs_expression : rhs_expression_list
+# A type variable with ellipsis
+ellipsis_typevar : NAME_UPPER ELLIPSIS
 
-rhs_expression_list : rhs_expression_list COMMA rhs_expression_list
-               | appl
-               | record
-               | BIT
-               | NAME
-               | NUMBER
+# A bare type (from the data type symbol table)
+type : NAME_LOWER
 
-appl_args : appl_args COMMA appl_args
-          | appl
-          | record
-          | '(' rhs_expression ')'
-          | BIT
-          | NAME
-          | NUMBER
-          | STRING
+# Type Constructor (from the data type constructor symbol table)
+type_constr : NAME_LOWER LBRACKET type_arg_list RBRACKET
 
-appl : NAME '(' appl_args ')'
+# Type Constructor: list of arguments
+type_arg_list : type_arg COMMA type_arg_list
+              | type_kwarg_list
+              | type_arg
 
-record : LBRACE record_opt RBRACE
-record_opt : record_opt SEMI record_opt
-           | record_item
-           | empty
-record_name : NAME
-            | BIT
-            | TYPE
-record_item : record_name COLON '(' rhs_expression ')'
-            | record_name COLON rhs_expression'
+# Type Constructor: list of arguments
+type_kwarg_list : type_kwarg COMMA type_kwarg_list
+                | type_kwarg
 
-empty :</pre>
+# Type Constructor : single argument
+type_arg : datashape
+         | INTEGER
+         | STRING
+         | list_type_arg
+
+# Type Constructor : single keyword argument
+type_kwarg : NAME_LOWER EQUAL type_arg
+
+# Type Constructor : single list argument
+list_type_arg : LBRACKET RBRACKET
+              | LBRACKET datashape_list RBRACKET
+              | LBRACKET integer_list RBRACKET
+              | LBRACKET string_list RBRACKET
+
+datashape_list : datashape COMMA datashape_list
+               | datashape
+
+integer_list : INTEGER COMMA integer_list
+             | INTEGER
+
+string_list : STRING COMMA string_list
+            | STRING
+
+
+# Struct/Record type (allowing for a trailing comma)
+struct_type : LBRACE struct_field_list RBRACE
+            | LBRACE struct_field_list COMMA RBRACE
+
+struct_field_list : struct_field COMMA struct_field_list
+                  | struct_field
+
+struct_field : struct_field_name COLON datashape
+
+struct_field_name : NAME_LOWER
+                  | NAME_UPPER
+                  | NAME_OTHER
+                  | STRING
+
+# Function prototype is a tuple with an arrow to the output type
+funcproto_or_tuple_type : tuple_type RARROW datashape
+                        | tuple_type
+
+# Tuple type (allowing for a trailing comma)
+tuple_type : LPAREN tuple_item_list RPAREN
+           | LPAREN tuple_item_list COMMA RPAREN
+
+tuple_item_list : datashape COMMA tuple_item_list
+                | datashape</pre>
+</div>
 </div>
 </div>
 
@@ -98,6 +335,22 @@ empty :</pre>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">DataShape Grammar</a><ul>
+<li><a class="reference internal" href="#some-simple-examples">Some Simple Examples</a></li>
+<li><a class="reference internal" href="#syntactic-sugar">Syntactic Sugar</a></li>
+<li><a class="reference internal" href="#the-datashape-grammar">The DataShape Grammar</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Datashape Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="types.html"
+                        title="next chapter">DataShape Types</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/grammar.txt"
@@ -126,7 +379,13 @@ empty :</pre>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="index.html">DataShape 0.1.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="types.html" title="DataShape Types"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Datashape Overview"
+             >previous</a> |</li>
+        <li><a href="index.html">DataShape 0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

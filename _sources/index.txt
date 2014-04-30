@@ -9,9 +9,11 @@ Welcome to DataShape's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
   
   overview.rst
+  grammar.rst
+  types.rst
+  pattern_matching.rst
 
 
 Indices and tables
