@@ -2,7 +2,7 @@
 DataShape Types
 ===============
 
-In addition to `defining the grammar <grammar.rst>`_, datashape specifies
+In addition to :doc:`defining the grammar <grammar>`, datashape specifies
 a standard set of types and some properties those types should have.
 Type constructors can be classified as ``dimension`` or ``dtype``, and a
 datashape is always composed of zero or more dimensions followed by
