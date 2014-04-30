@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "DataShape",
-    version = "0.2",
+    version = "0.2.1dev",
     author = "Continuum Analytics",
     author_email = "blaze-dev@continuum.io",
     description = ("A data description language."),
