@@ -130,14 +130,19 @@ def subset_dshape(index, ds):
     >>> print(subset_dshape((slice(0, 5), slice(0, 3), 5),
     ...                     '10 * var * 10 * int32'))
     5 * 3 * int32
+
+    >>> print(subset_dshape(0, '{name: string, amount: int}'))
+    string
     """
 
     if isinstance(ds, str):
         return subset_dshape(index, dshape(ds))
-    if isinstance(index, int):
+    if isinstance(index, int) and isdimension(ds[0]):
         return dshape(ds.subarray(1))
     if isinstance(ds[0], Record) and isinstance(index, str):
         return ds[0][index]
+    if isinstance(ds[0], Record) and isinstance(index, int):
+        return ds[0].parameters[0][index][1]
     if isinstance(index, slice) and isdimension(ds[0]):
         if None in (index.stop, index.start):
             return var * ds.subarray(1)
