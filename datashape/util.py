@@ -99,7 +99,7 @@ def collect(pred, expr):
     >>> from datashape import Unit, dshape
     >>> predicate = lambda term: isinstance(term, Unit)
     >>> dshape = dshape('var * {value: int64, loc: 2 * int32}')
-    >>> sorted(set(collect(predicate, dshape)))
+    >>> sorted(set(collect(predicate, dshape)), key=str)
     [Fixed(2), ctype("int32"), ctype("int64"), Var()]
     """
     if pred(expr):
