@@ -13,6 +13,7 @@ import operator
 import numpy as np
 
 from .py2help import _inttypes, _strtypes, unicode
+from .utils import IndexCallable
 
 
 # Classes of unit types.
@@ -523,6 +524,64 @@ class DataShape(Mono):
         if isinstance(other, _inttypes):
             other = Fixed(other)
         return DataShape(other, *self)
+
+
+    @property
+    def subshape(self):
+        return IndexCallable(self._subshape)
+
+    def _subshape(self, index):
+        """ The DataShape of an indexed subarray
+
+        >>> from datashape import dshape
+
+        >>> ds = dshape('var * {name: string, amount: int32}')
+        >>> print(ds.subshape[0])
+        { name : string, amount : int32 }
+
+        >>> print(ds.subshape[0:3])
+        3 * { name : string, amount : int32 }
+
+        >>> print(ds.subshape[0:7:2, 'amount'])
+        3 * int32
+
+        >>> print(ds.subshape[[1, 10, 15]])
+        3 * { name : string, amount : int32 }
+
+        >>> ds = dshape('{x: int, y: int}')
+        >>> print(ds.subshape['x'])
+        int32
+
+        >>> ds = dshape('10 * var * 10 * int32')
+        >>> print(ds.subshape[0:5, 0:3, 5])
+        5 * 3 * int32
+
+        >>> ds = dshape('{name: string, amount: int}')
+        >>> print(ds.subshape[0])
+        string
+        """
+        if isinstance(index, int) and isdimension(self[0]):
+            return self.subarray(1)
+        if isinstance(self[0], Record) and isinstance(index, str):
+            return self[0][index]
+        if isinstance(self[0], Record) and isinstance(index, int):
+            return self[0].parameters[0][index][1]
+        if isinstance(index, list) and isdimension(self[0]):
+            return len(index) * self.subarray(1)
+        if isinstance(index, slice) and isdimension(self[0]):
+            if None in (index.stop, index.start):
+                return var * self.subarray(1)
+            count = index.stop - index.start
+            if index.step is not None:
+                count //= index.step
+            return count * self.subarray(1)
+        if isinstance(index, tuple):
+            if len(index) == 1:
+                return self._subshape(index[0])
+            else:
+                ds = self.subarray(1)._subshape(index[1:])
+                return (self[0] * ds)._subshape(index[0])
+        raise NotImplementedError()
 
 
 
