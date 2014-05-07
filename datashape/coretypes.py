@@ -1122,3 +1122,7 @@ def type_constructor(ds):
     The type constructor indicates how types unify (see unification.py).
     """
     return type(ds)
+
+
+def isdimension(unit):
+    return isinstance(unit, (Fixed, Var))
