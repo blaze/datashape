@@ -515,7 +515,7 @@ class DataShape(Mono):
             raise IndexError(('Not enough dimensions in data shape '
                             'to remove %d leading dimensions.') % leading)
         elif leading in [len(self.parameters) - 1, -1]:
-            return self.parameters[-1]
+            return DataShape(self.parameters[-1])
         else:
             return DataShape(*self.parameters[leading:])
 
