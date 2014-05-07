@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 from datashape.dispatch import dispatch
 from .coretypes import *
 from .util import dshape
@@ -5,7 +6,7 @@ import sys
 from datetime import date, time, datetime
 
 
-__all__ = ['validate', 'issubschema', 'subset_dshape']
+__all__ = ['validate', 'issubschema']
 
 
 basetypes = np.generic, int, float, str, date, time, datetime
