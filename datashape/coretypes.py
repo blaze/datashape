@@ -559,6 +559,9 @@ class DataShape(Mono):
         >>> ds = dshape('var * {name: string, amount: int32, id: int32}')
         >>> print(ds.subshape[:, [0, 2]])
         var * { name : string, id : int32 }
+
+        >>> print(ds.subshape[0, 1:])
+        { amount : int32, id : int32 }
         """
         if isinstance(index, int) and isdimension(self[0]):
             return self.subarray(1)
@@ -569,6 +572,9 @@ class DataShape(Mono):
         if isinstance(self[0], Record) and isinstance(index, list):
             rec = self[0]
             return DataShape(Record([rec.parameters[0][i] for i in index]))
+        if isinstance(self[0], Record) and isinstance(index, slice):
+            rec = self[0]
+            return DataShape(Record(rec.parameters[0][index]))
         if isinstance(index, list) and isdimension(self[0]):
             return len(index) * self.subarray(1)
         if isinstance(index, slice) and isdimension(self[0]):
