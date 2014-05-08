@@ -13,7 +13,7 @@ import operator
 import numpy as np
 
 from .py2help import _inttypes, _strtypes, unicode
-from .utils import IndexCallable
+from .internal_utils import IndexCallable
 
 
 # Classes of unit types.
