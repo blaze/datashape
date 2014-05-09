@@ -14,7 +14,7 @@ class TestDatashapeOperations(unittest.TestCase):
         self.assertEqual(datashape.dshape('3 * int32').subarray(0),
                          datashape.dshape('3 * int32'))
         self.assertEqual(datashape.dshape('3 * int32').subarray(1),
-                         datashape.int32)
+                         datashape.DataShape(datashape.int32))
         self.assertEqual(str(datashape.dshape('3 * var * M * int32').subarray(2)),
                          str(datashape.dshape('M * int32')))
         self.assertEqual(str(datashape.dshape('3 * var * M * float64').subarray(3)),

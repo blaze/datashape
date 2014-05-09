@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 from datashape.dispatch import dispatch
 from .coretypes import *
 from .util import dshape
@@ -9,10 +10,6 @@ __all__ = ['validate', 'issubschema']
 
 
 basetypes = np.generic, int, float, str, date, time, datetime
-
-
-def isdimension(unit):
-    return isinstance(unit, (Fixed, Var))
 
 
 @dispatch(np.dtype, basetypes)

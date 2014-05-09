@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import print_function, division, absolute_import
 
 """
 This defines the DataShape type system, with unified
@@ -13,6 +13,7 @@ import operator
 import numpy as np
 
 from .py2help import _inttypes, _strtypes, unicode
+from .internal_utils import IndexCallable
 
 
 # Classes of unit types.
@@ -515,7 +516,7 @@ class DataShape(Mono):
             raise IndexError(('Not enough dimensions in data shape '
                             'to remove %d leading dimensions.') % leading)
         elif leading in [len(self.parameters) - 1, -1]:
-            return self.parameters[-1]
+            return DataShape(self.parameters[-1])
         else:
             return DataShape(*self.parameters[leading:])
 
@@ -524,6 +525,72 @@ class DataShape(Mono):
             other = Fixed(other)
         return DataShape(other, *self)
 
+
+    @property
+    def subshape(self):
+        return IndexCallable(self._subshape)
+
+    def _subshape(self, index):
+        """ The DataShape of an indexed subarray
+
+        >>> from datashape import dshape
+
+        >>> ds = dshape('var * {name: string, amount: int32}')
+        >>> print(ds.subshape[0])
+        { name : string, amount : int32 }
+
+        >>> print(ds.subshape[0:3])
+        3 * { name : string, amount : int32 }
+
+        >>> print(ds.subshape[0:7:2, 'amount'])
+        3 * int32
+
+        >>> print(ds.subshape[[1, 10, 15]])
+        3 * { name : string, amount : int32 }
+
+        >>> ds = dshape('{x: int, y: int}')
+        >>> print(ds.subshape['x'])
+        int32
+
+        >>> ds = dshape('10 * var * 10 * int32')
+        >>> print(ds.subshape[0:5, 0:3, 5])
+        5 * 3 * int32
+
+        >>> ds = dshape('var * {name: string, amount: int32, id: int32}')
+        >>> print(ds.subshape[:, [0, 2]])
+        var * { name : string, id : int32 }
+
+        >>> print(ds.subshape[0, 1:])
+        { amount : int32, id : int32 }
+        """
+        if isinstance(index, _inttypes) and isdimension(self[0]):
+            return self.subarray(1)
+        if isinstance(self[0], Record) and isinstance(index, _strtypes):
+            return self[0][index]
+        if isinstance(self[0], Record) and isinstance(index, _inttypes):
+            return self[0].parameters[0][index][1]
+        if isinstance(self[0], Record) and isinstance(index, list):
+            rec = self[0]
+            return DataShape(Record([rec.parameters[0][i] for i in index]))
+        if isinstance(self[0], Record) and isinstance(index, slice):
+            rec = self[0]
+            return DataShape(Record(rec.parameters[0][index]))
+        if isinstance(index, list) and isdimension(self[0]):
+            return len(index) * self.subarray(1)
+        if isinstance(index, slice) and isdimension(self[0]):
+            if None in (index.stop, index.start):
+                return var * self.subarray(1)
+            count = index.stop - index.start
+            if index.step is not None:
+                count //= index.step
+            return count * self.subarray(1)
+        if isinstance(index, tuple):
+            if len(index) == 1:
+                return self._subshape(index[0])
+            else:
+                ds = self.subarray(1)._subshape(index[1:])
+                return (self[0] * ds)._subshape(index[0])
+        raise NotImplementedError()
 
 
 class Option(Mono):
@@ -1122,3 +1189,7 @@ def type_constructor(ds):
     The type constructor indicates how types unify (see unification.py).
     """
     return type(ds)
+
+
+def isdimension(unit):
+    return isinstance(unit, (Fixed, Var))

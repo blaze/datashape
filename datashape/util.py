@@ -12,6 +12,7 @@ from .error import UnificationError
 from .validation import validate
 from . import coretypes
 from itertools import chain
+from .internal_utils import reverse_dict
 
 
 __all__ = ['dshape', 'dshapes', 'has_var_dim', 'has_ellipsis',
@@ -99,7 +100,7 @@ def collect(pred, expr):
     >>> from datashape import Unit, dshape
     >>> predicate = lambda term: isinstance(term, Unit)
     >>> dshape = dshape('var * {value: int64, loc: 2 * int32}')
-    >>> sorted(set(collect(predicate, dshape)))
+    >>> sorted(set(collect(predicate, dshape)), key=str)
     [Fixed(2), ctype("int32"), ctype("int64"), Var()]
     """
     if pred(expr):
@@ -239,20 +240,6 @@ typedict = {ctypes.c_int8:   coretypes.int8,
             ctypes.c_double: coretypes.float64}
 
 
-def reverse_dict(d):
-    """
-
-    >>> reverse_dict({1: 'one', 2: 'two'}) # doctest: +SKIP
-    {'one': 1, 'two': 2}
-    """
-    new = dict()
-    for k, v in d.items():
-        if v in d:
-            raise ValueError("Repated values")
-        new[v] = k
-    return new
-
-
 revtypedict = reverse_dict(typedict)
 
 
@@ -329,6 +316,3 @@ def from_ctypes(ctype):
     else:
         raise TypeError('Cannot convert ctypes %r into '
                         'a blaze datashape' % ctype)
-
-def remove(predicate, seq):
-    return filter(lambda x: not predicate(x), seq)

@@ -1,4 +1,5 @@
-from .util import collect, remove, dshape
+from .util import collect, dshape
+from .internal_utils import remove
 from .coretypes import *
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
