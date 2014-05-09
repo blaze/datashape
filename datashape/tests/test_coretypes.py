@@ -18,7 +18,9 @@ class Test_to_numpy_dtype(unittest.TestCase):
                          np.dtype([('x', '<i4'), ('y', '<i4')]))
 
     def test_datetime(self):
-        self.assertEqual(to_numpy_dtype(dshape('2 * datetime')), np.datetime64)
+        self.assertEqual(to_numpy_dtype(dshape('2 * datetime')),
+                         np.dtype('<M8[us]'))
 
     def test_date(self):
-        self.assertEqual(to_numpy_dtype(dshape('2 * date')), np.datetime64)
+        self.assertEqual(to_numpy_dtype(dshape('2 * date')),
+                         np.dtype('<M8[D]'))
