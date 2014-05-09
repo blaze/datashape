@@ -1,4 +1,6 @@
 from datashape.coretypes import Record
+from datashape import dshape, to_numpy_dtype
+import numpy as np
 import unittest
 
 class TestRecord(unittest.TestCase):
@@ -8,3 +10,15 @@ class TestRecord(unittest.TestCase):
 
     def test_respects_order(self):
         self.assertNotEqual(self.a, self.b)
+
+class Test_to_numpy_dtype(unittest.TestCase):
+    def test_simple(self):
+        self.assertEqual(to_numpy_dtype(dshape('2 * int32')), np.int32)
+        self.assertEqual(to_numpy_dtype(dshape('2 * {x: int32, y: int32}')),
+                         np.dtype([('x', '<i4'), ('y', '<i4')]))
+
+    def test_datetime(self):
+        self.assertEqual(to_numpy_dtype(dshape('2 * datetime')), np.datetime64)
+
+    def test_date(self):
+        self.assertEqual(to_numpy_dtype(dshape('2 * date')), np.datetime64)

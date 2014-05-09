@@ -236,6 +236,9 @@ class Date(Unit):
     def __eq__(self, other):
         return isinstance(other, Date)
 
+    def to_numpy_dtype(self):
+        return np.dtype('datetime64')
+
 
 class Time(Unit):
     """ Time type """
@@ -278,6 +281,9 @@ class DateTime(Unit):
 
     def __eq__(self, other):
         return isinstance(other, DateTime) and self.tz == other.tz
+
+    def to_numpy_dtype(self):
+        return np.dtype('datetime64')
 
 
 class Units(Unit):
