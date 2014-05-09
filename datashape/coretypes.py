@@ -236,6 +236,9 @@ class Date(Unit):
     def __eq__(self, other):
         return isinstance(other, Date)
 
+    def to_numpy_dtype(self):
+        return np.dtype('datetime64[D]')
+
 
 class Time(Unit):
     """ Time type """
@@ -278,6 +281,9 @@ class DateTime(Unit):
 
     def __eq__(self, other):
         return isinstance(other, DateTime) and self.tz == other.tz
+
+    def to_numpy_dtype(self):
+        return np.dtype('datetime64[us]')
 
 
 class Units(Unit):
@@ -560,6 +566,10 @@ class DataShape(Mono):
         >>> print(ds.subshape[:, [0, 2]])
         var * { name : string, id : int32 }
 
+        >>> ds = dshape('var * {name: string, amount: int32, id: int32}')
+        >>> print(ds.subshape[:, ['name', 'id']])
+        var * { name : string, id : int32 }
+
         >>> print(ds.subshape[0, 1:])
         { amount : int32, id : int32 }
         """
@@ -571,6 +581,9 @@ class DataShape(Mono):
             return self[0].parameters[0][index][1]
         if isinstance(self[0], Record) and isinstance(index, list):
             rec = self[0]
+            # Translate strings to corresponding integers
+            index = [self[0].names.index(i) if isinstance(i, _strtypes) else i
+                        for i in index]
             return DataShape(Record([rec.parameters[0][i] for i in index]))
         if isinstance(self[0], Record) and isinstance(index, slice):
             rec = self[0]
@@ -870,8 +883,6 @@ class Record(Mono):
         """
         dk = self.__fnames
         dv = map(to_numpy_dtype, self.__ftypes)
-        # Need to cast to a list for python 3,
-        # because zip returns an iterator
         return np.dtype(list(zip(dk, dv)))
 
     def __getitem__(self, key):
@@ -1080,11 +1091,9 @@ def to_numpy(ds):
     else:
         msr = ds
 
-    if isinstance(msr, CType):
+    try:
         dtype = msr.to_numpy_dtype()
-    elif isinstance(msr, Record):
-        dtype = msr.to_numpy_dtype()
-    else:
+    except AttributeError:
         raise NotNumpyCompatible('DataShape measure %s is not NumPy-compatible' % msr)
 
     if type(dtype) != np.dtype:
