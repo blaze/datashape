@@ -16,7 +16,7 @@ def test_validate():
     assert not validate('2 * int', 2)
 
 def test_nested_iteratables():
-    assert validate('2 * 3 * int', [(1, 2, 3), (4, 5, 6)])
+    assert validate('2 * 3 * int', [(1, 2, 3, 4), (4, 5, 6)])
 
 def test_numeric_tower():
     assert validate(np.integer, np.int32(1))
