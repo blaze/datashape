@@ -563,11 +563,11 @@ class DataShape(Mono):
         >>> print(ds.subshape[0, 1:])
         { amount : int32, id : int32 }
         """
-        if isinstance(index, int) and isdimension(self[0]):
+        if isinstance(index, _inttypes) and isdimension(self[0]):
             return self.subarray(1)
-        if isinstance(self[0], Record) and isinstance(index, str):
+        if isinstance(self[0], Record) and isinstance(index, _strtypes):
             return self[0][index]
-        if isinstance(self[0], Record) and isinstance(index, int):
+        if isinstance(self[0], Record) and isinstance(index, _inttypes):
             return self[0].parameters[0][index][1]
         if isinstance(self[0], Record) and isinstance(index, list):
             rec = self[0]
@@ -591,7 +591,6 @@ class DataShape(Mono):
                 ds = self.subarray(1)._subshape(index[1:])
                 return (self[0] * ds)._subshape(index[0])
         raise NotImplementedError()
-
 
 
 class Option(Mono):
