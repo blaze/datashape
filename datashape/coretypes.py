@@ -877,8 +877,6 @@ class Record(Mono):
         """
         dk = self.__fnames
         dv = map(to_numpy_dtype, self.__ftypes)
-        # Need to cast to a list for python 3,
-        # because zip returns an iterator
         return np.dtype(list(zip(dk, dv)))
 
     def __getitem__(self, key):
@@ -1087,11 +1085,9 @@ def to_numpy(ds):
     else:
         msr = ds
 
-    if isinstance(msr, CType):
+    try:
         dtype = msr.to_numpy_dtype()
-    elif isinstance(msr, Record):
-        dtype = msr.to_numpy_dtype()
-    else:
+    except AttributeError:
         raise NotNumpyCompatible('DataShape measure %s is not NumPy-compatible' % msr)
 
     if type(dtype) != np.dtype:
