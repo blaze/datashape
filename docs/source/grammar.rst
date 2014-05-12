@@ -196,7 +196,7 @@ Tokens::
 
 Grammar::
 
-    # Comma-separated list of dimensions, followed by data type
+    # Asterisk-separated list of dimensions, followed by data type
     datashape : dim ASTERISK datashape
               | dtype
 
