@@ -55,14 +55,14 @@ def test(verbose=False, xunitfile=None, exit=False):
     argv.append('--doctest-modules')
     # Starting directory for where to start test collection
     # is the directory containing this file
-    argv.append(os.path.dirname(__file__))
+    argv.append(os.path.abspath(os.path.dirname(__file__)))
 
     # print versions (handy when reporting problems)
     print('Datashape version: %s' % __version__)
     print('args {0}'.format(argv))
     sys.stdout.flush()
     # py.test execution
-    ret = pytest.main(' '.join(argv))
+    ret = pytest.main(argv)
     if exit:
         import sys
         sys.exit(ret)
