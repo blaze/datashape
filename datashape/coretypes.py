@@ -421,6 +421,9 @@ class String(Unit):
     def __hash__(self):
         return hash((self.fixlen, self.encoding))
 
+    def to_numpy_dtype(self):
+        return np.dtype('O')
+
 
 class DataShape(Mono):
     """The DataShape class, implementation for generic composite
