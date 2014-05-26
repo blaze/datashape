@@ -1,0 +1,21 @@
+package:
+    name: datashape
+    version: "0.2.2"
+
+build:
+    number: {{environ.get('BINSTAR_BUILD', 1)}}
+    script: python setup.py install
+      - cd $RECIPE_DIR
+      - $PYTHON setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+    build:
+      - python
+
+    run:
+      - numpy
+      - multipledispatch
+
+about:
+    home: http://datashape.pydata.org
+    license: BSD
