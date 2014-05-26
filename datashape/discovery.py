@@ -32,3 +32,8 @@ def discover(seq):
     if len(set(types)) == 1:
         return len(seq) * types[0]
     return Tuple(types)
+
+
+@dispatch(dict)
+def discover(d):
+    return Record([[k, discover(d[k])] for k in sorted(d)])

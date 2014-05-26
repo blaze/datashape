@@ -23,6 +23,12 @@ def test_string():
     assert discover('1.0') == discover(1.0)
 
 
+def test_record():
+    assert discover({'name': 'Alice', 'amount': 100}) == \
+            Record([['amount', discover(100)],
+                    ['name', discover('Alice')]])
+
+
 @skip("We don't have logic in datashape for this yet")
 def test_list_many_types():
     assert discover([1, 1.0]*100) == 200 * discover(1.0)
