@@ -7,6 +7,7 @@ def test_simple():
     assert discover(3) == int64
     assert discover(3.0) == float64
     assert discover('Hello') == string
+    assert discover(True) == bool
 
 
 def test_list():
@@ -22,6 +23,8 @@ def test_heterogeneous_ordered_container():
 def test_string():
     assert discover('1') == discover(1)
     assert discover('1.0') == discover(1.0)
+    assert discover('True') == discover(True)
+    assert discover('true') == discover(True)
 
 
 def test_record():

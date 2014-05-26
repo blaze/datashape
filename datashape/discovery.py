@@ -2,6 +2,9 @@ from datashape.coretypes import *
 from multipledispatch import dispatch
 
 
+__all__ = ['discover']
+
+
 @dispatch(int)
 def discover(i):
     return int64
@@ -12,7 +15,18 @@ def discover(f):
     return float64
 
 
-string_coercions = [int, float]
+@dispatch(bool)
+def discover(f):
+    return bool
+
+
+bools = {'False': False,
+         'false': False,
+         'True': True,
+         'true': True}
+
+
+string_coercions = [int, float, bools.__getitem__]
 
 
 @dispatch(str)
