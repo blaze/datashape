@@ -1,6 +1,7 @@
 from datashape.discovery import discover
 from datashape.coretypes import *
 from datashape.py2help import skip
+from datashape import dshape
 
 def test_simple():
     assert discover(3) == int64
@@ -32,3 +33,12 @@ def test_record():
 @skip("We don't have logic in datashape for this yet")
 def test_list_many_types():
     assert discover([1, 1.0]*100) == 200 * discover(1.0)
+
+
+def test_integrative():
+    data = [{'name': 'Alice', 'amount': '100'},
+            {'name': 'Bob', 'amount': '200'},
+            {'name': 'Charlie', 'amount': '300'}]
+
+    assert dshape(discover(data)) == \
+            dshape('3 * {amount: int64, name: string}')
