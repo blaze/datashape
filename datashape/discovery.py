@@ -31,4 +31,4 @@ def discover(seq):
     types = list(map(discover, seq))
     if len(set(types)) == 1:
         return len(seq) * types[0]
-    raise NotImplementedError("Don't know how to find common type yet")
+    return Tuple(types)
