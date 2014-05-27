@@ -1,12 +1,14 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-
-from datashape.coretypes import *
-from multipledispatch import dispatch
-from time import strptime
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date
+from multipledispatch import dispatch
+from time import strptime
+
+from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
+                        Option, isdimension, var, from_numpy, Tuple,
+                        Record, string)
 from .py2help import _strtypes
 
 
