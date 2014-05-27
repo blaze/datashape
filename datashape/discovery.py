@@ -1,5 +1,8 @@
 from datashape.coretypes import *
 from multipledispatch import dispatch
+from time import strptime
+from dateutil.parser import parse as dateparse
+from datetime import datetime, date
 
 
 __all__ = ['discover']
@@ -20,13 +23,18 @@ def discover(f):
     return bool
 
 
+@dispatch(datetime)
+def discover(dt):
+    return datetime_
+
+
 bools = {'False': False,
          'false': False,
          'True': True,
          'true': True}
 
 
-string_coercions = [int, float, bools.__getitem__]
+string_coercions = [int, float, bools.__getitem__, dateparse]
 
 
 @dispatch(str)

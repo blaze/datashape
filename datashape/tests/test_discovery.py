@@ -33,6 +33,24 @@ def test_record():
                     ['name', discover('Alice')]])
 
 
+def test_datetime():
+    inputs = ["1991-02-03 04:05:06",
+              "11/12/1822 06:47:26.00",
+              "1822-11-12T06:47:26",
+              "Fri Dec 19 15:10:11 1997",
+              "Friday, November 11, 2005 17:56:21",
+              "1982-2-20 5:02:00",
+              "20030331 05:59:59.9",
+              "Jul  6 2030  5:55PM",
+              "1994-10-20 T 11:15",
+              "2013-03-04T14:38:05.123",
+              # "15MAR1985:14:15:22",
+              # "201303041438"
+              ]
+    for dt in inputs:
+        assert discover(dt) == datetime_
+
+
 @skip("We don't have logic in datashape for this yet")
 def test_list_many_types():
     assert discover([1, 1.0]*100) == 200 * discover(1.0)
