@@ -81,16 +81,16 @@ def unite(dshapes):
     """
     if len(set(dshapes)) == 1:
         return dshapes[0]
+    if any(ds is None for ds in dshapes):
+        base = unite(list(filter(None, dshapes)))
+        if base:
+            return Option(base)
     if all(isdimension(ds[0]) for ds in dshapes):
         dims = [ds[0] for ds in dshapes]
         if len(set(dims)) == 1:
             return dims[0] * unite([ds.subshape[0] for ds in dshapes])
         else:
             return var * unite([ds.subshape[0] for ds in dshapes])
-    if any(ds is None for ds in dshapes):
-        base = unite(filter(None, dshapes))
-        if base:
-            return Option(base)
 
     if (all(isinstance(ds, Tuple) for ds in dshapes) and
         len(set(map(len, dshapes))) == 1):
@@ -99,9 +99,6 @@ def unite(dshapes):
         print(bases)
         if not any(b is None for b in bases):
             return Tuple(bases)
-
-
-
 
 
 @dispatch(dict)
