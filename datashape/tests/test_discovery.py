@@ -84,9 +84,13 @@ def test_unite():
     assert unite([3 * (2 * int32), 2 * (2 * int32)]) == var * (2 * int32)
 
     assert unite([int32, None, int32]) == Option(int32)
+    assert not unite([string, None, int32])
+
+    assert unite((Tuple([int32, int32, string]),
+                  Tuple([int32, None, None]),
+                  Tuple([int32, int32, string]))) == \
+                    Tuple([int32, Option(int32), Option(string)])
 
 
 def test_dshape_missing_data():
-    print(dshape(discover([1, 2, '', 3])))
-    print(dshape(4 * Option(discover(1))))
     assert dshape(discover([1, 2, '', 3])) == dshape(4 * Option(discover(1)))
