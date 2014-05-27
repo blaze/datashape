@@ -6,8 +6,9 @@ from datashape import dshape
 def test_simple():
     assert discover(3) == int64
     assert discover(3.0) == float64
+    assert discover(3.0 + 1j) == complex128
     assert discover('Hello') == string
-    assert discover(True) == bool
+    assert discover(True) == bool_
 
 
 def test_list():

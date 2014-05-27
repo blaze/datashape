@@ -19,8 +19,13 @@ def discover(f):
 
 
 @dispatch(bool)
-def discover(f):
-    return bool
+def discover(b):
+    return bool_
+
+
+@dispatch(complex)
+def discover(z):
+    return complex128
 
 
 @dispatch(datetime)
