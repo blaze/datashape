@@ -5,6 +5,7 @@ from multipledispatch import dispatch
 from time import strptime
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date
+from ..py2help import _strtypes
 
 
 __all__ = ['discover']
@@ -44,7 +45,7 @@ bools = {'False': False,
 string_coercions = [int, float, bools.__getitem__, dateparse]
 
 
-@dispatch(str)
+@dispatch(_strtypes)
 def discover(s):
     for f in string_coercions:
         try:
