@@ -1,3 +1,5 @@
+import numpy as np
+
 from datashape.coretypes import *
 from multipledispatch import dispatch
 from time import strptime
@@ -64,3 +66,13 @@ def discover(seq):
 @dispatch(dict)
 def discover(d):
     return Record([[k, discover(d[k])] for k in sorted(d)])
+
+
+@dispatch(np.number)
+def discover(n):
+    return from_numpy((), type(n))
+
+
+@dispatch(np.ndarray)
+def discover(X):
+    return from_numpy(X.shape, X.dtype)

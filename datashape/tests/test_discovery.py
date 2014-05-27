@@ -1,3 +1,5 @@
+import numpy as np
+
 from datashape.discovery import discover
 from datashape.coretypes import *
 from datashape.py2help import skip
@@ -64,3 +66,12 @@ def test_integrative():
 
     assert dshape(discover(data)) == \
             dshape('3 * {amount: int64, name: string}')
+
+
+def test_numpy_scalars():
+    assert discover(np.int32(1)) == int32
+    assert discover(np.float64(1)) == float64
+
+
+def test_numpy_array():
+    assert discover(np.ones((3, 2), dtype=np.int32)) == dshape('3 * 2 * int32')
