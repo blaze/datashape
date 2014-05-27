@@ -1,3 +1,5 @@
+from __future__ import print_function, division, absolute_import
+
 import numpy as np
 
 from datashape.coretypes import *
@@ -5,7 +7,7 @@ from multipledispatch import dispatch
 from time import strptime
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date
-from ..py2help import _strtypes
+from .py2help import _strtypes
 
 
 __all__ = ['discover']
@@ -47,6 +49,8 @@ string_coercions = [int, float, bools.__getitem__, dateparse]
 
 @dispatch(_strtypes)
 def discover(s):
+    if not s:
+        return None
     for f in string_coercions:
         try:
             return discover(f(s))
@@ -59,9 +63,32 @@ def discover(s):
 @dispatch((tuple, list))
 def discover(seq):
     types = list(map(discover, seq))
-    if len(set(types)) == 1:
-        return len(seq) * types[0]
-    return Tuple(types)
+    typ = unite(types)
+    if not typ:
+        return Tuple(types)
+    else:
+        return len(types) * typ
+
+
+def unite(dshapes):
+    """ Unite possibly disparate datashapes to common denominator
+
+    >>> unite([10 * (2 * int32), 20 * (2 * int32)])
+    dshape("var * 2 * int32")
+
+    >>> unite([int32, int32, None, int32])
+    option[int32]
+    """
+    if len(set(dshapes)) == 1:
+        return dshapes[0]
+    if all(isdimension(ds[0]) for ds in dshapes):
+        dims = [ds[0] for ds in dshapes]
+        if len(set(dims)) == 1:
+            return dims[0] * unite([ds.subshape[0] for ds in dshapes])
+        else:
+            return var * unite([ds.subshape[0] for ds in dshapes])
+    if any(ds is None for ds in dshapes):
+        return Option(unite(filter(None, dshapes)))
 
 
 @dispatch(dict)

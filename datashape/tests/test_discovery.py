@@ -1,6 +1,6 @@
 import numpy as np
 
-from datashape.discovery import discover
+from datashape.discovery import discover, unite
 from datashape.coretypes import *
 from datashape.py2help import skip
 from datashape import dshape
@@ -75,3 +75,18 @@ def test_numpy_scalars():
 
 def test_numpy_array():
     assert discover(np.ones((3, 2), dtype=np.int32)) == dshape('3 * 2 * int32')
+
+
+def test_unite():
+    assert unite([int32, int32, int32]) == int32
+    assert unite([3 * int32, 2 * int32]) == var * int32
+    assert unite([2 * int32, 2 * int32]) == 2 * int32
+    assert unite([3 * (2 * int32), 2 * (2 * int32)]) == var * (2 * int32)
+
+    assert unite([int32, None, int32]) == Option(int32)
+
+
+def test_dshape_missing_data():
+    print(dshape(discover([1, 2, '', 3])))
+    print(dshape(4 * Option(discover(1))))
+    assert dshape(discover([1, 2, '', 3])) == dshape(4 * Option(discover(1)))
