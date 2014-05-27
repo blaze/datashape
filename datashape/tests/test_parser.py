@@ -82,9 +82,22 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
     def test_option(self):
         self.assertEqual(parse('option[int32]', self.sym),
                          ct.DataShape(ct.Option(ct.int32)))
+        self.assertEqual(parse('?int32', self.sym),
+                         ct.DataShape(ct.Option(ct.int32)))
         self.assertEqual(parse('2 * 3 * option[int32]', self.sym),
                          ct.DataShape(ct.Fixed(2), ct.Fixed(3),
                                      ct.Option(ct.int32)))
+        self.assertEqual(parse('2 * 3 * ?int32', self.sym),
+                         ct.DataShape(ct.Fixed(2), ct.Fixed(3),
+                                     ct.Option(ct.int32)))
+        self.assertEqual(parse('2 * option[3 * int32]', self.sym),
+                         ct.DataShape(ct.Fixed(2),
+                                      ct.Option(ct.DataShape(ct.Fixed(3),
+                                                             ct.int32))))
+        self.assertEqual(parse('2 * ?3 * int32', self.sym),
+                         ct.DataShape(ct.Fixed(2),
+                                      ct.Option(ct.DataShape(ct.Fixed(3),
+                                                             ct.int32))))
 
     def test_raise(self):
         self.assertRaises(datashape.DataShapeSyntaxError,

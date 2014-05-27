@@ -36,6 +36,11 @@ Here are some simple examples to motivate the idea::
     int32
     float64
 
+    # Scalar types with missing data/NA support
+    ?bool
+    ?float32
+    ?complex
+
     # Arrays
     3 * 4 * int32
     3 * 4 * int32
@@ -69,8 +74,7 @@ Here are some simple examples to motivate the idea::
         'field 2': float32,
     }
 
-
-    # List of Tuples
+    # Array of Tuples
     20 * (int32, float64)
 
     # Function prototype
@@ -89,6 +93,8 @@ type constructors. For dtypes, this is::
     (int64, float32)          =>   tuple[[int64, float32]]
     (int64, float32) -> bool  =>   funcproto[[int64, float32], bool]
     DTypeVar                  =>   typevar['DTypeVar']
+    ?int32                    =>   option[int32]
+    2 * ?3 * int32            =>   2 * option[3 * int32]
 
 For dims, this is::
 
@@ -104,6 +110,12 @@ Dimension Type Symbol Table::
 
     # Variable-sized dimension
     var
+
+Dimension Type Constructor Symbol Table::
+
+    # Arrays which are either missing or fully there
+    # option[3 * int32]
+    option
 
 Data Type Symbol Table::
 
@@ -190,15 +202,20 @@ Tokens::
     RPAREN : \)
     ELLIPSIS : \.\.\.
     RARROW : ->
+    QUESTIONMARK : ?
     INTEGER : 0(?![0-9])|[1-9][0-9]*
     STRING : (?:"(?:[^"\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\["bfnrt]))*")|(?:\'(?:[^\'\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\['bfnrt]))*"))*\')
 
 
 Grammar::
 
+    # Datashape may start with a '?' or not to signal optionality
+    datashape : datashape_nooption
+              | QUESTIONMARK datashape_nooption
+
     # Asterisk-separated list of dimensions, followed by data type
-    datashape : dim ASTERISK datashape
-              | dtype
+    datashape_nooption : dim ASTERISK datashape
+                       | dtype
 
     # Dimension Type (from the dimension type symbol table)
     dim : typevar

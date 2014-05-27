@@ -292,7 +292,10 @@ Option/Missing Data
 ``option[float32]``
 
 Constructs a type based on the provided type which may have missing
-values.
+values. ``?float32`` is syntactic sugar for ``option[float32]``.
+
+The type inside the option parameter may also have its own dimensions,
+for example ``?3 * float32`` is syntactic sugar for ``option[3 * float32]``.
 
 Pointer
 -------
