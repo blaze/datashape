@@ -43,6 +43,11 @@ def discover(dt):
     return datetime_
 
 
+@dispatch((type(None), Null))
+def discover(i):
+    return null
+
+
 bools = {'False': False,
          'false': False,
          'True': True,
@@ -96,10 +101,12 @@ def unite(dshapes):
     try:
         if all(isdimension(ds[0]) for ds in dshapes):
             dims = [ds[0] for ds in dshapes]
-            if len(set(dims)) == 1:
-                return dims[0] * unite([ds.subshape[0] for ds in dshapes])
-            else:
-                return var * unite([ds.subshape[0] for ds in dshapes])
+            base = unite([ds.subshape[0] for ds in dshapes])
+            if base:
+                if len(set(dims)) == 1:
+                    return dims[0] * unite([ds.subshape[0] for ds in dshapes])
+                else:
+                    return var * unite([ds.subshape[0] for ds in dshapes])
     except KeyError:
         pass
 

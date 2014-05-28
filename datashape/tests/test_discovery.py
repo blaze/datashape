@@ -11,6 +11,7 @@ def test_simple():
     assert discover(3.0 + 1j) == complex128
     assert discover('Hello') == string
     assert discover(True) == bool_
+    assert discover(None) == null
 
 
 def test_list():
@@ -82,6 +83,9 @@ def test_unite():
     assert unite([3 * int32, 2 * int32]) == var * int32
     assert unite([2 * int32, 2 * int32]) == 2 * int32
     assert unite([3 * (2 * int32), 2 * (2 * int32)]) == var * (2 * int32)
+
+def test_unite_fails_gracefully():
+    assert not unite([2 * int32, 2 * (2 * int32)])
 
 
 def test_unite_missing_values():
