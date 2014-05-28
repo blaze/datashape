@@ -8,11 +8,14 @@ from time import strptime
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple,
-                        Record, string)
+                        Record, string, Null, DataShape)
 from .py2help import _strtypes
 
 
 __all__ = ['discover']
+
+
+null = Null()
 
 
 @dispatch(int)
@@ -52,7 +55,7 @@ string_coercions = [int, float, bools.__getitem__, dateparse]
 @dispatch(_strtypes)
 def discover(s):
     if not s:
-        return None
+        return null
     for f in string_coercions:
         try:
             return discover(f(s))
@@ -71,6 +74,9 @@ def discover(seq):
     else:
         return len(types) * typ
 
+def isnull(ds):
+    return ds == null or ds == DataShape(null)
+
 
 def unite(dshapes):
     """ Unite possibly disparate datashapes to common denominator
@@ -78,29 +84,42 @@ def unite(dshapes):
     >>> unite([10 * (2 * int32), 20 * (2 * int32)])
     dshape("var * 2 * int32")
 
-    >>> unite([int32, int32, None, int32])
+    >>> unite([int32, int32, null, int32])
     option[int32]
     """
     if len(set(dshapes)) == 1:
         return dshapes[0]
-    if any(ds is None for ds in dshapes):
-        base = unite(list(filter(None, dshapes)))
+    if any(map(isnull, dshapes)):
+        base = unite(list(filter(lambda x: not isnull(x), dshapes)))
         if base:
             return Option(base)
-    if all(isdimension(ds[0]) for ds in dshapes):
-        dims = [ds[0] for ds in dshapes]
-        if len(set(dims)) == 1:
-            return dims[0] * unite([ds.subshape[0] for ds in dshapes])
-        else:
-            return var * unite([ds.subshape[0] for ds in dshapes])
+    try:
+        if all(isdimension(ds[0]) for ds in dshapes):
+            dims = [ds[0] for ds in dshapes]
+            if len(set(dims)) == 1:
+                return dims[0] * unite([ds.subshape[0] for ds in dshapes])
+            else:
+                return var * unite([ds.subshape[0] for ds in dshapes])
+    except KeyError:
+        pass
 
     if (all(isinstance(ds, Tuple) for ds in dshapes) and
         len(set(map(len, dshapes))) == 1):
         bases = [unite([ds.dshapes[i] for ds in dshapes])
                                       for i in range(len(dshapes))]
-        print(bases)
-        if not any(b is None for b in bases):
+        if not any(b is null for b in bases):
             return Tuple(bases)
+
+    if (all(isinstance(ds, Record) for ds in dshapes) and
+            len(set(tuple(ds.names) for ds in dshapes)) == 1): # same names
+        names = dshapes[0].names
+        print([[ds.fields[name] for ds in dshapes]
+                                for name in names])
+        values = [unite([ds.fields[name] for ds in dshapes])
+                                         for name in names]
+        if not any(v is null for v in values):
+            return Record(list(zip(names, values)))
+
 
 
 @dispatch(dict)

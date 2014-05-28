@@ -1,6 +1,6 @@
 import numpy as np
 
-from datashape.discovery import discover, unite
+from datashape.discovery import discover, unite, null
 from datashape.coretypes import *
 from datashape.py2help import skip
 from datashape import dshape
@@ -83,14 +83,22 @@ def test_unite():
     assert unite([2 * int32, 2 * int32]) == 2 * int32
     assert unite([3 * (2 * int32), 2 * (2 * int32)]) == var * (2 * int32)
 
-    assert unite([int32, None, int32]) == Option(int32)
-    assert not unite([string, None, int32])
 
+def test_unite_missing_values():
+    assert unite([int32, null, int32]) == Option(int32)
+    assert not unite([string, null, int32])
+
+
+def test_unite_tuples():
     assert unite((Tuple([int32, int32, string]),
-                  Tuple([int32, None, None]),
+                  Tuple([int32, null, null]),
                   Tuple([int32, int32, string]))) == \
                     Tuple([int32, Option(int32), Option(string)])
 
+def test_unite_records():
+    assert unite((Record([['name', string], ['balance', int32]]),
+                  Record([['name', string], ['balance', null]]))) == \
+                    Record([['name', string], ['balance', Option(int32)]])
 
 def test_dshape_missing_data():
     assert dshape(discover([1, 2, '', 3])) == dshape(4 * Option(discover(1)))
