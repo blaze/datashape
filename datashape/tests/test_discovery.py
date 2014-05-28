@@ -98,6 +98,11 @@ def test_unite_tuples():
                   Tuple([int32, int32, string]))) == \
                     Tuple([int32, Option(int32), Option(string)])
 
+    assert unite((Tuple([int32, int32, string, int32]),
+                  Tuple([int32, null, null, int32]),
+                  Tuple([int32, int32, string, int32]))) == \
+                    Tuple([int32, Option(int32), Option(string), int32])
+
 def test_unite_records():
     assert unite((Record([['name', string], ['balance', int32]]),
                   Record([['name', string], ['balance', null]]))) == \

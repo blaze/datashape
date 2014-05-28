@@ -115,7 +115,7 @@ def unite(dshapes):
     if (all(isinstance(ds, Tuple) for ds in dshapes) and
         len(set(map(len, dshapes))) == 1):  # same length
         bases = [unite([ds.dshapes[i] for ds in dshapes])
-                                      for i in range(len(dshapes))]
+                                      for i in range(len(dshapes[0].dshapes))]
         if not any(b is null for b in bases):
             return Tuple(bases)
 
