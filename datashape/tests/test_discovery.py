@@ -104,5 +104,18 @@ def test_unite_records():
                   Record([['name', string], ['balance', null]]))) == \
                     Record([['name', string], ['balance', Option(int32)]])
 
+    # assert unite((Record([['name', string], ['balance', int32]]),
+    #               Record([['name', string]]))) == \
+    #                 Record([['name', string], ['balance', Option(int32)]])
+
+
+def test_unite_mixed():
+    assert unite([int32, int32, string, string] * 10) == string
+
+
 def test_dshape_missing_data():
     assert dshape(discover([1, 2, '', 3])) == dshape(4 * Option(discover(1)))
+
+
+def test_discover_mixed():
+    assert dshape(discover([1, 2, 1.0, 2.0] * 10)) == 40 * float64

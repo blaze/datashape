@@ -123,10 +123,28 @@ def unite(dshapes):
     if (all(isinstance(ds, Record) for ds in dshapes) and
             len(set(tuple(ds.names) for ds in dshapes)) == 1): # same names
         names = dshapes[0].names
-        values = [unite([ds.fields[name] for ds in dshapes])
-                                         for name in names]
+        values = [unite([unpack(ds.fields[name]) for ds in dshapes])
+                                                 for name in names]
         if not any(v is null for v in values):
             return Record(list(zip(names, values)))
+
+    if len(dshapes) > 10:
+        return lowest_common_dshape(dshapes)
+
+
+def unpack(ds):
+    """ Unpack DataShape constructor if unnecessary
+
+    Record packs inputs in DataShape containers.  This unpacks it.
+
+    >>> from datashape import dshape
+    >>> unpack(dshape('string'))
+    ctype("string")
+    """
+    if isinstance(ds, DataShape) and len(ds) == 1:
+        return ds[0]
+    else:
+        return ds
 
 
 @dispatch(dict)
