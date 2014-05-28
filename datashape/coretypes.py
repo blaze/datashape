@@ -53,11 +53,31 @@ class Mono(object):
 
         type(datashape_type)(*type.parameters)
     """
+
     composite = False
     __metaclass__ = Type
 
     def __init__(self, *params):
-        self.parameters = params
+        self._parameters = params
+
+    @property
+    def parameters(self):
+        if hasattr(self, '__slots__'):
+            return tuple(getattr(self, slot) for slot in self.__slots__)
+        else:
+            return self._parameters
+
+    def info(self):
+        return type(self), self.parameters
+
+    def __eq__(self, other):
+        return self.info() == other.info()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.info())
 
     @property
     def shape(self):
@@ -133,13 +153,10 @@ class Ellipsis(Mono):
         A... * float32   # float32 array w/ any number of dimensions,
                         # associated with type variable A
     """
+    __slots__ = 'typevar',
 
     def __init__(self, typevar=None):
-        self.parameters = (typevar,)
-
-    @property
-    def typevar(self):
-        return self.parameters[0]
+        self.typevar = typevar
 
     def __str__(self):
         if self.typevar:
@@ -148,15 +165,6 @@ class Ellipsis(Mono):
 
     def __repr__(self):
         return 'Ellipsis("%s")' % (str(self),)
-
-    def __eq__(self, other):
-        if isinstance(other, Ellipsis):
-             return self.parameters == other.parameters
-        else:
-            return False
-
-    def __hash__(self):
-        return hash((self.parameters[0], '...'))
 
 
 class Null(Unit):
@@ -176,11 +184,11 @@ class IntegerConstant(Unit):
         1, int32   # 1 is Fixed
 
     """
+    __slots__ = 'val',
     cls = None
 
     def __init__(self, i):
         assert isinstance(i, _inttypes)
-        self.parameters = (i,)
         self.val = i
 
     def __str__(self):
@@ -205,10 +213,10 @@ class StringConstant(Unit):
     ::
         string(3, "utf-8")   # "utf-8" is StringConstant
     """
+    __slots__ = 'val',
 
     def __init__(self, i):
         assert isinstance(i, _strtypes)
-        self.parameters = (i,)
         self.val = i
 
     def __str__(self):
@@ -229,12 +237,10 @@ class StringConstant(Unit):
 class Date(Unit):
     """ Date type """
     cls = MEASURE
+    __slots__ = ()
 
     def __str__(self):
         return 'date'
-
-    def __eq__(self, other):
-        return isinstance(other, Date)
 
     def to_numpy_dtype(self):
         return np.dtype('datetime64[D]')
@@ -243,13 +249,13 @@ class Date(Unit):
 class Time(Unit):
     """ Time type """
     cls = MEASURE
+    __slots__ = 'tz',
 
     def __init__(self, tz=None):
         if tz is not None and not isinstance(tz, _strtypes):
             raise ValueError('tz parameter to time datashape must be a string')
         # TODO validate against Olson tz database
         self.tz = tz
-        self.parameters = (tz,)
 
     def __str__(self):
         if self.tz is None:
@@ -257,13 +263,11 @@ class Time(Unit):
         else:
             return 'time[tz=%r]' % self.tz
 
-    def __eq__(self, other):
-        return isinstance(other, Time) and self.tz == other.tz
-
 
 class DateTime(Unit):
     """ DateTime type """
     cls = MEASURE
+    __slots__ = 'tz',
 
     def __init__(self, tz=None):
         if tz is not None and not isinstance(tz, _strtypes):
@@ -271,16 +275,12 @@ class DateTime(Unit):
                              'must be a string')
         # TODO validate against Olson tz database
         self.tz = tz
-        self.parameters = (tz,)
 
     def __str__(self):
         if self.tz is None:
             return 'datetime'
         else:
             return 'datetime[tz=%r]' % self.tz
-
-    def __eq__(self, other):
-        return isinstance(other, DateTime) and self.tz == other.tz
 
     def to_numpy_dtype(self):
         return np.dtype('datetime64[us]')
@@ -289,6 +289,7 @@ class DateTime(Unit):
 class Units(Unit):
     """ Units type for values with physical units """
     cls = MEASURE
+    __slots__ = 'unit', 'tp'
 
     def __init__(self, unit, tp=None):
         if not isinstance(unit, _strtypes):
@@ -301,7 +302,6 @@ class Units(Unit):
                              'must be a datashape type')
         self.unit = unit
         self.tp = tp
-        self.parameters = (unit, tp)
 
     def __str__(self):
         if self.tp == DataShape(float64):
@@ -309,21 +309,14 @@ class Units(Unit):
         else:
             return 'units[%r, %s]' % (self.unit, self.tp)
 
-    def __eq__(self, other):
-        return (isinstance(other, Units) and
-                self.unit == other.unit and
-                self.tp == other.tp)
-
 
 class Bytes(Unit):
     """ Bytes type """
     cls = MEASURE
+    __slots__ = ()
 
     def __str__(self):
         return 'bytes'
-
-    def __eq__(self, other):
-        return isinstance(other, Bytes)
 
 
 _canonical_string_encodings = {
@@ -347,6 +340,7 @@ _canonical_string_encodings = {
 class String(Unit):
     """ String container """
     cls = MEASURE
+    __slots__ = 'fixlen', 'encoding'
 
     def __init__(self, fixlen=None, encoding=None):
         # TODO: Do this constructor better...
@@ -354,7 +348,6 @@ class String(Unit):
             # String()
             self.fixlen = None
             self.encoding = u'U8'
-            self.parameters = (self.encoding,)
         elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
                         encoding is None:
             # String(fixlen)
@@ -363,7 +356,6 @@ class String(Unit):
             else:
                 self.fixlen = fixlen
             self.encoding = u'U8'
-            self.parameters = (self.fixlen, self.encoding,)
         elif isinstance(fixlen, _strtypes + (StringConstant,)) and \
                         encoding is None:
             # String('encoding')
@@ -372,7 +364,6 @@ class String(Unit):
                 self.encoding = fixlen.val
             else:
                 self.encoding = unicode(fixlen)
-            self.parameters = (self.encoding,)
         elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
                         isinstance(encoding, _strtypes + (StringConstant,)):
             # String(fixlen, 'encoding')
@@ -384,7 +375,6 @@ class String(Unit):
                 self.encoding = encoding.val
             else:
                 self.encoding = unicode(encoding)
-            self.parameters = (self.fixlen, self.encoding,)
         else:
             raise ValueError(('Unexpected types to String constructor '
                             '(%s, %s)') % (type(fixlen), type(encoding)))
@@ -411,16 +401,6 @@ class String(Unit):
     def __repr__(self):
         return ''.join(["ctype(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
 
-    def __eq__(self, other):
-        if type(other) is String:
-            return self.fixlen == other.fixlen and \
-                            self.encoding == other.encoding
-        else:
-            return False
-
-    def __hash__(self):
-        return hash((self.fixlen, self.encoding))
-
     def to_numpy_dtype(self):
         return np.dtype('O')
 
@@ -434,12 +414,12 @@ class DataShape(Mono):
 
     def __init__(self, *parameters, **kwds):
         if len(parameters) > 0:
-            self.parameters = tuple(parameters)
-            if getattr(self.parameters[-1], 'cls', MEASURE) != MEASURE:
+            self._parameters = tuple(parameters)
+            if getattr(self._parameters[-1], 'cls', MEASURE) != MEASURE:
                 raise TypeError(('Only a measure can appear on the'
                                 ' last position of a datashape, not %s') %
-                                repr(self.parameters[-1]))
-            for dim in self.parameters[:-1]:
+                                repr(self._parameters[-1]))
+            for dim in self._parameters[:-1]:
                 if getattr(dim, 'cls', DIMENSION) != DIMENSION:
                     raise TypeError(('Only dimensions can appear before the'
                                     ' last position of a datashape, not %s') %
@@ -474,21 +454,6 @@ class DataShape(Mono):
             res = (' * '.join(map(str, self.parameters)))
 
         return res
-
-    def __eq__(self, other):
-        if isinstance(other, DataShape):
-            return self.parameters == other.parameters
-        elif isinstance(other, Mono):
-            return False
-        else:
-            raise TypeError(('Cannot compare non-datashape '
-                            'type %s to datashape') % type(other))
-
-    def __hash__(self):
-        return hash(tuple(a for a in self))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __repr__(self):
         return ''.join(["dshape(\"",
@@ -614,6 +579,7 @@ class Option(Mono):
     Measure types which may or may not hold data. Makes no
     indication of how this is implemented in memory.
     """
+    __slots__ = 'ty',
 
     def __init__(self, ds):
         if isinstance(ds, DataShape) and len(ds) == 1:
@@ -622,7 +588,6 @@ class Option(Mono):
         if not ds.cls == MEASURE:
             raise TypeError('Option only takes measure argument')
 
-        self.parameters = (ds,)
         self.ty = ds
 
     def __str__(self):
@@ -631,17 +596,6 @@ class Option(Mono):
     def __repr__(self):
         return str(self)
 
-    def __eq__(self, other):
-        if type(other) is Option:
-            return self.ty == other.ty
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash(('option', self.ty))
 
 
 class CType(Unit):
@@ -649,13 +603,13 @@ class CType(Unit):
     Symbol for a sized type mapping uniquely to a native type.
     """
     cls = MEASURE
+    __slots__ = 'name', '_itemsize', '_alignment'
 
     def __init__(self, name, itemsize, alignment):
         self.name = name
         self._itemsize = itemsize
         self._alignment = alignment
         Type.register(name, self)
-        self.parameters = (name,)
 
     @classmethod
     def from_numpy_dtype(self, dt):
@@ -700,24 +654,13 @@ class CType(Unit):
     def __repr__(self):
         return ''.join(["ctype(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
 
-    def __eq__(self, other):
-        if type(other) is CType:
-            return self.name == other.name
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash(self.name)
-
 
 class Fixed(Unit):
     """
     Fixed dimension.
     """
     cls = DIMENSION
+    __slots__ = 'val',
 
     def __init__(self, i):
         # Use operator.index, so Python integers, numpy int scalars, etc work
@@ -727,7 +670,6 @@ class Fixed(Unit):
             raise ValueError('Fixed dimensions must be positive')
 
         self.val = i
-        self.parameters = (self.val,)
 
     def __index__(self):
         return self.val
@@ -743,8 +685,7 @@ class Fixed(Unit):
         else:
             return False
 
-    def __hash__(self):
-        return hash(self.val)
+    __hash__ = Mono.__hash__
 
     def __str__(self):
         return str(self.val)
@@ -753,15 +694,10 @@ class Fixed(Unit):
 class Var(Unit):
     """ Variable dimension """
     cls = DIMENSION
+    __slots__ = ()
 
     def __str__(self):
         return 'var'
-
-    def __eq__(self, other):
-        return isinstance(other, Var)
-
-    def __hash__(self):
-        return id(Var)
 
 
 class TypeVar(Unit):
@@ -769,28 +705,19 @@ class TypeVar(Unit):
     A free variable in the signature. Not user facing.
     """
     # cls could be MEASURE or DIMENSION, depending on context
+    __slots__ = 'symbol',
 
     def __init__(self, symbol):
         if not symbol[0].isupper():
             raise ValueError(('TypeVar symbol %r does not ' +
                               'begin with a capital') % symbol)
         self.symbol = symbol
-        self.parameters = (symbol,)
 
     def __repr__(self):
         return "TypeVar(%s)" % (str(self),)
 
     def __str__(self):
         return str(self.symbol)
-
-    def __eq__(self, other):
-        if isinstance(other, TypeVar):
-            return self.symbol == other.symbol
-        else:
-            return False
-
-    def __hash__(self):
-        return hash(self.symbol)
 
 
 class Implements(Mono):
@@ -816,7 +743,7 @@ class Function(Mono):
     Used for function signatures.
     """
     def __init__(self, *parameters):
-        self.parameters = parameters
+        self._parameters = parameters
 
     @property
     def restype(self):
@@ -825,16 +752,6 @@ class Function(Mono):
     @property
     def argtypes(self):
         return self.parameters[:-1]
-
-    def __eq__(self, other):
-        return (isinstance(other, type(self)) and
-                self.parameters == other.parameters)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(('Function',) + self.parameters)
 
     # def __repr__(self):
     #     return " -> ".join(map(repr, self.parameters))
@@ -866,7 +783,7 @@ class Record(Mono):
                          for n, t in fields]
         self.__fields = tuple(zip(self.__fnames, self.__ftypes))
         self.__fdict = dict(self.__fields)
-        self.parameters = (self.__fields,)
+        self._parameters = (self.__fields,)
 
     @property
     def fields(self):
@@ -891,12 +808,6 @@ class Record(Mono):
     def __getitem__(self, key):
         return self.__fdict[key]
 
-    def __eq__(self, other):
-        return isinstance(other, Record) and self.__fields == other.__fields
-
-    def __hash__(self):
-        return hash(self.__fields)
-
     def __str__(self):
         return record_string(self.__fnames, self.__ftypes)
 
@@ -908,6 +819,7 @@ class Tuple(Mono):
     """
     A product type.
     """
+    __slots__ = 'dshapes',
     cls = MEASURE
 
     def __init__(self, dshapes):
@@ -917,24 +829,10 @@ class Tuple(Mono):
         dshapes : list of dshapes
             The datashapes which make up the tuple.
         """
-        self.__dshapes = tuple(dshapes)
-        self.parameters = (dshapes,)
-
-    @property
-    def dshapes(self):
-        return self.__dshapes
-
-    def __eq__(self, other):
-        if isinstance(other, Tuple):
-            return self.__dshapes == other.__dshapes
-        else:
-            return False
-
-    def __hash__(self):
-        return hash(self.__dshapes)
+        self.dshapes = tuple(dshapes)
 
     def __str__(self):
-        return '(' + ', '.join(str(x) for x in self.__dshapes) + ')'
+        return '(' + ', '.join(str(x) for x in self.dshapes) + ')'
 
     def __repr__(self):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
@@ -943,15 +841,13 @@ class Tuple(Mono):
 class JSON(Mono):
     """ JSON measure """
     cls = MEASURE
+    __slots__ = ()
 
     def __init__(self):
-        self.parameters = ()
+        pass
 
     def __str__(self):
         return 'json'
-
-    def __eq__(self, other):
-        return isinstance(other, JSON)
 
 
 bool_ = CType('bool', 1, 1)

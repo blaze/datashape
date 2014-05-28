@@ -17,14 +17,17 @@ class TypeSet(Unit):
     Create a new set of types. Keyword argument 'name' may create a registered
     typeset for use in datashape type strings.
     """
+    __slots__ = '_order', 'name'
 
     def __init__(self, *args, **kwds):
         self._order = args
-        self._set = set(args)
         self.name = kwds.get('name')
-        self.parameters = ()
         if self.name:
             register_typeset(self.name, self)
+
+    @property
+    def _set(self):
+        return set(self._order)
 
     @property
     def types(self):
