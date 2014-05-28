@@ -9,7 +9,7 @@ from time import strptime
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple,
-                        Record, string, Null, DataShape, real, date_)
+                        Record, string, Null, DataShape, real, date_, Mono)
 from .py2help import _strtypes
 
 
@@ -116,7 +116,7 @@ def unite(dshapes):
         len(set(map(len, dshapes))) == 1):  # same length
         bases = [unite([ds.dshapes[i] for ds in dshapes])
                                       for i in range(len(dshapes[0].dshapes))]
-        if not any(b is null for b in bases):
+        if not any(b is None for b in bases):
             return Tuple(bases)
 
     # All records with the same names
@@ -125,10 +125,11 @@ def unite(dshapes):
         names = dshapes[0].names
         values = [unite([unpack(ds.fields[name]) for ds in dshapes])
                                                  for name in names]
-        if not any(v is null for v in values):
+        if not any(v is None for v in values):
             return Record(list(zip(names, values)))
 
-    if len(dshapes) > 10:
+    dshapes = list(map(unpack, dshapes))
+    if len(dshapes) > 10 and all(isinstance(ds, Mono) for ds in dshapes):
         return lowest_common_dshape(dshapes)
 
 
