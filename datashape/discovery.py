@@ -95,7 +95,7 @@ def unite(dshapes):
     if len(set(dshapes)) == 1:
         return dshapes[0]
     if any(map(isnull, dshapes)):
-        base = unite(list(filter(lambda x: not isnull(x), dshapes)))
+        base = unite([ds for ds in dshapes if not isnull(ds)])
         if base:
             return Option(base)
     try:
@@ -110,23 +110,22 @@ def unite(dshapes):
     except KeyError:
         pass
 
+    # All tuples of the same length
     if (all(isinstance(ds, Tuple) for ds in dshapes) and
-        len(set(map(len, dshapes))) == 1):
+        len(set(map(len, dshapes))) == 1):  # same length
         bases = [unite([ds.dshapes[i] for ds in dshapes])
                                       for i in range(len(dshapes))]
         if not any(b is null for b in bases):
             return Tuple(bases)
 
+    # All records with the same names
     if (all(isinstance(ds, Record) for ds in dshapes) and
             len(set(tuple(ds.names) for ds in dshapes)) == 1): # same names
         names = dshapes[0].names
-        print([[ds.fields[name] for ds in dshapes]
-                                for name in names])
         values = [unite([ds.fields[name] for ds in dshapes])
                                          for name in names]
         if not any(v is null for v in values):
             return Record(list(zip(names, values)))
-
 
 
 @dispatch(dict)
