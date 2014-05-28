@@ -168,12 +168,15 @@ edges = [(string, int64),
          (string, real),
          (string, date_),
          (string, datetime_),
+         (string, bool_),
          (int64, int32),
          (real, int64),
          (string, null)]
 
+# {a: [b, c]} a is more general than b or c
 edges = groupby(lambda x: x[1], edges)
 edges = dict((k, set(a for a, b in v)) for k, v in edges.items())
+
 
 def lowest_common_dshape(dshapes):
     """ Find common shared dshape
@@ -187,5 +190,22 @@ def lowest_common_dshape(dshapes):
     >>> lowest_common_dshape([string, int64])
     ctype("string")
     """
+    common = set.intersection(*[descendents(edges, ds) for ds in dshapes])
     s = _toposort(edges)
-    return max(dshapes, key=s.index)
+    return min(common, key=s.index)
+
+
+def descendents(d, x):
+    """
+
+    >>> d = {3: [2], 2: [1, 0], 5: [6]}
+    >>> sorted(descendents(d, 3))
+    [0, 1, 2, 3]
+    """
+    desc = set([x])
+    children = d.get(x, set())
+    while children:
+        children = set.union(*[set(d.get(kid, ())) for kid in desc])
+        children -= desc
+        desc.update(children)
+    return desc

@@ -123,3 +123,7 @@ def test_dshape_missing_data():
 
 def test_discover_mixed():
     assert dshape(discover([1, 2, 1.0, 2.0] * 10)) == 40 * float64
+
+
+def test_bool_int_interaction():
+    assert discover([True, 3] * 20) == 40 * string
