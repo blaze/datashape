@@ -55,7 +55,6 @@ def test_datetime():
         assert discover(dt) == datetime_
 
 
-@skip("We don't have logic in datashape for this yet")
 def test_list_many_types():
     assert discover([1, 1.0]*100) == 200 * discover(1.0)
 
