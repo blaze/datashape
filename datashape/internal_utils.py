@@ -100,3 +100,29 @@ def _toposort(edges):
     if any(incoming_edges.get(v, None) for v in edges):
         raise ValueError("Input has cycles")
     return L
+
+
+# Taken from toolz
+# Avoids licensing issues because this version was authored by Matthew Rocklin
+def groupby(func, seq):
+    """ Group a collection by a key function
+
+    >>> names = ['Alice', 'Bob', 'Charlie', 'Dan', 'Edith', 'Frank']
+    >>> groupby(len, names)
+    {3: ['Bob', 'Dan'], 5: ['Alice', 'Edith', 'Frank'], 7: ['Charlie']}
+
+    >>> iseven = lambda x: x % 2 == 0
+    >>> groupby(iseven, [1, 2, 3, 4, 5, 6, 7, 8])
+    {False: [1, 3, 5, 7], True: [2, 4, 6, 8]}
+
+    See Also:
+        ``countby``
+    """
+
+    d = dict()
+    for item in seq:
+        key = func(item)
+        if key not in d:
+            d[key] = list()
+        d[key].append(item)
+    return d
