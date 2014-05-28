@@ -4,11 +4,12 @@ import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date
 from multipledispatch import dispatch
+from multipledispatch.utils import _toposort, groupby
 from time import strptime
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple,
-                        Record, string, Null, DataShape)
+                        Record, string, Null, DataShape, real, date_)
 from .py2help import _strtypes
 
 
@@ -141,3 +142,31 @@ def discover(n):
 @dispatch(np.ndarray)
 def discover(X):
     return from_numpy(X.shape, X.dtype)
+
+
+# E.g. int64 can be turned into a string
+edges = [(string, int64),
+         (string, real),
+         (string, date_),
+         (string, datetime_),
+         (int64, int32),
+         (real, int64),
+         (string, null)]
+
+edges = groupby(lambda x: x[1], edges)
+edges = dict((k, set(a for a, b in v)) for k, v in edges.items())
+
+def lowest_common_dshape(dshapes):
+    """ Find common shared dshape
+
+    >>> lowest_common_dshape([int32, int64, float64])
+    ctype("float64")
+
+    >>> lowest_common_dshape([int32, int64])
+    ctype("int64")
+
+    >>> lowest_common_dshape([string, int64])
+    ctype("string")
+    """
+    s = _toposort(edges)
+    return max(dshapes, key=s.index)
