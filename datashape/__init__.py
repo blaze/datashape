@@ -8,6 +8,7 @@ from .typesets import *
 from .user import *
 from .type_symbol_table import *
 from .overload_resolver import *
+from .discovery import discover
 from .util import *
 from .coercion import coercion_cost
 from .error import (DataShapeSyntaxError, OverloadError, UnificationError,

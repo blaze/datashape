@@ -7,16 +7,13 @@ from multipledispatch import dispatch
 from time import strptime
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
-                        Option, isdimension, var, from_numpy, Tuple,
+                        Option, isdimension, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, Mono)
 from .py2help import _strtypes
 from .internal_utils import _toposort, groupby
 
 
 __all__ = ['discover']
-
-
-null = Null()
 
 
 @dispatch(int)

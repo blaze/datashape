@@ -889,6 +889,8 @@ date_ = Date()
 time_ = Time()
 datetime_ = DateTime()
 
+null = Null()
+
 c_byte = int8
 c_short = int16
 c_int = int32
