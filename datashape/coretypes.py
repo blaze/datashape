@@ -71,7 +71,7 @@ class Mono(object):
         return type(self), self.parameters
 
     def __eq__(self, other):
-        return self.info() == other.info()
+        return type(self) == type(other) and self.info() == other.info()
 
     def __ne__(self, other):
         return not self.__eq__(other)

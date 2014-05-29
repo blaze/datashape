@@ -28,3 +28,8 @@ class Test_to_numpy_dtype(unittest.TestCase):
     def test_string(self):
         self.assertEqual(to_numpy_dtype(dshape('2 * string')),
                          np.dtype('O'))
+
+class TestOther(unittest.TestCase):
+    def test_eq(self):
+        self.assertEqual(dshape('int'), dshape('int'))
+        self.assertNotEqual(dshape('int'), 'apple')
