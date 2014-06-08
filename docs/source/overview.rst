@@ -190,14 +190,11 @@ Option
 ~~~~~~
 
 An option type represents data which may be there or not. This is like
-data with ``NA`` values in R, or nullable columns in SQL.
+data with ``NA`` values in R, or nullable columns in SQL. Given a type
+like ``int``, it can be transformed by prefixing it with a question mark
+as ``?int``, or equivalently using the type constructor ``option[int]``
 
-For example a optional int field::
-
-    option[int]
-
-Indicates the presense or absense of a integer. For example a
-``5 * option[int]`` array can model the Python data:
+For example a ``5 * ?int`` array can model the Python data:
 
 ::
 

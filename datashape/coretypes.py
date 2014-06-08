@@ -585,13 +585,14 @@ class Option(Mono):
         if isinstance(ds, DataShape) and len(ds) == 1:
             ds = ds[0]
 
-        if not ds.cls == MEASURE:
-            raise TypeError('Option only takes measure argument')
-
         self.ty = ds
 
+    @property
+    def shape(self):
+        return self.ty.shape
+
     def __str__(self):
-        return 'option[%s]' % str(self.ty)
+        return '?%s' % str(self.ty)
 
     def __repr__(self):
         return str(self)

@@ -122,41 +122,50 @@ class DataShapeParser(object):
 
     def parse_datashape(self):
         """
-        datashape : dim ASTERISK datashape
-                  | dtype
+        datashape : datashape_nooption
+                  | QUESTIONMARK datashape_nooption
+
+        Returns a datashape object or None.
+        """
+        if self.tok.id == lexer.QUESTIONMARK:
+            self.advance_tok()
+            saved_pos = self.pos
+            ds = self.parse_datashape_nooption()
+            if ds is not None:
+                # Look in the dtype symbol table for the option type constructor
+                option = self.syntactic_sugar(self.sym.dtype_constr, 'option',
+                                              'Option dtype construction',
+                                              saved_pos - 1)
+                return coretypes.DataShape(option(ds))
+        else:
+            return self.parse_datashape_nooption()
+
+    def parse_datashape_nooption(self):
+        """
+        datashape_nooption : dim ASTERISK datashape
+                           | dtype
 
         Returns a datashape object or None.
         """
         saved_pos = self.pos
-        # Parse zero or more "dim ASTERISK" repetitions
-        dims = []
-        dim = True
-        while dim is not None:
-            dim_saved_pos = self.pos
-            # Parse the dim
-            dim = self.parse_dim()
-            if dim is not None:
-                if self.tok.id == lexer.ASTERISK:
-                    # If an asterisk is next, we're good
-                    self.advance_tok()
-                    dims.append(dim)
-                else:
-                    # Otherwise try a dtype
-                    dim = None
-                    self.pos = dim_saved_pos
-        # Parse the dtype
+        # Try dim ASTERISK datashape
+        dim = self.parse_dim()
+        if dim is not None:
+            if self.tok.id == lexer.ASTERISK:
+                # If an asterisk is next, we're good
+                self.advance_tok()
+                saved_pos = self.pos
+                dshape = self.parse_datashape()
+                if dshape is None:
+                    self.pos = saved_pos
+                    self.raise_error('Expected a dim or a dtype')
+                return coretypes.DataShape(dim, *dshape.parameters)
+        # Try dtype
         dtype = self.parse_dtype()
         if dtype:
-            return coretypes.DataShape(*(dims + [dtype]))
+            return coretypes.DataShape(dtype)
         else:
-            if len(dims) > 0:
-                # If we already saw "dim ASTERISK" at least once,
-                # we can point at the more specific position within
-                # the datashape where the error occurred
-                self.raise_error('Expected a dtype')
-            else:
-                self.pos = saved_pos
-                return None
+            return None
 
     def parse_dim(self):
         """
