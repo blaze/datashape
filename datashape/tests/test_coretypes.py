@@ -1,4 +1,4 @@
-from datashape.coretypes import Record
+from datashape.coretypes import Record, real
 from datashape import dshape, to_numpy_dtype
 import numpy as np
 import unittest
@@ -10,6 +10,9 @@ class TestRecord(unittest.TestCase):
 
     def test_respects_order(self):
         self.assertNotEqual(self.a, self.b)
+
+    def test_strings(self):
+        self.assertEqual(Record([('x', 'real')]), Record([('x', real)]))
 
 class Test_to_numpy_dtype(unittest.TestCase):
     def test_simple(self):
