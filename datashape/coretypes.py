@@ -893,8 +893,12 @@ complex_ = complex_float64
 date_ = Date()
 time_ = Time()
 datetime_ = DateTime()
+Type.register('date', date_)
+Type.register('time', time_)
+Type.register('datetime', datetime_)
 
 null = Null()
+Type.register('null', null)
 
 c_byte = int8
 c_short = int16
