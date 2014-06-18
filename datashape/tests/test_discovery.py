@@ -2,6 +2,7 @@ import numpy as np
 
 from datashape.discovery import discover, unite, null
 from datashape.coretypes import *
+from datashape.internal_utils import raises
 from datashape.py2help import skip
 from datashape import dshape
 
@@ -117,6 +118,10 @@ def test_unite_mixed():
     assert unite([int32, int32, string, string] * 10) == string
 
 
+def test_unite_empty():
+    assert raises(ValueError, lambda: unite([]))
+
+
 def test_dshape_missing_data():
     assert dshape(discover([1, 2, '', 3])) == dshape(4 * Option(discover(1)))
 
@@ -127,3 +132,8 @@ def test_discover_mixed():
 
 def test_bool_int_interaction():
     assert discover([True, 3] * 20) == 40 * string
+
+
+def test_test():
+    assert discover([['Alice', 100], ['Bob', 200]]) == 2 * Tuple([string,
+        int64])

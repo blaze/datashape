@@ -90,6 +90,8 @@ def unite(dshapes):
     >>> unite([int32, int32, null, int32])
     ?int32
     """
+    if not dshapes:
+        raise ValueError("No input to unite")
     if len(set(dshapes)) == 1:
         return dshapes[0]
     if any(map(isnull, dshapes)):
