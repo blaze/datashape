@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date
-from multipledispatch import dispatch
+from .dispatch import dispatch
 from time import strptime
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
