@@ -126,3 +126,11 @@ def groupby(func, seq):
             d[key] = list()
         d[key].append(item)
     return d
+
+
+def raises(exception, lamda):
+    try:
+        lamda()
+        return False
+    except exception:
+        return True
