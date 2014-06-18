@@ -780,8 +780,10 @@ class Record(Mono):
         # ensure that the fields align in the order they are
         # declared.
         self.__fnames = [n for n, t in fields]
-        self.__ftypes = [t if isinstance(t, DataShape) else DataShape(t)
+        ftypes  = [Type.lookup_type(t) if isinstance(t, _strtypes) else t
                          for n, t in fields]
+        self.__ftypes = [t if isinstance(t, DataShape) else DataShape(t)
+                         for t in ftypes]
         self.__fields = tuple(zip(self.__fnames, self.__ftypes))
         self.__fdict = dict(self.__fields)
         self._parameters = (self.__fields,)
@@ -861,6 +863,7 @@ int64 = CType('int64', 8, ctypes.alignment(ctypes.c_int64))
 
 # int is an alias for int32
 int_ = int32
+Type.register('int', int_)
 
 uint8 = CType('uint8', 1, 1)
 uint16 = CType('uint16', 2, ctypes.alignment(ctypes.c_uint16))
@@ -874,6 +877,7 @@ float64 = CType('float64', 8, ctypes.alignment(ctypes.c_double))
 
 # real is an alias for float64
 real = float64
+Type.register('real', real)
 
 complex_float32 = CType('complex[float32]', 8, ctypes.alignment(ctypes.c_float))
 complex_float64 = CType('complex[float64]', 16, ctypes.alignment(ctypes.c_double))
@@ -889,8 +893,12 @@ complex_ = complex_float64
 date_ = Date()
 time_ = Time()
 datetime_ = DateTime()
+Type.register('date', date_)
+Type.register('time', time_)
+Type.register('datetime', datetime_)
 
 null = Null()
+Type.register('null', null)
 
 c_byte = int8
 c_short = int16

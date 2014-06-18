@@ -88,7 +88,7 @@ def unite(dshapes):
     dshape("var * 2 * int32")
 
     >>> unite([int32, int32, null, int32])
-    option[int32]
+    ?int32
     """
     if len(set(dshapes)) == 1:
         return dshapes[0]
