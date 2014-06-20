@@ -70,66 +70,127 @@ def discover(s):
 
 @dispatch((tuple, list))
 def discover(seq):
+    if (all(isinstance(item, (tuple, list)) for item in seq) and
+            len(set(map(len, seq))) == 1):
+        columns = list(zip(*seq))
+        unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
+        try:
+            types = [unite([discover(dshape) for dshape in column]).subshape[0]
+                                             for column in columns]
+            unite = do_one([unite_identical, unite_merge_dimensions, Tuple])
+            return len(seq) * unite(types)
+        except AttributeError: # no subshape available
+            pass
+
+
     types = list(map(discover, seq))
-    typ = unite(types)
-    if not typ:
-        return Tuple(types)
-    else:
-        return len(types) * typ
+    return do_one([unite_identical, unite_merge_dimensions, Tuple])(types)
+
 
 def isnull(ds):
     return ds == null or ds == DataShape(null)
 
 
-def unite(dshapes):
-    """ Unite possibly disparate datashapes to common denominator
+identity = lambda x: x
 
-    >>> unite([10 * (2 * int32), 20 * (2 * int32)])
-    dshape("var * 2 * int32")
+# (a, b) implies that b can turn into a
+edges = [
+         (string, int64),  # E.g. int64 can be turned into a string
+         (string, real),
+         (string, date_),
+         (string, datetime_),
+         (string, bool_),
+         (int64, int32),
+         (real, int64),
+         (string, null)]
 
-    >>> unite([int32, int32, null, int32])
-    ?int32
+numeric_edges = [
+         (int64, int32),
+         (real, int64),
+         (string, null)
+         ]
+
+
+# {a: [b, c]} a is more general than b or c
+edges = groupby(lambda x: x[1], edges)
+edges = dict((k, set(a for a, b in v)) for k, v in edges.items())
+toposorted = _toposort(edges)
+
+
+def lowest_common_dshape(dshapes):
+    """ Find common shared dshape
+
+    >>> lowest_common_dshape([int32, int64, float64])
+    ctype("float64")
+
+    >>> lowest_common_dshape([int32, int64])
+    ctype("int64")
+
+    >>> lowest_common_dshape([string, int64])
+    ctype("string")
     """
-    if not dshapes:
-        raise ValueError("No input to unite")
+    common = set.intersection(*[descendents(edges, ds) for ds in dshapes])
+    if common:
+        return min(common, key=toposorted.index)
+
+
+def unite_base(dshapes):
+    """ Performs lowest common dshape and also null aware
+
+    >>> unite_base([float64, float64, int64])
+    dshape("3 * float64")
+
+    >>> unite_base([int32, int64, null])
+    dshape("3 * ?int64")
+    """
+    dshapes = [unpack(ds) for ds in dshapes]
+    bynull = groupby(isnull, dshapes)
+    base = lowest_common_dshape(bynull.get(False, []))
+    if base:
+        if bynull.get(True):
+            base = Option(base)
+        return len(dshapes) * base
+
+
+def unite_identical(dshapes):
+    """
+
+    >>> unite_identical([int32, int32, int32])
+    dshape("3 * int32")
+    """
     if len(set(dshapes)) == 1:
-        return dshapes[0]
-    if any(map(isnull, dshapes)):
-        base = unite([ds for ds in dshapes if not isnull(ds)])
+        return len(dshapes) * dshapes[0]
+
+
+
+def unite_merge_dimensions(dshapes, unite=unite_identical):
+    """
+
+    >>> unite_merge_dimensions([10 * string, 10 * string])
+    dshape("2 * 10 * string")
+
+    >>> unite_merge_dimensions([10 * string, 20 * string])
+    dshape("2 * var * string")
+    """
+    n = len(dshapes)
+    if all(isinstance(ds, DataShape) and isdimension(ds[0]) for ds in dshapes):
+        dims = [ds[0] for ds in dshapes]
+        base = unite([ds.subshape[0] for ds in dshapes])
         if base:
-            return Option(base)
-    try:
-        if all(isdimension(ds[0]) for ds in dshapes):
-            dims = [ds[0] for ds in dshapes]
-            base = unite([ds.subshape[0] for ds in dshapes])
-            if base:
-                if len(set(dims)) == 1:
-                    return dims[0] * unite([ds.subshape[0] for ds in dshapes])
-                else:
-                    return var * unite([ds.subshape[0] for ds in dshapes])
-    except KeyError:
-        pass
+            if len(set(dims)) == 1:
+                return n * (dims[0] * base.subshape[0])
+            else:
+                return n * (var * base.subshape[0])
 
-    # All tuples of the same length
-    if (all(isinstance(ds, Tuple) for ds in dshapes) and
-        len(set(map(len, dshapes))) == 1):  # same length
-        bases = [unite([ds.dshapes[i] for ds in dshapes])
-                                      for i in range(len(dshapes[0].dshapes))]
-        if not any(b is None for b in bases):
-            return Tuple(bases)
 
-    # All records with the same names
-    if (all(isinstance(ds, Record) for ds in dshapes) and
-            len(set(tuple(ds.names) for ds in dshapes)) == 1): # same names
-        names = dshapes[0].names
-        values = [unite([unpack(ds.fields[name]) for ds in dshapes])
-                                                 for name in names]
-        if not any(v is None for v in values):
-            return Record(list(zip(names, values)))
-
-    dshapes = list(map(unpack, dshapes))
-    if len(dshapes) > 10 and all(isinstance(ds, Mono) for ds in dshapes):
-        return lowest_common_dshape(dshapes)
+def do_one(funcs):
+    def f(inp):
+        for func in funcs:
+            result = func(inp)
+            if result:
+                return result
+        return inp
+    return f
 
 
 def unpack(ds):
@@ -160,38 +221,6 @@ def discover(n):
 @dispatch(np.ndarray)
 def discover(X):
     return from_numpy(X.shape, X.dtype)
-
-
-# E.g. int64 can be turned into a string
-edges = [(string, int64),
-         (string, real),
-         (string, date_),
-         (string, datetime_),
-         (string, bool_),
-         (int64, int32),
-         (real, int64),
-         (string, null)]
-
-# {a: [b, c]} a is more general than b or c
-edges = groupby(lambda x: x[1], edges)
-edges = dict((k, set(a for a, b in v)) for k, v in edges.items())
-
-
-def lowest_common_dshape(dshapes):
-    """ Find common shared dshape
-
-    >>> lowest_common_dshape([int32, int64, float64])
-    ctype("float64")
-
-    >>> lowest_common_dshape([int32, int64])
-    ctype("int64")
-
-    >>> lowest_common_dshape([string, int64])
-    ctype("string")
-    """
-    common = set.intersection(*[descendents(edges, ds) for ds in dshapes])
-    s = _toposort(edges)
-    return min(common, key=s.index)
 
 
 def descendents(d, x):
