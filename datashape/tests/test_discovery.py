@@ -59,6 +59,10 @@ def test_datetime():
         assert discover(dt) == datetime_
 
 
+def test_date():
+    assert discover('2014-01-01') == date_
+
+
 def test_integrative():
     data = [{'name': 'Alice', 'amount': '100'},
             {'name': 'Bob', 'amount': '200'},
@@ -148,3 +152,7 @@ def test_discover_appropriate():
 def test_big_discover():
     data = [['1'] + ['hello']*20] * 10
     assert discover(data) == 10 * Tuple([int64] + [string]*20)
+
+
+def test_unite_base():
+    assert unite_base([date_, datetime_]) == 2 * datetime_

@@ -38,7 +38,10 @@ def discover(z):
 
 @dispatch(datetime)
 def discover(dt):
-    return datetime_
+    if dt.time():
+        return datetime_
+    else:
+        return date_
 
 
 @dispatch((type(None), Null))
@@ -100,6 +103,8 @@ edges = [
          (string, date_),
          (string, datetime_),
          (string, bool_),
+         (datetime_, date_),
+         (string, datetime_),
          (int64, int32),
          (real, int64),
          (string, null)]
