@@ -832,6 +832,8 @@ class Tuple(Mono):
         dshapes : list of dshapes
             The datashapes which make up the tuple.
         """
+        dshapes = [DataShape(ds) if not isinstance(ds, DataShape) else ds
+                for ds in dshapes]
         self.dshapes = tuple(dshapes)
 
     def __str__(self):
