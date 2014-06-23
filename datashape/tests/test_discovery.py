@@ -1,6 +1,7 @@
 import numpy as np
 
-from datashape.discovery import discover, unite, null
+from datashape.discovery import (discover, null, unite_identical, unite_base,
+        unite_merge_dimensions, do_one)
 from datashape.coretypes import *
 from datashape.internal_utils import raises
 from datashape.py2help import skip
@@ -16,11 +17,13 @@ def test_simple():
 
 
 def test_list():
+    print(discover([1, 2, 3]))
     assert discover([1, 2, 3]) == 3 * discover(1)
     assert discover([1.0, 2.0, 3.0]) == 3 * discover(1.0)
 
 
 def test_heterogeneous_ordered_container():
+    print(discover(('Hello', 1)))
     assert discover(('Hello', 1)) == Tuple([discover('Hello'), discover(1)])
 
 
@@ -56,8 +59,8 @@ def test_datetime():
         assert discover(dt) == datetime_
 
 
-def test_list_many_types():
-    assert discover([1, 1.0]*100) == 200 * discover(1.0)
+def test_date():
+    assert discover('2014-01-01') == date_
 
 
 def test_integrative():
@@ -78,62 +81,78 @@ def test_numpy_array():
     assert discover(np.ones((3, 2), dtype=np.int32)) == dshape('3 * 2 * int32')
 
 
-def test_unite():
-    assert unite([int32, int32, int32]) == int32
-    assert unite([3 * int32, 2 * int32]) == var * int32
-    assert unite([2 * int32, 2 * int32]) == 2 * int32
-    assert unite([3 * (2 * int32), 2 * (2 * int32)]) == var * (2 * int32)
+unite = do_one([unite_identical,
+                unite_merge_dimensions,
+                unite_base])
 
-def test_unite_fails_gracefully():
-    assert not unite([2 * int32, 2 * (2 * int32)])
+def test_unite():
+    assert unite([int32, int32, int32]) == 3 * int32
+    assert unite([3 * int32, 2 * int32]) == 2 * (var * int32)
+    assert unite([2 * int32, 2 * int32]) == 2 * (2 * int32)
+    assert unite([3 * (2 * int32), 2 * (2 * int32)]) == 2 * (var * (2 * int32))
 
 
 def test_unite_missing_values():
-    assert unite([int32, null, int32]) == Option(int32)
-    assert not unite([string, null, int32])
+    assert unite([int32, null, int32]) == 3 * Option(int32)
+    assert unite([string, null, int32])
 
 
 def test_unite_tuples():
-    assert unite((Tuple([int32, int32, string]),
-                  Tuple([int32, null, null]),
-                  Tuple([int32, int32, string]))) == \
-                    Tuple([int32, Option(int32), Option(string)])
+    assert discover([[1, 1, 'hello'],
+                     [1, '', ''],
+                     [1, 1, 'hello']]) == \
+                    3 * Tuple([int64, Option(int64), Option(string)])
 
-    assert unite((Tuple([int32, int32, string, int32]),
-                  Tuple([int32, null, null, int32]),
-                  Tuple([int32, int32, string, int32]))) == \
-                    Tuple([int32, Option(int32), Option(string), int32])
+    assert discover([[1, 1, 'hello', 1],
+                     [1, '', '', 1],
+                     [1, 1, 'hello', 1]]) == \
+                    3 * Tuple([int64, Option(int64), Option(string), int64])
 
 def test_unite_records():
-    assert unite((Record([['name', string], ['balance', int32]]),
-                  Record([['name', string], ['balance', null]]))) == \
-                    Record([['name', string], ['balance', Option(int32)]])
+    discover([{'name': 'Alice', 'balance': 100},
+              {'name': 'Bob', 'balance': ''}]) == \
+            2 * Record([['name', string], ['balance', Option(int64)]])
 
     # assert unite((Record([['name', string], ['balance', int32]]),
     #               Record([['name', string]]))) == \
     #                 Record([['name', string], ['balance', Option(int32)]])
 
 
-def test_unite_mixed():
-    assert unite([int32, int32, string, string] * 10) == string
-
-
-def test_unite_empty():
-    assert raises(ValueError, lambda: unite([]))
-
 
 def test_dshape_missing_data():
-    assert dshape(discover([1, 2, '', 3])) == dshape(4 * Option(discover(1)))
+    assert discover([[1, 2, '', 3],
+                     [1, 2, '', 3],
+                     [1, 2, '', 3]]) == \
+                3 * Tuple([int64, int64, null, int64])
 
 
 def test_discover_mixed():
-    assert dshape(discover([1, 2, 1.0, 2.0] * 10)) == 40 * float64
+    i = discover(1)
+    f = discover(1.0)
+    assert dshape(discover([[1, 2, 1.0, 2.0]] * 10)) == \
+            10 * Tuple([i, i, f, f])
 
-
-def test_bool_int_interaction():
-    assert discover([True, 3] * 20) == 40 * string
+    print(dshape(discover([[1, 2, 1.0, 2.0], [1.0, 2.0, 1, 2]] * 5)))
+    assert dshape(discover([[1, 2, 1.0, 2.0], [1.0, 2.0, 1, 2]] * 5)) == \
+            10 * (4 * f)
 
 
 def test_test():
-    assert discover([['Alice', 100], ['Bob', 200]]) == 2 * Tuple([string,
-        int64])
+    print(discover([['Alice', 100], ['Bob', 200]]))
+    print(2 * Tuple([string, int64]))
+    assert discover([['Alice', 100], ['Bob', 200]]) == \
+            2 * Tuple([string, int64])
+
+def test_discover_appropriate():
+    assert discover((1, 1.0)) == Tuple([int64, real])
+    print(discover([(1, 1.0), (1, 1.0), (1, 1)]))
+    assert discover([(1, 1.0), (1, 1.0), (1, 1)]) == \
+            3 * Tuple([int64, real])
+
+def test_big_discover():
+    data = [['1'] + ['hello']*20] * 10
+    assert discover(data) == 10 * Tuple([int64] + [string]*20)
+
+
+def test_unite_base():
+    assert unite_base([date_, datetime_]) == 2 * datetime_
