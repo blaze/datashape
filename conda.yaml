@@ -16,6 +16,7 @@ requirements:
       - python
       - numpy
       - multipledispatch
+      - nose
 
 about:
     home: http://datashape.pydata.org
