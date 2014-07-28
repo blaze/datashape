@@ -4,7 +4,6 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
         unite_merge_dimensions, do_one)
 from datashape.coretypes import *
 from datashape.internal_utils import raises
-from datashape.py2help import skip
 from datashape import dshape
 
 def test_simple():

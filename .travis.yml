@@ -12,7 +12,7 @@ install:
   - "pip install pytest"
 
 # command to run tests, e.g. python setup.py test
-script: python -c 'import datashape; datashape.test(exit=True)'
+script: py.test --doctest-modules --verbose --pyargs datashape
 
 notifications:
   email: false
