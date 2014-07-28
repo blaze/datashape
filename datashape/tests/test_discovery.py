@@ -5,6 +5,8 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
 from datashape.coretypes import *
 from datashape.internal_utils import raises
 from datashape import dshape
+from datetime import date, time, datetime
+from datashape.py2help import xfail
 
 def test_simple():
     assert discover(3) == int64
@@ -51,6 +53,7 @@ def test_datetime():
               "Jul  6 2030  5:55PM",
               "1994-10-20 T 11:15",
               "2013-03-04T14:38:05.123",
+              datetime(2014, 01, 01, 12, 01, 01),
               # "15MAR1985:14:15:22",
               # "201303041438"
               ]
@@ -60,6 +63,16 @@ def test_datetime():
 
 def test_date():
     assert discover('2014-01-01') == date_
+    assert discover(date(2014, 1, 1)) == date_
+
+
+def test_time():
+    assert discover(time(12, 0, 01)) == time_
+
+
+@xfail
+def test_time_string():
+    assert discover('12:00:01') == time_
 
 
 def test_integrative():
