@@ -778,6 +778,24 @@ class Function(Mono):
 class Record(Mono):
     """
     A composite data structure of ordered fields mapped to types.
+
+    Properties
+    ----------
+
+    fields: tuple of (name, type) pairs
+        The only stored data, also the input to ``__init__``
+    dict: dict
+        A dictionary view of ``fields``
+    names: list of strings
+        A list of the names
+    types: list of datashapes
+        A list of the datashapes
+
+    Example
+    -------
+
+    >>> Record([['id', 'int'], ['name', 'string'], ['amount', 'real']])
+    dshape("{ id : int32, name : string, amount : float64 }")
     """
     cls = MEASURE
 
