@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
-from datashape.py2help import skip
+from datashape.py2help import xfail
 
 from datashape import dshape, dshapes
 from datashape import coretypes
@@ -11,7 +11,7 @@ from datashape.overload_resolver import OverloadResolver
 
 
 class TestOverloading(unittest.TestCase):
-    @skip('function signatures with typevars are not supported presently')
+    @xfail(reason='function signatures with typevars are not supported presently')
     def test_best_match(self):
         d1 = dshape('10 * T1 * int32')
         d2 = dshape('T2 * T2 * float32')

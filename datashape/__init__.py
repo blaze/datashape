@@ -16,20 +16,24 @@ from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
 
 __version__ = '0.2.1dev'
 
-def test(verbosity=1, xunitfile=None, exit=False):
+def test(verbose=False, xunitfile=None, exit=False):
     """
     Runs the full Datashape test suite, outputting
     the results of the tests to sys.stdout.
 
-    This uses nose tests to discover which tests to
-    run, and runs tests in any 'tests' subdirectory
-    within the Datashape module.
+    This uses py.test tests to discover which tests to
+    run. By default, it runs any tests in any 'test_*py' 
+    files and any function or method prefixed with 'test_'. 
+    It also runs any doctests in the doc strings of any *py
+    files.
+    Test collection rules are customizable. Full default rules
+    found here:
+    http://pytest.org/latest/goodpractises.html#test-discovery
 
     Parameters
     ----------
-    verbosity : int, optional
-        Value 0 prints very little, 1 prints a little bit,
-        and 2 prints the test names while testing.
+    verbose : Bool, optional
+        True prints the name of each test when runnig it
     xunitfile : string, optional
         If provided, writes the test results to an xunit
         style xml file. This is useful for running the tests
@@ -38,24 +42,30 @@ def test(verbosity=1, xunitfile=None, exit=False):
         If True, the function will call sys.exit with an
         error code after the tests are finished.
     """
-    import nose
+    import pytest
     import os
     import sys
-    argv = ['nosetests', '--verbosity=%d' % verbosity]
-    # Output an xunit file if requested
+    argv = []
+    if verbose:
+        argv.extend(['--verbose'])
+    # Output an xml xunit file if requested
     if xunitfile:
-        argv.extend(['--with-xunit', '--xunit-file=%s' % xunitfile])
-    # Set the logging level to warn
-    argv.extend(['--logging-level=WARN'])
-    # Add all 'tests' subdirectories to the options
-    rootdir = os.path.dirname(__file__)
-    for root, dirs, files in os.walk(rootdir):
-        if 'tests' in dirs:
-            testsdir = os.path.join(root, 'tests')
-            argv.append(testsdir)
-            print('Test dir: %s' % testsdir[len(rootdir)+1:])
+        argv.extend(['--junitxml==%s' % xunitfile])
+    # Include doctests in modules
+    argv.append('--doctest-modules')
+    # Starting directory for where to start test collection
+    # is the directory containing this file
+    argv.append(os.path.abspath(os.path.dirname(__file__)))
+
     # print versions (handy when reporting problems)
     print('Datashape version: %s' % __version__)
+    print('args {0}'.format(argv))
     sys.stdout.flush()
-    # Ask nose to do its thing
-    return nose.main(argv=argv, exit=exit)
+    # py.test execution
+    ret = pytest.main(argv)
+    if exit:
+        import sys
+        sys.exit(ret)
+    else:
+        return ret
+        
