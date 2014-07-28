@@ -40,8 +40,11 @@ else:
     basestring = str
     _strtypes = (str,)
 
-import pytest
+try:
+    import pytest
 
-xfail = pytest.mark.xfail
-skipif = pytest.mark.skipif
-raises = pytest.raises
+    xfail = pytest.mark.xfail
+    skipif = pytest.mark.skipif
+    raises = pytest.raises
+except ImportError:
+    pass
