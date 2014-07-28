@@ -137,6 +137,16 @@ class Mono(object):
 
         return DataShape(other, self)
 
+    def __getstate__(self):
+        return self.parameters
+
+    def __setstate__(self, state):
+        if hasattr(self, '__slots__'):
+            for slot, val in zip(self.__slots__, state):
+                setattr(self, slot, val)
+        else:
+            self._parameters = state
+
 
 class Unit(Mono):
     """
