@@ -810,14 +810,21 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        def f(typ):
+        def normalize(typ):
+            """ Normalize type inputs to Record
+
+            >>> normalize('string')
+            dshape('string')
+            >>> normalize(dshape('int32'))
+            ctype('int32')
+            """
             if isinstance(typ, _strtypes):
                 return Type.lookup_type(typ)
             if isinstance(typ, DataShape) and len(typ) == 1:
                 return typ[0]
             return typ
 
-        fields = tuple((k, f(v)) for k, v in fields)
+        fields = tuple((k, normalize(v)) for k, v in fields)
         self._parameters = (tuple(map(tuple, fields)),)
 
     @property
