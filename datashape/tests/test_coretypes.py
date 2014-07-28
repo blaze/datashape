@@ -46,3 +46,5 @@ class TestOther(unittest.TestCase):
         ds2 = pickle.loads(pickle.dumps(ds))
 
         assert ds == ds2
+
+        assert str(ds) == str(ds2)

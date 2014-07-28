@@ -116,7 +116,7 @@ class TestDataShapeCreation(unittest.TestCase):
         ds = datashape.from_numpy((), dt)
         self.assertEqual(ds.names, ['f0', 'f1', 'f2'])
         self.assertEqual(ds.types,
-                         [dshape('int32'), dshape('int64'), dshape('float64')])
+                         [datashape.int32, datashape.int64, datashape.float64])
 
     def test_to_numpy_fields(self):
         import numpy as np

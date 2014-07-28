@@ -583,6 +583,9 @@ class DataShape(Mono):
                 return (self[0] * ds)._subshape(index[0])
         raise NotImplementedError()
 
+    def __setstate__(self, state):
+        self.__init__(*state)
+
 
 class Option(Mono):
     """
@@ -789,40 +792,44 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        self.__fnames = [n for n, t in fields]
-        ftypes  = [Type.lookup_type(t) if isinstance(t, _strtypes) else t
-                         for n, t in fields]
-        self.__ftypes = [t if isinstance(t, DataShape) else DataShape(t)
-                         for t in ftypes]
-        self.__fields = tuple(zip(self.__fnames, self.__ftypes))
-        self.__fdict = dict(self.__fields)
-        self._parameters = (self.__fields,)
+        def f(typ):
+            if isinstance(typ, _strtypes):
+                return Type.lookup_type(typ)
+            if isinstance(typ, DataShape) and len(typ) == 1:
+                return typ[0]
+            return typ
+
+        fields = tuple((k, f(v)) for k, v in fields)
+        self._parameters = (tuple(map(tuple, fields)),)
 
     @property
     def fields(self):
-        return self.__fdict
+        return self._parameters[0]
+
+    @property
+    def dict(self):
+        return dict(self.fields)
 
     @property
     def names(self):
-        return self.__fnames
+        return [n for n, t in self.fields]
 
     @property
     def types(self):
-        return self.__ftypes
+        return [t for n, t in self.fields]
 
     def to_numpy_dtype(self):
         """
         To Numpy record dtype.
         """
-        dk = self.__fnames
-        dv = map(to_numpy_dtype, self.__ftypes)
-        return np.dtype(list(zip(dk, dv)))
+        return np.dtype([(name, to_numpy_dtype(typ))
+                         for name, typ in self.fields])
 
     def __getitem__(self, key):
-        return self.__fdict[key]
+        return self.dict[key]
 
     def __str__(self):
-        return record_string(self.__fnames, self.__ftypes)
+        return record_string(self.names, self.types)
 
     def __repr__(self):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
