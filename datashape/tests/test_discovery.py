@@ -53,7 +53,7 @@ def test_datetime():
               "Jul  6 2030  5:55PM",
               "1994-10-20 T 11:15",
               "2013-03-04T14:38:05.123",
-              datetime(2014, 01, 01, 12, 01, 01),
+              datetime(2014, 1, 1, 12, 1, 1),
               # "15MAR1985:14:15:22",
               # "201303041438"
               ]
@@ -67,7 +67,7 @@ def test_date():
 
 
 def test_time():
-    assert discover(time(12, 0, 01)) == time_
+    assert discover(time(12, 0, 1)) == time_
 
 
 @xfail
