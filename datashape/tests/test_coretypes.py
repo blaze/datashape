@@ -36,3 +36,15 @@ class TestOther(unittest.TestCase):
     def test_eq(self):
         self.assertEqual(dshape('int'), dshape('int'))
         self.assertNotEqual(dshape('int'), 'apple')
+
+    def test_serializable(self):
+        import pickle
+        ds = dshape('''{id: int64,
+                        name: string,
+                        amount: float32,
+                        arr: 3 * (int32, string)}''')
+        ds2 = pickle.loads(pickle.dumps(ds))
+
+        assert ds == ds2
+
+        assert str(ds) == str(ds2)

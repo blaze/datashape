@@ -137,6 +137,16 @@ class Mono(object):
 
         return DataShape(other, self)
 
+    def __getstate__(self):
+        return self.parameters
+
+    def __setstate__(self, state):
+        if hasattr(self, '__slots__'):
+            for slot, val in zip(self.__slots__, state):
+                setattr(self, slot, val)
+        else:
+            self._parameters = state
+
 
 class Unit(Mono):
     """
@@ -573,6 +583,9 @@ class DataShape(Mono):
                 return (self[0] * ds)._subshape(index[0])
         raise NotImplementedError()
 
+    def __setstate__(self, state):
+        self.__init__(*state)
+
 
 class Option(Mono):
     """
@@ -765,6 +778,24 @@ class Function(Mono):
 class Record(Mono):
     """
     A composite data structure of ordered fields mapped to types.
+
+    Properties
+    ----------
+
+    fields: tuple of (name, type) pairs
+        The only stored data, also the input to ``__init__``
+    dict: dict
+        A dictionary view of ``fields``
+    names: list of strings
+        A list of the names
+    types: list of datashapes
+        A list of the datashapes
+
+    Example
+    -------
+
+    >>> Record([['id', 'int'], ['name', 'string'], ['amount', 'real']])
+    dshape("{ id : int32, name : string, amount : float64 }")
     """
     cls = MEASURE
 
@@ -779,40 +810,51 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        self.__fnames = [n for n, t in fields]
-        ftypes  = [Type.lookup_type(t) if isinstance(t, _strtypes) else t
-                         for n, t in fields]
-        self.__ftypes = [t if isinstance(t, DataShape) else DataShape(t)
-                         for t in ftypes]
-        self.__fields = tuple(zip(self.__fnames, self.__ftypes))
-        self.__fdict = dict(self.__fields)
-        self._parameters = (self.__fields,)
+        def normalize(typ):
+            """ Normalize type inputs to Record
+
+            >>> normalize('string')
+            dshape('string')
+            >>> normalize(dshape('int32'))
+            ctype('int32')
+            """
+            if isinstance(typ, _strtypes):
+                return Type.lookup_type(typ)
+            if isinstance(typ, DataShape) and len(typ) == 1:
+                return typ[0]
+            return typ
+
+        fields = tuple((k, normalize(v)) for k, v in fields)
+        self._parameters = (tuple(map(tuple, fields)),)
 
     @property
     def fields(self):
-        return self.__fdict
+        return self._parameters[0]
+
+    @property
+    def dict(self):
+        return dict(self.fields)
 
     @property
     def names(self):
-        return self.__fnames
+        return [n for n, t in self.fields]
 
     @property
     def types(self):
-        return self.__ftypes
+        return [t for n, t in self.fields]
 
     def to_numpy_dtype(self):
         """
         To Numpy record dtype.
         """
-        dk = self.__fnames
-        dv = map(to_numpy_dtype, self.__ftypes)
-        return np.dtype(list(zip(dk, dv)))
+        return np.dtype([(name, to_numpy_dtype(typ))
+                         for name, typ in self.fields])
 
     def __getitem__(self, key):
-        return self.__fdict[key]
+        return self.dict[key]
 
     def __str__(self):
-        return record_string(self.__fnames, self.__ftypes)
+        return record_string(self.names, self.types)
 
     def __repr__(self):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
