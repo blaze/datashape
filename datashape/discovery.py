@@ -2,13 +2,14 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 from dateutil.parser import parse as dateparse
-from datetime import datetime, date
+from datetime import datetime, date, time
 from .dispatch import dispatch
 from time import strptime
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple, null,
-                        Record, string, Null, DataShape, real, date_, Mono)
+                        Record, string, Null, DataShape, real, date_, time_,
+                        Mono)
 from .py2help import _strtypes
 from .internal_utils import _toposort, groupby
 
@@ -38,10 +39,22 @@ def discover(z):
 
 @dispatch(datetime)
 def discover(dt):
-    if dt.time():
+    if dt.time() and dt.date():
         return datetime_
-    else:
+    elif dt.date():
         return date_
+    else:
+        return time_
+
+
+@dispatch(date)
+def discover(dt):
+    return date_
+
+
+@dispatch(time)
+def discover(t):
+    return time_
 
 
 @dispatch((type(None), Null))
