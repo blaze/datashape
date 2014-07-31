@@ -611,6 +611,7 @@ class Option(Mono):
         return str(self)
 
 
+registry_aliases = {(lambda dt: np.issubdtype(dt, np.datetime64)): 'datetime'}
 
 class CType(Unit):
     """
@@ -634,8 +635,18 @@ class CType(Unit):
         >>> from numpy import dtype
         >>> CType.from_numpy_dtype(dtype('int32'))
         ctype("int32")
+        >>> CType.from_numpy_dtype(dtype('i8'))
+        ctype("int64")
+        >>> CType.from_numpy_dtype(dtype('M8'))
+        DateTime(None)
         """
-        return Type._registry[dt.name]
+        try:
+            return Type.lookup_type(dt.name)
+        except KeyError:
+            for predicate, key in registry_aliases.items():
+                if predicate(dt):
+                    return Type.lookup_type(key)
+        raise NotImplementedError("NumPy datatype %s not supported" % dt)
 
     @property
     def itemsize(self):
