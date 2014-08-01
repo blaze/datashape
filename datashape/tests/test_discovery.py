@@ -10,6 +10,7 @@ from datashape.py2help import xfail
 
 def test_simple():
     assert discover(3) == int64
+    assert discover(3L) == int64
     assert discover(3.0) == float64
     assert discover(3.0 + 1j) == complex128
     assert discover('Hello') == string
