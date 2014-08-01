@@ -86,16 +86,28 @@ def discover(s):
 
 @dispatch((tuple, list))
 def discover(seq):
+    unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
+    # [(a, b), (a, c)]
     if (all(isinstance(item, (tuple, list)) for item in seq) and
             len(set(map(len, seq))) == 1):
         columns = list(zip(*seq))
-        unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
         try:
             types = [unite([discover(dshape) for dshape in column]).subshape[0]
                                              for column in columns]
             unite = do_one([unite_identical, unite_merge_dimensions, Tuple])
             return len(seq) * unite(types)
         except AttributeError: # no subshape available
+            pass
+    # [{k: v, k: v}, {k: v, k: v}]
+    if (all(isinstance(item, dict) for item in seq) and
+            len(set(frozenset(item.keys()) for item in seq)) == 1):
+        keys = sorted(seq[0].keys())
+        columns = [[item[key] for item in seq] for key in keys]
+        try:
+            types = [unite([discover(dshape) for dshape in column]).subshape[0]
+                                             for column in columns]
+            return len(seq) * Record(list(zip(keys, types)))
+        except AttributeError:
             pass
 
 
