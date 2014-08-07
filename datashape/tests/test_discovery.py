@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
         unite_merge_dimensions, do_one)
@@ -10,12 +11,16 @@ from datashape.py2help import xfail
 
 def test_simple():
     assert discover(3) == int64
-    assert discover(3L) == int64
     assert discover(3.0) == float64
     assert discover(3.0 + 1j) == complex128
     assert discover('Hello') == string
     assert discover(True) == bool_
     assert discover(None) == null
+
+
+def test_long():
+    if sys.version_info[0] == 2:
+        assert eval('discover(3L)') == int64
 
 
 def test_list():
