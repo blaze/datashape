@@ -427,7 +427,10 @@ class String(Unit):
             else:
                 return np.dtype('U%d' % self.fixlen)
 
-        return np.dtype('O')
+        from .py2help import unicode
+        # Create a dtype with metadata indicating it's
+        # a string in the same style as the h5py special_dtype
+        return np.dtype('O', metadata={'vlen': unicode})
 
 
 class DataShape(Mono):
