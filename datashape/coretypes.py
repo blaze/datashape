@@ -412,6 +412,21 @@ class String(Unit):
         return ''.join(["ctype(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
 
     def to_numpy_dtype(self):
+        """
+
+        >>> String().to_numpy_dtype()
+        dtype('O')
+        >>> String(30).to_numpy_dtype()
+        dtype('<U30')
+        >>> String(30, 'A').to_numpy_dtype()
+        dtype('S30')
+        """
+        if self.fixlen:
+            if self.encoding == 'A':
+                return np.dtype('S%d' % self.fixlen)
+            else:
+                return np.dtype('U%d' % self.fixlen)
+
         return np.dtype('O')
 
 
@@ -611,7 +626,6 @@ class Option(Mono):
         return str(self)
 
 
-
 class CType(Unit):
     """
     Symbol for a sized type mapping uniquely to a native type.
@@ -634,8 +648,24 @@ class CType(Unit):
         >>> from numpy import dtype
         >>> CType.from_numpy_dtype(dtype('int32'))
         ctype("int32")
+        >>> CType.from_numpy_dtype(dtype('i8'))
+        ctype("int64")
+        >>> CType.from_numpy_dtype(dtype('M8'))
+        DateTime(None)
+        >>> CType.from_numpy_dtype(dtype('U30'))
+        ctype("string[30]")
         """
-        return Type._registry[dt.name]
+        try:
+            return Type.lookup_type(dt.name)
+        except KeyError:
+            pass
+        if np.issubdtype(dt, np.datetime64):
+            return datetime_
+        elif np.issubdtype(dt, np.unicode_):
+            return String(dt.itemsize // 4, 'utf-8')
+        elif np.issubdtype(dt, np.str_):
+            return String(dt.itemsize, 'ascii')
+        raise NotImplementedError("NumPy datatype %s not supported" % dt)
 
     @property
     def itemsize(self):
@@ -1021,6 +1051,8 @@ def to_numpy(ds):
     >>> from datashape import dshape, to_numpy
     >>> to_numpy(dshape('5 * 5 * int32'))
     ((5, 5), dtype('int32'))
+    >>> to_numpy(dshape('10 * string[30]'))
+    ((10,), dtype('<U30'))
     """
 
     shape = tuple()
@@ -1063,6 +1095,9 @@ def from_numpy(shape, dt):
     >>> from numpy import dtype
     >>> from_numpy((5, 5), dtype('int32'))
     dshape("5 * 5 * int32")
+
+    >>> from_numpy((10,), dtype('S10'))
+    dshape("10 * string[10, 'A']")
     """
     dtype = np.dtype(dt)
 

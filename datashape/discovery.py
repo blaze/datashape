@@ -10,14 +10,14 @@ from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
                         Mono)
-from .py2help import _strtypes
+from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
 
 
 __all__ = ['discover']
 
 
-@dispatch(int)
+@dispatch(_inttypes)
 def discover(i):
     return int64
 
@@ -86,16 +86,28 @@ def discover(s):
 
 @dispatch((tuple, list))
 def discover(seq):
+    unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
+    # [(a, b), (a, c)]
     if (all(isinstance(item, (tuple, list)) for item in seq) and
             len(set(map(len, seq))) == 1):
         columns = list(zip(*seq))
-        unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
         try:
             types = [unite([discover(dshape) for dshape in column]).subshape[0]
                                              for column in columns]
             unite = do_one([unite_identical, unite_merge_dimensions, Tuple])
             return len(seq) * unite(types)
         except AttributeError: # no subshape available
+            pass
+    # [{k: v, k: v}, {k: v, k: v}]
+    if (all(isinstance(item, dict) for item in seq) and
+            len(set(frozenset(item.keys()) for item in seq)) == 1):
+        keys = sorted(seq[0].keys())
+        columns = [[item[key] for item in seq] for key in keys]
+        try:
+            types = [unite([discover(dshape) for dshape in column]).subshape[0]
+                                             for column in columns]
+            return len(seq) * Record(list(zip(keys, types)))
+        except AttributeError:
             pass
 
 

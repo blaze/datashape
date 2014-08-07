@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
         unite_merge_dimensions, do_one)
@@ -15,6 +16,11 @@ def test_simple():
     assert discover('Hello') == string
     assert discover(True) == bool_
     assert discover(None) == null
+
+
+def test_long():
+    if sys.version_info[0] == 2:
+        assert eval('discover(3L)') == int64
 
 
 def test_list():
@@ -121,9 +127,19 @@ def test_unite_tuples():
                     3 * Tuple([int64, Option(int64), Option(string), int64])
 
 def test_unite_records():
-    discover([{'name': 'Alice', 'balance': 100},
-              {'name': 'Bob', 'balance': ''}]) == \
-            2 * Record([['name', string], ['balance', Option(int64)]])
+    assert discover([{'name': 'Alice', 'balance': 100},
+                     {'name': 'Bob', 'balance': ''}]) == \
+                    2 * Record([['balance', Option(int64)], ['name', string]])
+
+    assert discover([{'name': 'Alice', 's': 'foo'},
+                     {'name': 'Bob', 's': None}]) == \
+                    2 * Record([['name', string], ['s', Option(string)]])
+
+    assert discover([{'name': 'Alice', 's': 'foo', 'f': 1.0},
+                     {'name': 'Bob', 's': None, 'f': None}]) == \
+                    2 * Record([['f', Option(float64)],
+                                ['name', string],
+                                ['s', Option(string)]])
 
     # assert unite((Record([['name', string], ['balance', int32]]),
     #               Record([['name', string]]))) == \
