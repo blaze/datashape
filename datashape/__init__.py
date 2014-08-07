@@ -14,7 +14,7 @@ from .coercion import coercion_cost
 from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
                     CoercionError)
 
-__version__ = '0.2.1dev'
+__version__ = '0.3.0'
 
 def test(verbose=False, xunitfile=None, exit=False):
     """
