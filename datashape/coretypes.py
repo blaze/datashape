@@ -9,6 +9,7 @@ shape and data type.
 import ctypes
 import datetime
 import operator
+import re
 
 import numpy as np
 
@@ -843,7 +844,7 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        def normalize(typ):
+        def normalize_type(typ):
             """ Normalize type inputs to Record
 
             >>> normalize('string')
@@ -857,7 +858,28 @@ class Record(Mono):
                 return typ[0]
             return typ
 
-        fields = tuple((k, normalize(v)) for k, v in fields)
+        def normalize_name(name):
+            """                                                                                         
+            Parameters                                                                                  
+            ----------                                                                                  
+            name: a string which will be checked for characters that dshape() and dynd dislike.
+                  If a disliked character is found, we will replace the offending characters with "_".
+                  http://datashape.pydata.org/grammar.html (2014-08-26)
+
+            >>> normalize_name("foo")
+            'foo'
+            >>> normalize_name("Unique Key Field")
+            "Unique_Key_Field"
+            >>> normalize_name("Field(sub1)")
+            "'Field_sub1_'"
+
+            """
+            new_name=re.sub("\W", "_", name)
+
+            return new_name
+
+
+        fields = tuple((normalize_name(k), normalize_type(v)) for k, v in fields)
         self._parameters = (tuple(map(tuple, fields)),)
 
     @property
