@@ -184,3 +184,11 @@ def test_big_discover():
 
 def test_unite_base():
     assert unite_base([date_, datetime_]) == 2 * datetime_
+
+
+def test_list_of_dicts():
+    data = [{'name': 'Alice', 'amount': 100},
+            {'name': 'Bob'}]
+    result = discover(data)
+    expected = dshape('2 * {amount: ?int64, name: string}')
+    assert result == expected
