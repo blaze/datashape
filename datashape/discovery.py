@@ -4,7 +4,6 @@ import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date, time
 from .dispatch import dispatch
-from toolz import compose, second
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple, null,
@@ -100,8 +99,8 @@ def discover(seq):
 
     # [{k: v, k: v}, {k: v, k: v}]
     if all(isinstance(item, dict) for item in seq):
-        keys = sorted(seq[max(enumerate(seq), key=compose(len, second))[0]].keys())
-        columns = [[item.get(key, None) for item in seq] for key in keys]
+        keys = sorted(set.union(*(set(d) for d in seq)))
+        columns = [[item.get(key) for item in seq] for key in keys]
         try:
             types = [unite([discover(dshape) for dshape in column]).subshape[0]
                                              for column in columns]
