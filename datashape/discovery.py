@@ -265,19 +265,3 @@ def descendents(d, x):
         children -= desc
         desc.update(children)
     return desc
-
-
-# @dispatch(list)
-# def discover(lst):
-#     ct = Counter()
-
-#     for el in lst:
-#         items = discover(el)
-#         ct += Counter(items)
-
-#     ((_, _), m), = ct.most_common(1)
-#     s = [(field, datashape.Option(ftype) if count < m else ftype)
-#          for (field, ftype), count in ct.items()]
-
-#     dshape = len(lst) * datashape.Record(sorted(s))
-#     return dshape
