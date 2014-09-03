@@ -4,12 +4,10 @@ import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date, time
 from .dispatch import dispatch
-from time import strptime
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple, null,
-                        Record, string, Null, DataShape, real, date_, time_,
-                        Mono)
+                        Record, string, Null, DataShape, real, date_, time_)
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
 
@@ -96,20 +94,19 @@ def discover(seq):
                                              for column in columns]
             unite = do_one([unite_identical, unite_merge_dimensions, Tuple])
             return len(seq) * unite(types)
-        except AttributeError: # no subshape available
+        except AttributeError:  # no subshape available
             pass
+
     # [{k: v, k: v}, {k: v, k: v}]
-    if (all(isinstance(item, dict) for item in seq) and
-            len(set(frozenset(item.keys()) for item in seq)) == 1):
-        keys = sorted(seq[0].keys())
-        columns = [[item[key] for item in seq] for key in keys]
+    if all(isinstance(item, dict) for item in seq):
+        keys = sorted(set.union(*(set(d) for d in seq)))
+        columns = [[item.get(key) for item in seq] for key in keys]
         try:
             types = [unite([discover(dshape) for dshape in column]).subshape[0]
                                              for column in columns]
             return len(seq) * Record(list(zip(keys, types)))
         except AttributeError:
             pass
-
 
     types = list(map(discover, seq))
     return do_one([unite_identical, unite_merge_dimensions, Tuple])(types)

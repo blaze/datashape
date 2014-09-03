@@ -126,6 +126,7 @@ def test_unite_tuples():
                      [1, 1, 'hello', 1]]) == \
                     3 * Tuple([int64, Option(int64), Option(string), int64])
 
+
 def test_unite_records():
     assert discover([{'name': 'Alice', 'balance': 100},
                      {'name': 'Bob', 'balance': ''}]) == \
@@ -144,7 +145,6 @@ def test_unite_records():
     # assert unite((Record([['name', string], ['balance', int32]]),
     #               Record([['name', string]]))) == \
     #                 Record([['name', string], ['balance', Option(int32)]])
-
 
 
 def test_dshape_missing_data():
@@ -171,11 +171,13 @@ def test_test():
     assert discover([['Alice', 100], ['Bob', 200]]) == \
             2 * Tuple([string, int64])
 
+
 def test_discover_appropriate():
     assert discover((1, 1.0)) == Tuple([int64, real])
     print(discover([(1, 1.0), (1, 1.0), (1, 1)]))
     assert discover([(1, 1.0), (1, 1.0), (1, 1)]) == \
             3 * Tuple([int64, real])
+
 
 def test_big_discover():
     data = [['1'] + ['hello']*20] * 10
@@ -184,3 +186,20 @@ def test_big_discover():
 
 def test_unite_base():
     assert unite_base([date_, datetime_]) == 2 * datetime_
+
+
+def test_list_of_dicts_no_difference():
+    data = [{'name': 'Alice', 'amount': 100},
+            {'name': 'Bob'}]
+    result = discover(data)
+    expected = dshape('2 * {amount: ?int64, name: string}')
+    assert result == expected
+
+
+def test_list_of_dicts_difference():
+    data = [{'name': 'Alice', 'amount': 100},
+            {'name': 'Bob', 'house_color': 'blue'}]
+    result = discover(data)
+    s = '2 * {amount: ?int64, house_color: ?string, name: string}'
+    expected = dshape(s)
+    assert result == expected
