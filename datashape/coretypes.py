@@ -10,6 +10,7 @@ import ctypes
 import datetime
 import operator
 from math import ceil
+import re
 
 import numpy as np
 
@@ -1167,11 +1168,23 @@ def record_string(fields, values):
     body = ''
     count = len(fields)
 
+    nonword_re=re.compile("\W")
     for i, (k,v) in enumerate(zip(fields,values)):
         if (i+1) == count:
-            body += '%s : %s' % (k,v)
+            #If we find a troublesome non-alphanumeric character ([0-9a-zA-Z]) in the key, wrap the key in quotes.
+            #  Any troublesome, but non-unicode characters should be escaped now.
+            #  Unicode will be escaped later.
+            if nonword_re.search(k):
+                body += '\'%s\' : %s' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
+            else:
+                body += '%s : %s' % (k,v)
+                
         else:
-            body += '%s : %s, ' % (k,v)
+            if nonword_re.search(k):
+                body += '\'%s\' : %s, ' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
+            else:
+                body += '%s : %s, ' % (k,v)
+
     return '{ ' + body + ' }'
 
 
