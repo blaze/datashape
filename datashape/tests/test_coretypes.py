@@ -112,7 +112,28 @@ class TestComplexFieldNames(unittest.TestCase):
 
     space_dshape="""{ 'Unique Key' : ?int64 }"""
 
-    big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string, 'Closed Date' : string, Agency : string, 'Agency Name' : string, 'Complaint Type' : string, Descriptor : string, 'Location Type' : string, 'Incident Zip' : ?int64, 'Incident Address' : ?string, 'Street Name' : ?string, 'Cross Street 1' : ?string, 'Cross Street 2' : ?string, 'Intersection Street 1' : ?string, 'Intersection Street 2' : ?string, 'Address Type' : string, City : string, Landmark : string, 'Facility Type' : string, Status : string, 'Due Date' : string, 'Resolution Action Updated Date' : string, 'Community Board' : string, Borough : string, 'X Coordinate (State Plane)' : ?int64, 'Y Coordinate (State Plane)' : ?int64, 'Park Facility Name' : string, 'Park Borough' : string, 'School Name' : string, 'School Number' : string, 'School Region' : string, 'School Code' : string, 'School Phone Number' : string, 'School Address' : string, 'School City' : string, 'School State' : string, 'School Zip' : string, 'School Not Found' : string, 'School or Citywide Complaint' : string, 'Vehicle Type' : string, 'Taxi Company Borough' : string, 'Taxi Pick Up Location' : string, 'Bridge Highway Name' : string, 'Bridge Highway Direction' : string, 'Road Ramp' : string, 'Bridge Highway Segment' : string, 'Garage Lot Name' : string, 'Ferry Direction' : string, 'Ferry Terminal Name' : string, Latitude : ?float64, Longitude : ?float64, Location : string }"""
+    big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string, 
+'Closed Date' : string, Agency : string, 'Agency Name' : string, 
+'Complaint Type' : string, Descriptor : string, 'Location Type' : string, 
+'Incident Zip' : ?int64, 'Incident Address' : ?string, 'Street Name' : ?string, 
+'Cross Street 1' : ?string, 'Cross Street 2' : ?string, 
+'Intersection Street 1' : ?string, 'Intersection Street 2' : ?string, 
+'Address Type' : string, City : string, Landmark : string, 
+'Facility Type' : string, Status : string, 'Due Date' : string, 
+'Resolution Action Updated Date' : string, 'Community Board' : string, 
+Borough : string, 'X Coordinate (State Plane)' : ?int64, 
+'Y Coordinate (State Plane)' : ?int64, 'Park Facility Name' : string, 
+'Park Borough' : string, 'School Name' : string, 'School Number' : string, 
+'School Region' : string, 'School Code' : string, 
+'School Phone Number' : string, 'School Address' : string, 
+'School City' : string, 'School State' : string, 'School Zip' : string, 
+'School Not Found' : string, 'School or Citywide Complaint' : string, 
+'Vehicle Type' : string, 'Taxi Company Borough' : string, 
+'Taxi Pick Up Location' : string, 'Bridge Highway Name' : string, 
+'Bridge Highway Direction' : string, 'Road Ramp' : string, 
+'Bridge Highway Segment' : string, 'Garage Lot Name' : string, 
+'Ferry Direction' : string, 'Ferry Terminal Name' : string, 
+Latitude : ?float64, Longitude : ?float64, Location : string }"""
 
     bad_dshape="""{ Unique Key : int64}"""
 
@@ -128,7 +149,7 @@ class TestComplexFieldNames(unittest.TestCase):
 
     def test_spaces_02(self):
         ds1=dshape(self.big_space_dshape)
-        self.assertEqual(self.big_space_dshape, str(ds1))
+        self.assertEqual(self.big_space_dshape.replace("\n", ""), str(ds1))
 
     def test_quotes_01(self):
         ds1=dshape(self.quotes_dshape_01)
