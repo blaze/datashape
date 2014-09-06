@@ -48,3 +48,7 @@ class TestOther(unittest.TestCase):
         assert ds == ds2
 
         assert str(ds) == str(ds2)
+
+    def test_subshape(self):
+        ds = dshape('5 * 3 * float32')
+        self.assertEqual(ds.subshape[2:], dshape('3 * 3 * float32'))

@@ -587,12 +587,15 @@ class DataShape(Mono):
         if isinstance(index, list) and isdimension(self[0]):
             return len(index) * self.subarray(1)
         if isinstance(index, slice) and isdimension(self[0]):
-            if None in (index.stop, index.start):
+            if (isinstance(self[0], Fixed) or index.stop is not None):
+                start = index.start or 0
+                stop = index.stop or int(self[0])
+                count = stop - start
+                if index.step is not None:
+                    count //= index.step
+                return count * self.subarray(1)
+            else:
                 return var * self.subarray(1)
-            count = index.stop - index.start
-            if index.step is not None:
-                count //= index.step
-            return count * self.subarray(1)
         if isinstance(index, tuple):
             if len(index) == 1:
                 return self._subshape(index[0])
