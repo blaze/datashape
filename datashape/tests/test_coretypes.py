@@ -1,4 +1,4 @@
-from datashape.coretypes import Record, real
+from datashape.coretypes import Record, real, String, CType
 from datashape import dshape, to_numpy_dtype, from_numpy
 import numpy as np
 import unittest
@@ -62,6 +62,9 @@ class TestFromNumPyDtype(object):
 
     def test_string(self):
         assert from_numpy((2,), np.dtype('U7')) == dshape('2 * string[7]')
+
+    def test_string_from_CType_classmethod(self):
+        assert CType.from_numpy_dtype(np.dtype('S7')) == String(7, 'A')
 
 
 class TestOther(unittest.TestCase):
