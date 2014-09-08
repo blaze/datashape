@@ -668,7 +668,7 @@ class CType(Unit):
             return defaults.get(unit, datetime_)
         elif np.issubdtype(dt, np.unicode_):
             return String(dt.itemsize // 4, 'utf-8')
-        elif np.issubdtype(dt, np.str_):
+        elif np.issubdtype(dt, np.str_) or np.issubdtype(dt, np.bytes_):
             return String(dt.itemsize, 'ascii')
         raise NotImplementedError("NumPy datatype %s not supported" % dt)
 
