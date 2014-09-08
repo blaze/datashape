@@ -1,37 +1,44 @@
+import pickle
+
+import numpy as np
+import pytest
+
 from datashape.coretypes import Record, real, String, CType
 from datashape import dshape, to_numpy_dtype, from_numpy
-import numpy as np
-import unittest
-
-class TestRecord(unittest.TestCase):
-    def setUp(self):
-        self.a = Record([('x', int), ('y', int)])
-        self.b = Record([('y', int), ('x', int)])
-
-    def test_respects_order(self):
-        self.assertNotEqual(self.a, self.b)
-
-    def test_strings(self):
-        self.assertEqual(Record([('x', 'real')]), Record([('x', real)]))
 
 
-class Test_to_numpy_dtype(unittest.TestCase):
+@pytest.fixture
+def a():
+    return Record([('x', int), ('y', int)])
+
+
+@pytest.fixture
+def b():
+    return Record([('y', int), ('x', int)])
+
+
+def test_respects_order(a, b):
+    assert a != b
+
+
+def test_strings():
+    assert Record([('x', 'real')]) == Record([('x', real)])
+
+
+class TestToNumpyDtype(object):
     def test_simple(self):
-        self.assertEqual(to_numpy_dtype(dshape('2 * int32')), np.int32)
-        self.assertEqual(to_numpy_dtype(dshape('2 * {x: int32, y: int32}')),
-                         np.dtype([('x', '<i4'), ('y', '<i4')]))
+        assert to_numpy_dtype(dshape('2 * int32')) == np.int32
+        assert (to_numpy_dtype(dshape('2 * {x: int32, y: int32}')) ==
+                np.dtype([('x', '<i4'), ('y', '<i4')]))
 
     def test_datetime(self):
-        self.assertEqual(to_numpy_dtype(dshape('2 * datetime')),
-                         np.dtype('M8[us]'))
+        assert to_numpy_dtype(dshape('2 * datetime')) == np.dtype('M8[us]')
 
     def test_date(self):
-        self.assertEqual(to_numpy_dtype(dshape('2 * date')),
-                         np.dtype('M8[D]'))
+        assert to_numpy_dtype(dshape('2 * date')) == np.dtype('M8[D]')
 
     def test_string(self):
-        self.assertEqual(to_numpy_dtype(dshape('2 * string')),
-                         np.dtype('O'))
+        assert to_numpy_dtype(dshape('2 * string')) == np.dtype('O')
 
 
 class TestFromNumPyDtype(object):
@@ -61,25 +68,24 @@ class TestFromNumPyDtype(object):
                 dshape('2 * string[7, "ascii"]'))
 
     def test_string(self):
-        assert from_numpy((2,), np.dtype('U7')) == dshape('2 * string[7]')
+        assert (from_numpy((2,), np.dtype('U7')) ==
+                dshape('2 * string[7, "U32"]'))
 
     def test_string_from_CType_classmethod(self):
         assert CType.from_numpy_dtype(np.dtype('S7')) == String(7, 'A')
 
 
-class TestOther(unittest.TestCase):
-    def test_eq(self):
-        self.assertEqual(dshape('int'), dshape('int'))
-        self.assertNotEqual(dshape('int'), 'apple')
+def test_eq():
+    assert dshape('int') == dshape('int')
+    assert dshape('int') != 'apple'
 
-    def test_serializable(self):
-        import pickle
-        ds = dshape('''{id: int64,
-                        name: string,
-                        amount: float32,
-                        arr: 3 * (int32, string)}''')
-        ds2 = pickle.loads(pickle.dumps(ds))
 
-        assert ds == ds2
+def test_serializable():
+    ds = dshape('''{id: int64,
+                    name: string,
+                    amount: float32,
+                    arr: 3 * (int32, string)}''')
+    ds2 = pickle.loads(pickle.dumps(ds))
 
-        assert str(ds) == str(ds2)
+    assert ds == ds2
+    assert str(ds) == str(ds2)
