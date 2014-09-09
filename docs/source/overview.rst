@@ -44,7 +44,7 @@ float64          Double precision float: sign bit, 11 bits exponent,
                  52 bits mantissa
 complex[float32] Complex number, represented by two 32-bit floats (real
                  and imaginary components)
-complex[float64] omplex number, represented by two 64-bit floats (real
+complex[float64] Complex number, represented by two 64-bit floats (real
                  and imaginary components)
 ================ =========================================================
 
@@ -57,11 +57,11 @@ bit/byte level.
 Bit type    Description
 ==========  =========================================================
 string      Variable length Unicode string.
-bytes       Variable length arrays of bytes.
+bytes       Variable length array of bytes.
 json        Variable length Unicode string which contains JSON.
-date        Dates in the proleptic Gregorian calendar.
-time        Times not attached to a date.
-datetime    Points in time, combination of date and time.
+date        Date in the proleptic Gregorian calendar.
+time        Time not attached to a date.
+datetime    Point in time, combination of date and time.
 units       Associates physical units with numerical values.
 ==========  =========================================================
 
