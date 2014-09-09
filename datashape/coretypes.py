@@ -656,17 +656,19 @@ class CType(Unit):
         >>> CType.from_numpy_dtype(dtype('M8'))
         DateTime(None)
         >>> CType.from_numpy_dtype(dtype('U30'))
-        ctype("string[30]")
+        ctype("string[30, 'U32']")
         """
         try:
             return Type.lookup_type(dt.name)
         except KeyError:
             pass
         if np.issubdtype(dt, np.datetime64):
-            return datetime_
+            unit, _ = np.datetime_data(dt)
+            defaults = {'D': date_, 'Y': date_, 'M': date_, 'W': date_}
+            return defaults.get(unit, datetime_)
         elif np.issubdtype(dt, np.unicode_):
-            return String(dt.itemsize // 4, 'utf-8')
-        elif np.issubdtype(dt, np.str_):
+            return String(dt.itemsize // 4, 'U32')
+        elif np.issubdtype(dt, np.str_) or np.issubdtype(dt, np.bytes_):
             return String(dt.itemsize, 'ascii')
         raise NotImplementedError("NumPy datatype %s not supported" % dt)
 
@@ -1107,7 +1109,7 @@ def from_numpy(shape, dt):
     if dtype.kind == 'S':
         measure = String(dtype.itemsize, 'A')
     elif dtype.kind == 'U':
-        measure = String(dtype.itemsize / 4, 'U8')
+        measure = String(dtype.itemsize // 4, 'U32')
     elif dtype.fields:
         field_items = [(name, dtype.fields[name]) for name in dtype.names]
         rec = [(a,CType.from_numpy_dtype(b[0])) for a,b in field_items]
