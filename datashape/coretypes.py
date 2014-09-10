@@ -9,6 +9,7 @@ shape and data type.
 import ctypes
 import datetime
 import operator
+from math import ceil
 
 import numpy as np
 
@@ -545,7 +546,7 @@ class DataShape(Mono):
         3 * { name : string, amount : int32 }
 
         >>> print(ds.subshape[0:7:2, 'amount'])
-        3 * int32
+        4 * int32
 
         >>> print(ds.subshape[[1, 10, 15]])
         3 * { name : string, amount : int32 }
@@ -592,7 +593,7 @@ class DataShape(Mono):
                 stop = index.stop or int(self[0])
                 count = stop - start
                 if index.step is not None:
-                    count //= index.step
+                    count = int(ceil(count / index.step))
                 return count * self.subarray(1)
             else:
                 return var * self.subarray(1)

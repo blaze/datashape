@@ -92,3 +92,6 @@ def test_serializable():
 def test_subshape():
     ds = dshape('5 * 3 * float32')
     assert ds.subshape[2:] == dshape('3 * 3 * float32')
+
+    ds = dshape('5 * 3 * float32')
+    assert ds.subshape[::2] == dshape('3 * 3 * float32')
