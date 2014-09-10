@@ -272,7 +272,7 @@ class Time(Unit):
         if self.tz is None:
             return 'time'
         else:
-            return 'time[tz=%r]' % self.tz
+            return 'time[tz=%r]' % str(self.tz)
 
 
 class DateTime(Unit):
@@ -291,7 +291,7 @@ class DateTime(Unit):
         if self.tz is None:
             return 'datetime'
         else:
-            return 'datetime[tz=%r]' % self.tz
+            return 'datetime[tz=%r]' % str(self.tz)
 
     def to_numpy_dtype(self):
         return np.dtype('datetime64[us]')
