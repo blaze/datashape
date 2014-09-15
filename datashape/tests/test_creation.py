@@ -151,6 +151,34 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape('var * 3 * int32'),
                          dshape((var, 3, int32)))
 
+    def test_dshape_into_repr(self):
+        self.assertEqual(eval(repr(dshape('bool'))), dshape('bool'))
+        self.assertEqual(eval(repr(dshape('int8'))), dshape('int8'))
+        self.assertEqual(eval(repr(dshape('int16'))), dshape('int16'))
+        self.assertEqual(eval(repr(dshape('int32'))), dshape('int32'))
+        self.assertEqual(eval(repr(dshape('int64'))), dshape('int64'))
+        self.assertEqual(eval(repr(dshape('uint8'))), dshape('uint8'))
+        self.assertEqual(eval(repr(dshape('uint16'))), dshape('uint16'))
+        self.assertEqual(eval(repr(dshape('uint32'))), dshape('uint32'))
+        self.assertEqual(eval(repr(dshape('uint64'))), dshape('uint64'))
+        self.assertEqual(eval(repr(dshape('float32'))), dshape('float32'))
+        self.assertEqual(eval(repr(dshape('float64'))), dshape('float64'))
+        self.assertEqual(eval(repr(dshape('complex64'))), dshape('complex64'))
+        self.assertEqual(eval(repr(dshape('complex128'))), dshape('complex128'))
+        self.assertEqual(eval(repr(dshape('string'))), dshape('string'))
+        self.assertEqual(eval(repr(dshape('json'))), dshape('json'))
+        self.assertEqual(eval(repr(dshape("date"))), dshape('date'))
+        self.assertEqual(eval(repr(dshape("time"))), dshape('time'))
+        self.assertEqual(eval(repr(dshape("datetime"))), dshape('datetime'))
+        self.assertEqual(eval(repr(dshape('{id:int8, value:bool, result:int16}'))), 
+            dshape('{id:int8, value:bool, result:int16}'))
+        self.assertEqual(eval(repr(dshape('{a:int32, b:int64, x:uint8, y:uint16, z:uint32}'))), 
+            dshape('{a:int32, b:int64, x:uint8, y:uint16, z:uint32}'))
+        self.assertEqual(eval(repr(dshape('{a:float32, b:float64, c:complex64, d:complex128, e:string, f:json, g:date, h:time, i:datetime}'))), 
+            dshape('{a:float32, b:float64, c:complex64, d:complex128, e:string, f:json, g:date, h:time, i:datetime}'))
+        self.assertEqual(eval(repr(dshape("2 * var * int32"))), dshape('2 * var * int32'))
+
+
 
 if __name__ == '__main__':
     unittest.main()
