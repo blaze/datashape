@@ -176,8 +176,7 @@ class TestDataShapeCreation(unittest.TestCase):
                'uintptr',
                '{id:int8, value:bool, result:int16}',
                '{a:int32, b:int64, x:uint8, y:uint16, z:uint32}',
-               '{a:float32, b:float64, c:complex64, d:complex128, e:string, f:json, g:date, h:time, i:datetime}',
-               '2 * var * int32']
+               '{a:float32, b:float64, c:complex64, d:complex128, e:string, f:json, g:date, h:time, i:datetime}']
 
     dimensions = ['0',
                   '1',
@@ -186,16 +185,15 @@ class TestDataShapeCreation(unittest.TestCase):
                   '5',
                   '100',
                   '...',
-                  'var'
+                  'var',
                   '2 * var',
                   '2 * var * 2',
-                  '10 * 15'
-                  ]
+                  '10 * 15']
 
     def test_dshape_into_repr(self):
         for ds in self.dshapes:
             self.assertEqual(eval(repr(dshape(ds))), dshape(ds))
-            for dm in dimensions:
+            for dm in self.dimensions:
                 self.assertEqual(eval(repr(dshape(dm + ' * ' + ds))), dshape(dm + ' * ' + ds))
         
 
