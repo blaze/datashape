@@ -40,6 +40,9 @@ class TestToNumpyDtype(object):
     def test_string(self):
         assert to_numpy_dtype(dshape('2 * string')) == np.dtype('O')
 
+    def test_dimensions(self):
+        return to_numpy_dtype(dshape('var * int32')) == np.int32
+
 
 class TestFromNumPyDtype(object):
 

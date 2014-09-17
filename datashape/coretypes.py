@@ -1050,7 +1050,7 @@ class NotNumpyCompatible(Exception):
 def to_numpy_dtype(ds):
     """ Throw away the shape information and just return the
     measure as NumPy dtype instance."""
-    return to_numpy(ds)[1]
+    return to_numpy(ds.measure)[1]
 
 def to_numpy(ds):
     """
