@@ -3,6 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date, time
+from toolz import first
 from .dispatch import dispatch
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
@@ -157,8 +158,17 @@ def lowest_common_dshape(dshapes):
     ctype("string")
     """
     common = set.intersection(*[descendents(edges, ds) for ds in dshapes])
-    if common:
+    if common and any(c in toposorted for c in common):
         return min(common, key=toposorted.index)
+
+    if null in dshapes:
+        dshapes = [ds for ds in dshapes if ds != null]
+        wrapper = Option
+    else:
+        wrapper = lambda x: x
+
+    if len(set(dshapes)) == 1:
+        return wrapper(first(dshapes))
 
 
 def unite_base(dshapes):

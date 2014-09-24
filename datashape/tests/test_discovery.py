@@ -2,7 +2,7 @@ import numpy as np
 import sys
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
-        unite_merge_dimensions, do_one)
+        unite_merge_dimensions, do_one, lowest_common_dshape)
 from datashape.coretypes import *
 from datashape.internal_utils import raises
 from datashape import dshape
@@ -203,3 +203,14 @@ def test_list_of_dicts_difference():
     s = '2 * {amount: ?int64, house_color: ?string, name: string}'
     expected = dshape(s)
     assert result == expected
+
+
+def test_lowestcommon_dshape():
+    dshapes = [dshape('{name: string, amount: int32}'),
+               dshape('{name: string, amount: int32}')]
+    assert lowest_common_dshape(dshapes) == \
+            dshape('{name: string, amount: int32}')
+
+    dshapes = [Null(), dshape('{name: string, amount: int32}')]
+    assert lowest_common_dshape(dshapes) == \
+            dshape('?{name: string, amount: int32}')[0]
