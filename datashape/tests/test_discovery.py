@@ -209,8 +209,13 @@ def test_lowestcommon_dshape():
     dshapes = [dshape('{name: string, amount: int32}'),
                dshape('{name: string, amount: int32}')]
     assert lowest_common_dshape(dshapes) == \
-            dshape('{name: string, amount: int32}')
+            dshape('{name: string, amount: int32}')[0]
 
     dshapes = [Null(), dshape('{name: string, amount: int32}')]
     assert lowest_common_dshape(dshapes) == \
             dshape('?{name: string, amount: int32}')[0]
+
+    dshapes = [dshape('{name: string, amount: int32}'),
+               dshape('{name: string, amount: int64}')]
+    assert lowest_common_dshape(dshapes) == \
+            dshape('{name: string, amount: int64}')[0]

@@ -167,8 +167,16 @@ def lowest_common_dshape(dshapes):
     else:
         wrapper = lambda x: x
 
+    dshapes = list(map(unpack, dshapes))
+
     if len(set(dshapes)) == 1:
         return wrapper(first(dshapes))
+
+    if (all(isinstance(ds, Record) for ds in dshapes) and
+            ds.names == dshapes[0].names for ds in dshapes):
+        names = dshapes[0].names
+        return wrapper(Record([[name, lowest_common_dshape(
+            [ds.dict[name] for ds in dshapes])] for name in names]))
 
 
 def unite_base(dshapes):
