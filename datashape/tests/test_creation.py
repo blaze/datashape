@@ -174,28 +174,24 @@ class TestDataShapeCreation(unittest.TestCase):
                'complex',
                'intptr',
                'uintptr',
-               '{id:int8, value:bool, result:int16}',
-               '{a:int32, b:int64, x:uint8, y:uint16, z:uint32}',
-               '{a:float32, b:float64, c:complex64, d:complex128, e:string, f:json, g:date, h:time, i:datetime}']
+               '{id: int8, value: bool, result: int16}',
+               '{a: int32, b: int64, x: uint8, y: uint16, z: uint32}',
+               '{a: float32, b: float64, c: complex64, d: complex128, e: string, f: json, g: date, h: time, i: datetime}']
 
-    dimensions = ['0',
-                  '1',
-                  '2',
-                  '3',
-                  '5',
+    dimensions = ['2',
                   '100',
                   '...',
                   'var',
-                  '2 * var',
                   '2 * var * 2',
-                  '10 * 15']
+                  ]
 
     def test_dshape_into_repr(self):
         for ds in self.dshapes:
             self.assertEqual(eval(repr(dshape(ds))), dshape(ds))
             for dm in self.dimensions:
-                self.assertEqual(eval(repr(dshape(dm + ' * ' + ds))), dshape(dm + ' * ' + ds))
-        
+                d = dshape(dm + ' * ' + ds)
+                self.assertEqual(eval(repr(d)), d)
+
 
 if __name__ == '__main__':
     unittest.main()
