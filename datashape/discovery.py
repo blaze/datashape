@@ -8,7 +8,8 @@ from .dispatch import dispatch
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, isdimension, var, from_numpy, Tuple, null,
-                        Record, string, Null, DataShape, real, date_, time_)
+                        Record, string, Null, DataShape, real, date_, time_,
+                        Unit)
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
 
@@ -160,23 +161,7 @@ def lowest_common_dshape(dshapes):
     common = set.intersection(*[descendents(edges, ds) for ds in dshapes])
     if common and any(c in toposorted for c in common):
         return min(common, key=toposorted.index)
-
-    if null in dshapes:
-        dshapes = [ds for ds in dshapes if ds != null]
-        wrapper = Option
-    else:
-        wrapper = lambda x: x
-
-    dshapes = list(map(unpack, dshapes))
-
-    if len(set(dshapes)) == 1:
-        return wrapper(first(dshapes))
-
-    if (all(isinstance(ds, Record) for ds in dshapes) and
-            ds.names == dshapes[0].names for ds in dshapes):
-        names = dshapes[0].names
-        return wrapper(Record([[name, lowest_common_dshape(
-            [ds.dict[name] for ds in dshapes])] for name in names]))
+    raise ValueError("Not all dshapes are known.  Extend edges.")
 
 
 def unite_base(dshapes):
@@ -190,7 +175,15 @@ def unite_base(dshapes):
     """
     dshapes = [unpack(ds) for ds in dshapes]
     bynull = groupby(isnull, dshapes)
-    base = lowest_common_dshape(bynull.get(False, []))
+    good_dshapes = bynull.get(False, [])
+    if all(isinstance(ds, Unit) for ds in good_dshapes):
+        base = lowest_common_dshape(good_dshapes)
+    elif (all(isinstance(ds, Record) for ds in good_dshapes) and
+              ds.names == dshapes[0].names for ds in good_dshapes):
+        names = good_dshapes[0].names
+        base = Record([[name,
+            unite_base([ds.dict[name] for ds in good_dshapes]).subshape[0]]
+            for name in names])
     if base:
         if bynull.get(True):
             base = Option(base)

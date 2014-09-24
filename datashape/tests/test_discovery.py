@@ -205,17 +205,17 @@ def test_list_of_dicts_difference():
     assert result == expected
 
 
-def test_lowestcommon_dshape():
+def test_unite_base_on_records():
     dshapes = [dshape('{name: string, amount: int32}'),
                dshape('{name: string, amount: int32}')]
-    assert lowest_common_dshape(dshapes) == \
-            dshape('{name: string, amount: int32}')[0]
+    assert unite_base(dshapes) == \
+            dshape('2 * {name: string, amount: int32}')
 
     dshapes = [Null(), dshape('{name: string, amount: int32}')]
-    assert lowest_common_dshape(dshapes) == \
-            dshape('?{name: string, amount: int32}')[0]
+    assert unite_base(dshapes) == \
+            dshape('2 * ?{name: string, amount: int32}')
 
     dshapes = [dshape('{name: string, amount: int32}'),
                dshape('{name: string, amount: int64}')]
-    assert lowest_common_dshape(dshapes) == \
-            dshape('{name: string, amount: int64}')[0]
+    assert unite_base(dshapes) == \
+            dshape('2 * {name: string, amount: int64}')
