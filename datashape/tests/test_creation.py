@@ -151,6 +151,47 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape('var * 3 * int32'),
                          dshape((var, 3, int32)))
 
+    dshapes = ['bool',
+               'int8',
+               'int16',
+               'int32',
+               'int64',
+               'uint8',
+               'uint16',
+               'uint32',
+               'uint64',
+               'float32',
+               'float64',
+               'complex64',
+               'complex128',
+               'string',
+               'json',
+               'date',
+               'time',
+               'datetime',
+               'int',
+               'real',
+               'complex',
+               'intptr',
+               'uintptr',
+               '{id: int8, value: bool, result: int16}',
+               '{a: int32, b: int64, x: uint8, y: uint16, z: uint32}',
+               '{a: float32, b: float64, c: complex64, d: complex128, e: string, f: json, g: date, h: time, i: datetime}']
+
+    dimensions = ['2',
+                  '100',
+                  '...',
+                  'var',
+                  '2 * var * 2',
+                  ]
+
+    def test_dshape_into_repr(self):
+        for ds in self.dshapes:
+            self.assertEqual(eval(repr(dshape(ds))), dshape(ds))
+            for dm in self.dimensions:
+                d = dshape(dm + ' * ' + ds)
+                self.assertEqual(eval(repr(d)), d)
+
 
 if __name__ == '__main__':
     unittest.main()
