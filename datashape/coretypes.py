@@ -1174,23 +1174,23 @@ def record_string(fields, values):
     body = ''
     count = len(fields)
 
-    nonword_re=re.compile("\W")
+    word_re=re.compile("[a-zA-Z_][a-zA-Z0-9]*$")
     for i, (k,v) in enumerate(zip(fields,values)):
         if (i+1) == count:
-            #If we find a troublesome non-alphanumeric character ([0-9a-zA-Z])
+            #If we find a troublesome non-alphanumeric character 
             #  in the key, wrap the key in quotes.  Any troublesome, but
             #  non-unicode characters should be escaped now.  Unicode will be
             #  escaped later.
-            if nonword_re.search(k):
-                body += '\'%s\' : %s' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
-            else:
+            if word_re.match(k):
                 body += '%s : %s' % (k,v)
+            else:
+                body += '\'%s\' : %s' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
                 
         else:
-            if nonword_re.search(k):
-                body += '\'%s\' : %s, ' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
-            else:
+            if word_re.match(k):
                 body += '%s : %s, ' % (k,v)
+            else:
+                body += '\'%s\' : %s, ' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
 
     return '{ ' + body + ' }'
 
