@@ -126,64 +126,81 @@ class TestComplexFieldNames(unittest.TestCase):
 
     This test suite is by no means complete, but it does handle some of the more common special cases (common special? oxymoron?)
     """
-
-
-    space_dshape="""{ 'Unique Key' : ?int64 }"""
-
-    big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string, 
-'Closed Date' : string, Agency : string, 'Agency Name' : string, 
-'Complaint Type' : string, Descriptor : string, 'Location Type' : string, 
-'Incident Zip' : ?int64, 'Incident Address' : ?string, 'Street Name' : ?string, 
-'Cross Street 1' : ?string, 'Cross Street 2' : ?string, 
-'Intersection Street 1' : ?string, 'Intersection Street 2' : ?string, 
-'Address Type' : string, City : string, Landmark : string, 
-'Facility Type' : string, Status : string, 'Due Date' : string, 
-'Resolution Action Updated Date' : string, 'Community Board' : string, 
-Borough : string, 'X Coordinate (State Plane)' : ?int64, 
-'Y Coordinate (State Plane)' : ?int64, 'Park Facility Name' : string, 
-'Park Borough' : string, 'School Name' : string, 'School Number' : string, 
-'School Region' : string, 'School Code' : string, 
-'School Phone Number' : string, 'School Address' : string, 
-'School City' : string, 'School State' : string, 'School Zip' : string, 
-'School Not Found' : string, 'School or Citywide Complaint' : string, 
-'Vehicle Type' : string, 'Taxi Company Borough' : string, 
-'Taxi Pick Up Location' : string, 'Bridge Highway Name' : string, 
-'Bridge Highway Direction' : string, 'Road Ramp' : string, 
-'Bridge Highway Segment' : string, 'Garage Lot Name' : string, 
-'Ferry Direction' : string, 'Ferry Terminal Name' : string, 
-Latitude : ?float64, Longitude : ?float64, Location : string }"""
-
-    bad_dshape="""{ Unique Key : int64}"""
-
-    quotes_dshape_01="""{ 'field \\' with \\' quotes' : string }"""
-    quotes_dshape_02="""{ 'doublequote \" field \"' : int64 }"""
-    quotes_dshape_03="""{ 'field \\' with \\' quotes' : string, 'doublequote \" field \"' : int64 }"""
-
-    backslash_dshape="""{ 'field with    backslashes' : int64 }"""
-
     def test_spaces_01(self):
-        ds1=dshape(self.space_dshape)
-        self.assertEqual(self.space_dshape, str(ds1))
+        space_dshape="""{ 'Unique Key' : ?int64 }"""
+        ds1=dshape(space_dshape)
+        self.assertEqual(space_dshape, str(ds1))
 
     def test_spaces_02(self):
-        ds1=dshape(self.big_space_dshape)
-        self.assertEqual(self.big_space_dshape.replace("\n", ""), str(ds1))
+        big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string,
+'Closed Date' : string, Agency : string, 'Agency Name' : string,
+'Complaint Type' : string, Descriptor : string, 'Location Type' : string,
+'Incident Zip' : ?int64, 'Incident Address' : ?string, 'Street Name' : ?string,
+'Cross Street 1' : ?string, 'Cross Street 2' : ?string,
+'Intersection Street 1' : ?string, 'Intersection Street 2' : ?string,
+'Address Type' : string, City : string, Landmark : string,
+'Facility Type' : string, Status : string, 'Due Date' : string,
+'Resolution Action Updated Date' : string, 'Community Board' : string,
+Borough : string, 'X Coordinate (State Plane)' : ?int64,
+'Y Coordinate (State Plane)' : ?int64, 'Park Facility Name' : string,
+'Park Borough' : string, 'School Name' : string, 'School Number' : string,
+'School Region' : string, 'School Code' : string,
+'School Phone Number' : string, 'School Address' : string,
+'School City' : string, 'School State' : string, 'School Zip' : string,
+'School Not Found' : string, 'School or Citywide Complaint' : string,
+'Vehicle Type' : string, 'Taxi Company Borough' : string,
+'Taxi Pick Up Location' : string, 'Bridge Highway Name' : string,
+'Bridge Highway Direction' : string, 'Road Ramp' : string,
+'Bridge Highway Segment' : string, 'Garage Lot Name' : string,
+'Ferry Direction' : string, 'Ferry Terminal Name' : string,
+Latitude : ?float64, Longitude : ?float64, Location : string }"""
 
-    def test_quotes_01(self):
-        ds1=dshape(self.quotes_dshape_01)
-        self.assertEqual(self.quotes_dshape_01, str(ds1))
 
-    def test_quotes_02(self):
-        ds1=dshape(self.quotes_dshape_02)
-        self.assertEqual(self.quotes_dshape_02, str(ds1))
+        ds1=dshape(big_space_dshape)
+        ds2=dshape(str(ds1))
 
-    def test_quotes_03(self):
-        ds1=dshape(self.quotes_dshape_02)
-        self.assertEqual(self.quotes_dshape_02, str(ds1))
+        self.assertEqual(str(ds1), str(ds2))
 
-    def test_backslash_01(self):
-        ds1=dshape(self.backslash_dshape)
-        self.assertEqual(self.backslash_dshape, str(ds1))
+    def test_single_quotes_01(self):
+
+        quotes_dshape="""{ 'field \\' with \\' quotes' : string }"""
+
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        self.assertEqual(str(ds1), str(ds2))
+
+    def test_double_quotes_01(self):
+        quotes_dshape="""{ 'doublequote \" field \"' : int64 }"""
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        self.assertEqual(str(ds1), str(ds2))
+
+    def test_multi_quotes_01(self):
+        quotes_dshape="""{ 'field \\' with \\' quotes' : string, 'doublequote \" field \"' : int64 }"""
+
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        self.assertEqual(str(ds1), str(ds2))
+
+    def test_mixed_quotes_01(self):
+        quotes_dshape="""{ 'field \" with \\' quotes' : string, 'doublequote \" field \\'' : int64 }"""
+
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        self.assertEqual(str(ds1), str(ds2))
 
     def test_bad_01(self):
-        self.assertRaises(Exception, dshape, self.bad_dshape)
+        bad_dshape="""{ Unique Key : int64}"""
+        self.assertRaises(Exception, dshape, bad_dshape)
+
+    def test_bad_02(self):
+        """backslashes aren't allowed in datashapes according to the definitions
+        in lexer.py
+        """
+        backslash_dshape="""{ 'field with \\\\   backslashes' : int64 }"""
+
+        self.assertRaises(Exception ,dshape, backslash_dshape)
