@@ -174,7 +174,10 @@ def unite_base(dshapes):
     """
     dshapes = [unpack(ds) for ds in dshapes]
     bynull = groupby(isnull, dshapes)
-    good_dshapes = bynull.get(False, [])
+    try:
+        good_dshapes = bynull[False]
+    except KeyError:
+        return len(dshapes) * null
     if all(isinstance(ds, Unit) for ds in good_dshapes):
         base = lowest_common_dshape(good_dshapes)
     elif (all(isinstance(ds, Record) for ds in good_dshapes) and
