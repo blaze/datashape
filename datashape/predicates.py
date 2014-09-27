@@ -101,3 +101,17 @@ def istabular(ds):
     """
     ds = dshape(ds)
     return _dimensions(ds) == 2 and isfixed(ds.subarray(1))
+
+
+def isscalar(ds):
+    """ Has no dimensions
+
+    >>> isscalar('int')
+    True
+    >>> isscalar('3 * int')
+    False
+    >>> isscalar('{name: string, amount: int}')
+    True
+    """
+    ds = dshape(ds)
+    return not ds.shape
