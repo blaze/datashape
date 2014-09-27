@@ -58,6 +58,8 @@ def _dimensions(ds):
         return 1 + max(map(_dimensions, ds[0].types))
     if len(ds) == 1 and isunit(ds[0]):
         return 0
+    if isinstance(ds[0], Option):
+        return _dimensions(ds[0].ty)
     raise NotImplementedError('Can not compute dimensions for %s' % ds)
 
 
