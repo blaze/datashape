@@ -58,6 +58,8 @@ def _dimensions(ds):
         return 1 + max(map(_dimensions, ds[0].types))
     if len(ds) == 1 and isunit(ds[0]):
         return 0
+    if isinstance(ds[0], Option):
+        return _dimensions(ds[0].ty)
     raise NotImplementedError('Can not compute dimensions for %s' % ds)
 
 
@@ -99,3 +101,17 @@ def istabular(ds):
     """
     ds = dshape(ds)
     return _dimensions(ds) == 2 and isfixed(ds.subarray(1))
+
+
+def isscalar(ds):
+    """ Has no dimensions
+
+    >>> isscalar('int')
+    True
+    >>> isscalar('3 * int')
+    False
+    >>> isscalar('{name: string, amount: int}')
+    True
+    """
+    ds = dshape(ds)
+    return not ds.shape
