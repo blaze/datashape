@@ -4,7 +4,7 @@ from .coretypes import *
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
-__all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed']
+__all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar']
 
 dimension_types = (Fixed, Var, Ellipsis)
 
