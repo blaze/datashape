@@ -14,7 +14,7 @@ from .coercion import coercion_cost
 from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
                     CoercionError)
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 def test(verbose=False, xunitfile=None, exit=False):
     """
@@ -22,8 +22,8 @@ def test(verbose=False, xunitfile=None, exit=False):
     the results of the tests to sys.stdout.
 
     This uses py.test tests to discover which tests to
-    run. By default, it runs any tests in any 'test_*py' 
-    files and any function or method prefixed with 'test_'. 
+    run. By default, it runs any tests in any 'test_*py'
+    files and any function or method prefixed with 'test_'.
     It also runs any doctests in the doc strings of any *py
     files.
     Test collection rules are customizable. Full default rules
@@ -68,4 +68,4 @@ def test(verbose=False, xunitfile=None, exit=False):
         sys.exit(ret)
     else:
         return ret
-        
+
