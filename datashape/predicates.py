@@ -27,6 +27,25 @@ def isunit(ds):
     return isinstance(ds, Unit)
 
 
+def isrecord(ds):
+    """ Is this dshape a record type?
+
+    >>> isrecord('{name: string, amount: int}')
+    True
+    >>> isrecord('int')
+    False
+    >>> isrecord('?{name: string, amount: int}')
+    True
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape) and len(ds) == 1:
+        ds = ds[0]
+    if isinstance(ds, Option):
+        ds = ds.ty
+    return isinstance(ds, Record)
+
+
 def isdimension(ds):
     """ Is a component a dimension?
 
