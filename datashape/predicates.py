@@ -155,3 +155,16 @@ def isscalar(ds):
     """
     ds = dshape(ds)
     return not ds.shape
+
+
+def iscollection(ds):
+    """ Is a collection of items, has dimension
+
+    >>> iscollection('5 * int32')
+    True
+    >>> iscollection('int32')
+    False
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    return isdimension(ds[0])
