@@ -20,7 +20,7 @@ setup(
     packages = ["datashape",
                 "datashape.tests"],
     install_requires=open('requirements.txt').read().split('\n'),
-    long_description = read('README.md'),
+    long_description = read('README.rst'),
     classifiers = [
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
