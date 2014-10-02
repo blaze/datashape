@@ -4,18 +4,19 @@ from .coretypes import *
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
-__all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar']
+__all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar',
+        'isrecord', 'iscollection']
 
 dimension_types = (Fixed, Var, Ellipsis, int)
 
-def isunit(ds):
+def isscalar(ds):
     """ Is this dshape a single dtype?
 
-    >>> isunit('int')
+    >>> isscalar('int')
     True
-    >>> isunit('?int')
+    >>> isscalar('?int')
     True
-    >>> isunit('{name: string, amount: int}')
+    >>> isscalar('{name: string, amount: int}')
     False
     """
     if isinstance(ds, str):
@@ -70,7 +71,7 @@ def ishomogeneous(ds):
     False
     """
     ds = dshape(ds)
-    return len(set(remove(isdimension, collect(isunit, ds)))) == 1
+    return len(set(remove(isdimension, collect(isscalar, ds)))) == 1
 
 
 def _dimensions(ds):
@@ -98,7 +99,7 @@ def _dimensions(ds):
         return 1 + max(map(_dimensions, ds.types))
     if isinstance(ds, DataShape) and isdimension(ds[0]):
         return 1 + _dimensions(ds.subshape[0])
-    if isunit(ds):
+    if isscalar(ds):
         return 0
     raise NotImplementedError('Can not compute dimensions for %s' % ds)
 
@@ -141,20 +142,6 @@ def istabular(ds):
     """
     ds = dshape(ds)
     return _dimensions(ds) == 2 and isfixed(ds.subarray(1))
-
-
-def isscalar(ds):
-    """ Has no dimensions
-
-    >>> isscalar('int')
-    True
-    >>> isscalar('3 * int')
-    False
-    >>> isscalar('{name: string, amount: int}')
-    True
-    """
-    ds = dshape(ds)
-    return not ds.shape
 
 
 def iscollection(ds):
