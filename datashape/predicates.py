@@ -8,7 +8,24 @@ __all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar']
 
 dimension_types = (Fixed, Var, Ellipsis)
 
-isunit = lambda x: isinstance(x, Unit)
+def isunit(ds):
+    """ Is this dshape a single dtype?
+
+    >>> isunit('int')
+    True
+    >>> isunit('?int')
+    True
+    >>> isunit('{name: string, amount: int}')
+    False
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape) and len(ds) == 1:
+        ds = ds[0]
+    if isinstance(ds, Option):
+        ds = ds.ty
+    return isinstance(ds, Unit)
+
 
 def isdimension(ds):
     """ Is a component a dimension?
@@ -52,14 +69,18 @@ def _dimensions(ds):
     2
     """
     ds = dshape(ds)
-    if isdimension(ds[0]):
-        return 1 + _dimensions(ds.subarray(1))
-    if isinstance(ds[0], Record):
-        return 1 + max(map(_dimensions, ds[0].types))
-    if len(ds) == 1 and isunit(ds[0]):
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape) and len(ds) == 1:
+        ds = ds[0]
+    if isinstance(ds, Option):
+        return _dimensions(ds.ty)
+    if isinstance(ds, Record):
+        return 1 + max(map(_dimensions, ds.types))
+    if isinstance(ds, DataShape) and isdimension(ds[0]):
+        return 1 + _dimensions(ds.subshape[0])
+    if isunit(ds):
         return 0
-    if isinstance(ds[0], Option):
-        return _dimensions(ds[0].ty)
     raise NotImplementedError('Can not compute dimensions for %s' % ds)
 
 
