@@ -570,6 +570,7 @@ class DataShape(Mono):
         >>> print(ds.subshape[0, 1:])
         { amount : int32, id : int32 }
         """
+        from .predicates import isdimension
         if isinstance(index, _inttypes) and isdimension(self[0]):
             return self.subarray(1)
         if isinstance(self[0], Record) and isinstance(index, _strtypes):
@@ -1196,7 +1197,3 @@ def type_constructor(ds):
     The type constructor indicates how types unify (see unification.py).
     """
     return type(ds)
-
-
-def isdimension(unit):
-    return isinstance(unit, (Fixed, Var))

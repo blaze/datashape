@@ -6,9 +6,10 @@ from datetime import datetime, date, time
 from .dispatch import dispatch
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
-                        Option, isdimension, var, from_numpy, Tuple, null,
+                        Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
                         Unit)
+from .predicates import isdimension
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
 

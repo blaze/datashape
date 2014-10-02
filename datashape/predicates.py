@@ -6,7 +6,7 @@ from .coretypes import *
 
 __all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar']
 
-dimension_types = (Fixed, Var, Ellipsis)
+dimension_types = (Fixed, Var, Ellipsis, int)
 
 def isunit(ds):
     """ Is this dshape a single dtype?
