@@ -1,4 +1,6 @@
-========= DataShape =========
+=========
+DataShape
+=========
 
 DataShape is a language for describing data. It is an extension of the
 NumPy dtype with an emphasis on cross language support.
