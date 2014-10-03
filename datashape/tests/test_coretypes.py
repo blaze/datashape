@@ -6,7 +6,7 @@ import unittest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
         Fixed, Option)
-from datashape import dshape, to_numpy_dtype, from_numpy
+from datashape import dshape, to_numpy_dtype, from_numpy, error
 
 
 @pytest.fixture
@@ -118,7 +118,7 @@ def test_option_sanitizes_strings():
     assert Option('float32').ty == dshape('float32').measure
 
 
-class TestComplexFieldNames(unittest.TestCase):
+class TestComplexFieldNames(object):
     """
     The tests in this class should verify that the datashape parser can handle field names that contain
       strange characters like spaces, quotes, and backslashes
@@ -129,7 +129,7 @@ class TestComplexFieldNames(unittest.TestCase):
     def test_spaces_01(self):
         space_dshape="""{ 'Unique Key' : ?int64 }"""
         ds1=dshape(space_dshape)
-        self.assertEqual(space_dshape, str(ds1))
+        assert space_dshape == str(ds1)
 
     def test_spaces_02(self):
         big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string,
@@ -159,7 +159,7 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
         ds1=dshape(big_space_dshape)
         ds2=dshape(str(ds1))
 
-        self.assertEqual(str(ds1), str(ds2))
+        assert str(ds1) == str(ds2)
 
     def test_single_quotes_01(self):
 
@@ -168,14 +168,14 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
         ds1=dshape(quotes_dshape)
         ds2=dshape(str(ds1))
 
-        self.assertEqual(str(ds1), str(ds2))
+        assert str(ds1) == str(ds2)
 
     def test_double_quotes_01(self):
         quotes_dshape="""{ 'doublequote \" field \"' : int64 }"""
         ds1=dshape(quotes_dshape)
         ds2=dshape(str(ds1))
 
-        self.assertEqual(str(ds1), str(ds2))
+        assert str(ds1) == str(ds2)
 
     def test_multi_quotes_01(self):
         quotes_dshape="""{ 'field \\' with \\' quotes' : string, 'doublequote \" field \"' : int64 }"""
@@ -183,7 +183,7 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
         ds1=dshape(quotes_dshape)
         ds2=dshape(str(ds1))
 
-        self.assertEqual(str(ds1), str(ds2))
+        assert str(ds1) == str(ds2)
 
     def test_mixed_quotes_01(self):
         quotes_dshape="""{ 'field \" with \\' quotes' : string, 'doublequote \" field \\'' : int64 }"""
@@ -191,16 +191,19 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
         ds1=dshape(quotes_dshape)
         ds2=dshape(str(ds1))
 
-        self.assertEqual(str(ds1), str(ds2))
-
-    def test_bad_01(self):
-        bad_dshape="""{ Unique Key : int64}"""
-        self.assertRaises(Exception, dshape, bad_dshape)
+        assert str(ds1) == str(ds2)
 
     def test_bad_02(self):
+        bad_dshape="""{ Unique Key : int64}"""
+        with pytest.raises(error.DataShapeSyntaxError):
+            dshape(bad_dshape)
+
+    def test_bad_backslashes_01(self):
         """backslashes aren't allowed in datashapes according to the definitions
-        in lexer.py
+        in lexer.py as of 2014-10-02. This is probably an oversight that should
+        be fixed.
         """
         backslash_dshape="""{ 'field with \\\\   backslashes' : int64 }"""
 
-        self.assertRaises(Exception ,dshape, backslash_dshape)
+        with pytest.raises(error.DataShapeSyntaxError):
+            dshape(backslash_dshape)
