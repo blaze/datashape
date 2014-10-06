@@ -434,6 +434,24 @@ class String(Unit):
         return np.dtype('O', metadata={'vlen': unicode})
 
 
+def _launder(x):
+    """ Clean up types prior to insertion into DataFrame
+
+    >>> _launder(5)         # convert ints to Fixed
+    Fixed(5)
+    >>> _launder('int32')   # parse strings
+    ctype("int32")
+    >>> _launder(Fixed(5))  # No-op on valid parameters
+    Fixed(5)
+    """
+    if isinstance(x, _inttypes):
+        x = Fixed(x)
+    if isinstance(x, _strtypes):
+        from . import parser, type_symbol_table
+        x = parser.parse(x, type_symbol_table.sym)[0]
+    return x
+
+
 class DataShape(Mono):
     """The DataShape class, implementation for generic composite
     datashape objects"""
@@ -443,7 +461,7 @@ class DataShape(Mono):
 
     def __init__(self, *parameters, **kwds):
         if len(parameters) > 0:
-            self._parameters = tuple(parameters)
+            self._parameters = tuple(map(_launder, parameters))
             if getattr(self._parameters[-1], 'cls', MEASURE) != MEASURE:
                 raise TypeError(('Only a measure can appear on the'
                                 ' last position of a datashape, not %s') %
@@ -570,6 +588,7 @@ class DataShape(Mono):
         >>> print(ds.subshape[0, 1:])
         { amount : int32, id : int32 }
         """
+        from .predicates import isdimension
         if isinstance(index, _inttypes) and isdimension(self[0]):
             return self.subarray(1)
         if isinstance(self[0], Record) and isinstance(index, _strtypes):
@@ -1196,7 +1215,3 @@ def type_constructor(ds):
     The type constructor indicates how types unify (see unification.py).
     """
     return type(ds)
-
-
-def isdimension(unit):
-    return isinstance(unit, (Fixed, Var))

@@ -4,11 +4,48 @@ from .coretypes import *
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
-__all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar']
+__all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar',
+        'isrecord', 'iscollection', 'isnumeric', 'isboolean', 'isdatelike']
 
-dimension_types = (Fixed, Var, Ellipsis)
+dimension_types = (Fixed, Var, Ellipsis, int)
 
-isunit = lambda x: isinstance(x, Unit)
+def isscalar(ds):
+    """ Is this dshape a single dtype?
+
+    >>> isscalar('int')
+    True
+    >>> isscalar('?int')
+    True
+    >>> isscalar('{name: string, amount: int}')
+    False
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape) and len(ds) == 1:
+        ds = ds[0]
+    if isinstance(ds, Option):
+        ds = ds.ty
+    return isinstance(ds, Unit)
+
+
+def isrecord(ds):
+    """ Is this dshape a record type?
+
+    >>> isrecord('{name: string, amount: int}')
+    True
+    >>> isrecord('int')
+    False
+    >>> isrecord('?{name: string, amount: int}')
+    True
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape) and len(ds) == 1:
+        ds = ds[0]
+    if isinstance(ds, Option):
+        ds = ds.ty
+    return isinstance(ds, Record)
+
 
 def isdimension(ds):
     """ Is a component a dimension?
@@ -34,7 +71,7 @@ def ishomogeneous(ds):
     False
     """
     ds = dshape(ds)
-    return len(set(remove(isdimension, collect(isunit, ds)))) == 1
+    return len(set(remove(isdimension, collect(isscalar, ds)))) == 1
 
 
 def _dimensions(ds):
@@ -52,14 +89,18 @@ def _dimensions(ds):
     2
     """
     ds = dshape(ds)
-    if isdimension(ds[0]):
-        return 1 + _dimensions(ds.subarray(1))
-    if isinstance(ds[0], Record):
-        return 1 + max(map(_dimensions, ds[0].types))
-    if len(ds) == 1 and isunit(ds[0]):
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape) and len(ds) == 1:
+        ds = ds[0]
+    if isinstance(ds, Option):
+        return _dimensions(ds.ty)
+    if isinstance(ds, Record):
+        return 1 + max(map(_dimensions, ds.types))
+    if isinstance(ds, DataShape) and isdimension(ds[0]):
+        return 1 + _dimensions(ds.subshape[0])
+    if isscalar(ds):
         return 0
-    if isinstance(ds[0], Option):
-        return _dimensions(ds[0].ty)
     raise NotImplementedError('Can not compute dimensions for %s' % ds)
 
 
@@ -103,15 +144,73 @@ def istabular(ds):
     return _dimensions(ds) == 2 and isfixed(ds.subarray(1))
 
 
-def isscalar(ds):
-    """ Has no dimensions
+def iscollection(ds):
+    """ Is a collection of items, has dimension
 
-    >>> isscalar('int')
+    >>> iscollection('5 * int32')
     True
-    >>> isscalar('3 * int')
+    >>> iscollection('int32')
     False
-    >>> isscalar('{name: string, amount: int}')
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    return isdimension(ds[0])
+
+
+def isnumeric(ds):
+    """ Has a numeric measure
+
+    >>> isnumeric('int32')
+    True
+    >>> isnumeric('3 * ?real')
+    True
+    >>> isnumeric('string')
+    False
+    >>> isnumeric('var * {amount: ?int32}')
+    False
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape):
+        ds = ds.measure
+    if isinstance(ds, Option):
+        ds = ds.ty
+    return isinstance(ds, Unit) and np.issubdtype(to_numpy_dtype(ds), np.number)
+
+
+def isboolean(ds):
+    """ Has a boolean measure
+
+    >>> isboolean('bool')
+    True
+    >>> isboolean('3 * ?bool')
+    True
+    >>> isboolean('int')
+    False
+    """
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape):
+        ds = ds.measure
+    if isinstance(ds, Option):
+        ds = ds.ty
+    return ds == bool_
+
+
+def isdatelike(ds):
+    """ Has a date or datetime measure
+
+    >>> isdatelike('int32')
+    False
+    >>> isdatelike('3 * datetime')
+    True
+    >>> isdatelike('?datetime')
     True
     """
-    ds = dshape(ds)
-    return not ds.shape
+    if isinstance(ds, str):
+        ds = dshape(ds)
+    if isinstance(ds, DataShape):
+        ds = ds.measure
+    if isinstance(ds, Option):
+        ds = ds.ty
+    return ds in (date_, datetime_)

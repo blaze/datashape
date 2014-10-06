@@ -3,7 +3,8 @@ import pickle
 import numpy as np
 import pytest
 
-from datashape.coretypes import Record, real, String, CType
+from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
+        Fixed)
 from datashape import dshape, to_numpy_dtype, from_numpy
 
 
@@ -98,3 +99,8 @@ def test_subshape():
 
     ds = dshape('5 * 3 * float32')
     assert ds.subshape[::2] == dshape('3 * 3 * float32')
+
+
+def test_DataShape_coerces_ints():
+    assert DataShape(5, 'int32')[0] == Fixed(5)
+    assert DataShape(5, 'int32')[1] == int32
