@@ -187,7 +187,7 @@ def unite_base(dshapes):
               ds.names == dshapes[0].names for ds in good_dshapes):
         names = good_dshapes[0].names
         base = Record([[name,
-            unite_base([ds.dict[name] for ds in good_dshapes]).subshape[0]]
+            unite_base([ds.dict.get(name, null) for ds in good_dshapes]).subshape[0]]
             for name in names])
     if base:
         if bynull.get(True):
