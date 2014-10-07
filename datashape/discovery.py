@@ -86,6 +86,8 @@ def discover(s):
 
 @dispatch((tuple, list))
 def discover(seq):
+    if not seq:
+        return var * string
     unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
     # [(a, b), (a, c)]
     if (all(isinstance(item, (tuple, list)) for item in seq) and
