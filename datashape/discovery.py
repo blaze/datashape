@@ -94,8 +94,8 @@ def discover(seq):
             len(set(map(len, seq))) == 1):
         columns = list(zip(*seq))
         try:
-            types = [unite([discover(dshape) for dshape in column]).subshape[0]
-                                             for column in columns]
+            types = [unite([discover(data) for data in column]).subshape[0]
+                                           for column in columns]
             unite = do_one([unite_identical, unite_merge_dimensions, Tuple])
             return len(seq) * unite(types)
         except AttributeError:  # no subshape available
@@ -106,8 +106,8 @@ def discover(seq):
         keys = sorted(set.union(*(set(d) for d in seq)))
         columns = [[item.get(key) for item in seq] for key in keys]
         try:
-            types = [unite([discover(dshape) for dshape in column]).subshape[0]
-                                             for column in columns]
+            types = [unite([discover(data) for data in column]).subshape[0]
+                                           for column in columns]
             return len(seq) * Record(list(zip(keys, types)))
         except AttributeError:
             pass
