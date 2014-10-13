@@ -434,24 +434,6 @@ class String(Unit):
         return np.dtype('O', metadata={'vlen': unicode})
 
 
-def _launder(x):
-    """ Clean up types prior to insertion into DataFrame
-
-    >>> _launder(5)         # convert ints to Fixed
-    Fixed(5)
-    >>> _launder('int32')   # parse strings
-    ctype("int32")
-    >>> _launder(Fixed(5))  # No-op on valid parameters
-    Fixed(5)
-    """
-    if isinstance(x, _inttypes):
-        x = Fixed(x)
-    if isinstance(x, _strtypes):
-        from . import parser, type_symbol_table
-        x = parser.parse(x, type_symbol_table.sym)[0]
-    return x
-
-
 class DataShape(Mono):
     """The DataShape class, implementation for generic composite
     datashape objects"""
@@ -636,10 +618,7 @@ class Option(Mono):
     __slots__ = 'ty',
 
     def __init__(self, ds):
-        if isinstance(ds, DataShape) and len(ds) == 1:
-            ds = ds[0]
-
-        self.ty = ds
+        self.ty = _launder(ds)
 
     @property
     def shape(self):
@@ -833,6 +812,28 @@ class Function(Mono):
                 ') -> ' + str(self.parameters[-1]))
 
 
+def _launder(x):
+    """ Clean up types prior to insertion into DataShape
+
+    >>> from datashape import dshape
+    >>> _launder(5)         # convert ints to Fixed
+    Fixed(5)
+    >>> _launder('int32')   # parse strings
+    ctype("int32")
+    >>> _launder(dshape('int32'))
+    ctype("int32")
+    >>> _launder(Fixed(5))  # No-op on valid parameters
+    Fixed(5)
+    """
+    if isinstance(x, _inttypes):
+        x = Fixed(x)
+    if isinstance(x, _strtypes):
+        return Type.lookup_type(x)
+    if isinstance(x, DataShape) and len(x) == 1:
+        return x[0]
+    return x
+
+
 class Record(Mono):
     """
     A composite data structure of ordered fields mapped to types.
@@ -868,21 +869,7 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        def normalize(typ):
-            """ Normalize type inputs to Record
-
-            >>> normalize('string')
-            dshape('string')
-            >>> normalize(dshape('int32'))
-            ctype('int32')
-            """
-            if isinstance(typ, _strtypes):
-                return Type.lookup_type(typ)
-            if isinstance(typ, DataShape) and len(typ) == 1:
-                return typ[0]
-            return typ
-
-        fields = tuple((k, normalize(v)) for k, v in fields)
+        fields = tuple((k, _launder(v)) for k, v in fields)
         self._parameters = (tuple(map(tuple, fields)),)
 
     @property
