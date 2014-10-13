@@ -86,14 +86,16 @@ def discover(s):
 
 @dispatch((tuple, list))
 def discover(seq):
+    if not seq:
+        return var * string
     unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
     # [(a, b), (a, c)]
     if (all(isinstance(item, (tuple, list)) for item in seq) and
             len(set(map(len, seq))) == 1):
         columns = list(zip(*seq))
         try:
-            types = [unite([discover(dshape) for dshape in column]).subshape[0]
-                                             for column in columns]
+            types = [unite([discover(data) for data in column]).subshape[0]
+                                           for column in columns]
             unite = do_one([unite_identical, unite_merge_dimensions, Tuple])
             return len(seq) * unite(types)
         except AttributeError:  # no subshape available
@@ -104,8 +106,8 @@ def discover(seq):
         keys = sorted(set.union(*(set(d) for d in seq)))
         columns = [[item.get(key) for item in seq] for key in keys]
         try:
-            types = [unite([discover(dshape) for dshape in column]).subshape[0]
-                                             for column in columns]
+            types = [unite([discover(data) for data in column]).subshape[0]
+                                           for column in columns]
             return len(seq) * Record(list(zip(keys, types)))
         except AttributeError:
             pass
@@ -185,7 +187,7 @@ def unite_base(dshapes):
               ds.names == dshapes[0].names for ds in good_dshapes):
         names = good_dshapes[0].names
         base = Record([[name,
-            unite_base([ds.dict[name] for ds in good_dshapes]).subshape[0]]
+            unite_base([ds.dict.get(name, null) for ds in good_dshapes]).subshape[0]]
             for name in names])
     if base:
         if bynull.get(True):
