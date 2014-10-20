@@ -1175,24 +1175,18 @@ def record_string(fields, values):
     count = len(fields)
 
     word_re=re.compile("[a-zA-Z_][a-zA-Z0-9]*$")
-    for i, (k,v) in enumerate(zip(fields,values)):
-        if (i+1) == count:
-            #If we find a troublesome non-alphanumeric character 
-            #  in the key, wrap the key in quotes.  Any troublesome, but
-            #  non-unicode characters should be escaped now.  Unicode will be
-            #  escaped later.
-            if word_re.match(k):
-                body += '%s : %s' % (k,v)
-            else:
-                body += '\'%s\' : %s' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
-                
-        else:
-            if word_re.match(k):
-                body += '%s : %s, ' % (k,v)
-            else:
-                body += '\'%s\' : %s, ' % (re.sub(r"(['\\])", r"\\\g<1>", k),v)
 
-    return '{ ' + body + ' }'
+    def print_pair(k, v):
+        # If we find a troublesome non-alphanumeric character
+        # in the key, wrap the key in quotes.  Any troublesome, but
+        # non-unicode characters should be escaped now.  Unicode will be
+        # escaped later.
+        if word_re.match(k):
+            return '%s : %s' % (k, v)
+        else:
+            return "'%s' : %s" % (re.sub(r"(['\\])", r"\\\g<1>", k), v)
+
+    return '{ %s }' % ', '.join(map(print_pair, fields, values))
 
 
 def free(ds):
