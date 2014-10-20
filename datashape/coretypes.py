@@ -1169,12 +1169,15 @@ def expr_string(spine, const_args, outer=None):
 
 
 def record_string(fields, values):
-    # Prints out something like this:
-    #   {a : int32, b: float32, ... }
+    """ String representation of Record types
+
+    >>> record_string(['a', 'b'], [int32, float32])
+    '{ a : int32, b : float32 }'
+    """
     body = ''
     count = len(fields)
 
-    word_re=re.compile("[a-zA-Z_][a-zA-Z0-9]*$")
+    word_re=re.compile("[a-zA-Z_]\w*$")
 
     def print_pair(k, v):
         # If we find a troublesome non-alphanumeric character

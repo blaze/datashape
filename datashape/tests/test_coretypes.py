@@ -207,3 +207,8 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
 
         with pytest.raises(error.DataShapeSyntaxError):
             dshape(backslash_dshape)
+
+
+def test_record_string():
+    s = '{name_with_underscores: int32}'
+    assert s.replace(' ', '') == str(dshape(s)).replace(' ', '')
