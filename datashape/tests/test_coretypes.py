@@ -115,3 +115,9 @@ def test_shape():
 
 def test_option_sanitizes_strings():
     assert Option('float32').ty == dshape('float32').measure
+
+
+def test_record_type_uses_quotes_when_spaces_are_in_name():
+    s = "{ 'column name' : int32 }"
+    assert ("'column name'" in str(dshape(s)) or
+            '"column name"' in str(dshape(s)))
