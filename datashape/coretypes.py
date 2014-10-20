@@ -1167,6 +1167,18 @@ def expr_string(spine, const_args, outer=None):
         return str(spine)
 
 
+def normalize_string(s):
+    """ Normalize strings for clean printing
+
+    >>> normalize_string('Hello')
+    'Hello'
+    >>> normalize_string('Hello world')
+    "'Hello world'"
+    """
+    if ' ' in s:
+        s = "'%s'" % s
+    return s
+
 def record_string(fields, values):
     # Prints out something like this:
     #   {a : int32, b: float32, ... }
@@ -1175,9 +1187,9 @@ def record_string(fields, values):
 
     for i, (k,v) in enumerate(zip(fields,values)):
         if (i+1) == count:
-            body += '%s : %s' % (k,v)
+            body += '%s : %s' % (normalize_string(k), v)
         else:
-            body += '%s : %s, ' % (k,v)
+            body += '%s : %s, ' % (normalize_string(k), v)
     return '{ ' + body + ' }'
 
 
