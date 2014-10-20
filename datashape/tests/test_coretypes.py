@@ -2,10 +2,11 @@ import pickle
 
 import numpy as np
 import pytest
+import unittest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
         Fixed, Option)
-from datashape import dshape, to_numpy_dtype, from_numpy
+from datashape import dshape, to_numpy_dtype, from_numpy, error
 
 
 @pytest.fixture
@@ -115,3 +116,94 @@ def test_shape():
 
 def test_option_sanitizes_strings():
     assert Option('float32').ty == dshape('float32').measure
+
+
+class TestComplexFieldNames(object):
+    """
+    The tests in this class should verify that the datashape parser can handle field names that contain
+      strange characters like spaces, quotes, and backslashes
+    The idea is that any given input datashape should be recoverable once we have created the actual dshape object.
+
+    This test suite is by no means complete, but it does handle some of the more common special cases (common special? oxymoron?)
+    """
+    def test_spaces_01(self):
+        space_dshape="""{ 'Unique Key' : ?int64 }"""
+        ds1=dshape(space_dshape)
+        assert space_dshape == str(ds1)
+
+    def test_spaces_02(self):
+        big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string,
+'Closed Date' : string, Agency : string, 'Agency Name' : string,
+'Complaint Type' : string, Descriptor : string, 'Location Type' : string,
+'Incident Zip' : ?int64, 'Incident Address' : ?string, 'Street Name' : ?string,
+'Cross Street 1' : ?string, 'Cross Street 2' : ?string,
+'Intersection Street 1' : ?string, 'Intersection Street 2' : ?string,
+'Address Type' : string, City : string, Landmark : string,
+'Facility Type' : string, Status : string, 'Due Date' : string,
+'Resolution Action Updated Date' : string, 'Community Board' : string,
+Borough : string, 'X Coordinate (State Plane)' : ?int64,
+'Y Coordinate (State Plane)' : ?int64, 'Park Facility Name' : string,
+'Park Borough' : string, 'School Name' : string, 'School Number' : string,
+'School Region' : string, 'School Code' : string,
+'School Phone Number' : string, 'School Address' : string,
+'School City' : string, 'School State' : string, 'School Zip' : string,
+'School Not Found' : string, 'School or Citywide Complaint' : string,
+'Vehicle Type' : string, 'Taxi Company Borough' : string,
+'Taxi Pick Up Location' : string, 'Bridge Highway Name' : string,
+'Bridge Highway Direction' : string, 'Road Ramp' : string,
+'Bridge Highway Segment' : string, 'Garage Lot Name' : string,
+'Ferry Direction' : string, 'Ferry Terminal Name' : string,
+Latitude : ?float64, Longitude : ?float64, Location : string }"""
+
+
+        ds1=dshape(big_space_dshape)
+        ds2=dshape(str(ds1))
+
+        assert str(ds1) == str(ds2)
+
+    def test_single_quotes_01(self):
+
+        quotes_dshape="""{ 'field \\' with \\' quotes' : string }"""
+
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        assert str(ds1) == str(ds2)
+
+    def test_double_quotes_01(self):
+        quotes_dshape="""{ 'doublequote \" field \"' : int64 }"""
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        assert str(ds1) == str(ds2)
+
+    def test_multi_quotes_01(self):
+        quotes_dshape="""{ 'field \\' with \\' quotes' : string, 'doublequote \" field \"' : int64 }"""
+
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        assert str(ds1) == str(ds2)
+
+    def test_mixed_quotes_01(self):
+        quotes_dshape="""{ 'field \" with \\' quotes' : string, 'doublequote \" field \\'' : int64 }"""
+
+        ds1=dshape(quotes_dshape)
+        ds2=dshape(str(ds1))
+
+        assert str(ds1) == str(ds2)
+
+    def test_bad_02(self):
+        bad_dshape="""{ Unique Key : int64}"""
+        with pytest.raises(error.DataShapeSyntaxError):
+            dshape(bad_dshape)
+
+    def test_bad_backslashes_01(self):
+        """backslashes aren't allowed in datashapes according to the definitions
+        in lexer.py as of 2014-10-02. This is probably an oversight that should
+        be fixed.
+        """
+        backslash_dshape="""{ 'field with \\\\   backslashes' : int64 }"""
+
+        with pytest.raises(error.DataShapeSyntaxError):
+            dshape(backslash_dshape)
