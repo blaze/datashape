@@ -121,3 +121,6 @@ def test_record_type_uses_quotes_when_spaces_are_in_name():
     s = "{ 'column name' : int32 }"
     assert ("'column name'" in str(dshape(s)) or
             '"column name"' in str(dshape(s)))
+
+    ds = dshape(s)
+    assert eval(repr(ds)) == ds

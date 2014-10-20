@@ -1173,10 +1173,10 @@ def normalize_string(s):
     >>> normalize_string('Hello')
     'Hello'
     >>> normalize_string('Hello world')
-    '"Hello world"'
+    "'Hello world'"
     """
     if ' ' in s:
-        s = '"%s"' % s
+        s = "'%s'" % s
     return s
 
 def record_string(fields, values):
