@@ -471,6 +471,10 @@ class DataShape(Mono):
     composite = False
 
     def __init__(self, *parameters, **kwds):
+        if len(parameters) == 1 and isinstance(parameters[0], _strtypes):
+            raise TypeError("DataShape constructor for internal use.\n"
+                    "Use dshape function to convert strings into datashapes.\n"
+                    "Try:\n\tdshape('%s')" % parameters[0])
         if len(parameters) > 0:
             self._parameters = tuple(map(_launder, parameters))
             if getattr(self._parameters[-1], 'cls', MEASURE) != MEASURE:

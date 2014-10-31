@@ -27,6 +27,10 @@ def test_strings():
     assert Record([('x', 'real')]) == Record([('x', real)])
 
 
+def test_error_on_datashape_with_string_argument():
+    assert raises(TypeError, lambda : DataShape('5 * int32'))
+
+
 class TestToNumpyDtype(object):
     def test_simple(self):
         assert to_numpy_dtype(dshape('2 * int32')) == np.int32
