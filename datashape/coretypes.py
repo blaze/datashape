@@ -436,8 +436,36 @@ class String(Unit):
 
 
 class DataShape(Mono):
-    """The DataShape class, implementation for generic composite
-    datashape objects"""
+    """
+    Composite container for datashape elements.
+
+    Elements of a datashape like ``Fixed(3)``, ``Var()`` or ``int32`` are on,
+    on their own, valid datashapes.  These elements are collected together into
+    a composite ``DataShape`` to be complete.
+
+    This class is not intended to be used directly.  Instead, use the utility
+    ``dshape`` function to create datashapes from strings or datashape
+    elements.
+
+    Examples
+    --------
+
+    >>> from datashape import Fixed, int32, DataShape, dshape
+
+    >>> DataShape(Fixed(5), int32)  # Rare to DataShape directly
+    dshape("5 * int32")
+
+    >>> dshape('5 * int32')         # Instead use the dshape function
+    dshape("5 * int32")
+
+    >>> dshape([Fixed(5), int32])   # It can even do construction from elements
+    dshape("5 * int32")
+
+    See Also
+    --------
+
+    datashape.dshape
+    """
 
     __metaclass__ = Type
     composite = False
