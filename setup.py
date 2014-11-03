@@ -19,7 +19,7 @@ setup(
     url = "http://packages.python.org/datashape",
     packages = ["datashape",
                 "datashape.tests"],
-    # install_requires=open('requirements.txt').read().split('\n'),
+    install_requires=open('requirements.txt').read().split('\n'),
     long_description = read('README.rst'),
     classifiers = [
         "Development Status :: 3 - Alpha",
