@@ -17,6 +17,13 @@ requirements:
       - numpy
       - multipledispatch
 
+test:
+  requires:
+    - pytest
+
+  commands:
+    - py.test -r sxX --doctest-modules --verbose --pyargs datashape
+
 about:
     home: http://datashape.pydata.org
     license: BSD
