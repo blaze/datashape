@@ -16,6 +16,7 @@ requirements:
       - python
       - numpy
       - multipledispatch
+      - dateutil
 
 test:
   requires:
