@@ -28,7 +28,7 @@ def test_strings():
 
 
 def test_error_on_datashape_with_string_argument():
-    assert raises(TypeError, lambda : DataShape('5 * int32'))
+    assert pytest.raises(TypeError, lambda : DataShape('5 * int32'))
 
 
 class TestToNumpyDtype(object):
