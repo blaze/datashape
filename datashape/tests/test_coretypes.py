@@ -7,6 +7,7 @@ import unittest
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
         Fixed, Option)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
+from datashape.py2help import unicode
 
 
 @pytest.fixture
@@ -211,3 +212,8 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
 
         with pytest.raises(error.DataShapeSyntaxError):
             dshape(backslash_dshape)
+
+
+def test_record_with_unicode_name_as_numpy_dtype():
+    r = Record([(unicode('a'), 'int32')])
+    assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])

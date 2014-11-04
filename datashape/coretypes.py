@@ -925,7 +925,7 @@ class Record(Mono):
         """
         To Numpy record dtype.
         """
-        return np.dtype([(name, to_numpy_dtype(typ))
+        return np.dtype([(str(name), to_numpy_dtype(typ))
                          for name, typ in self.fields])
 
     def __getitem__(self, key):
