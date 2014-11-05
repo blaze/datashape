@@ -22,7 +22,7 @@ test:
   requires:
   - pytest
   commands:
-  - python -c 'import datashape; datashape.test()'
+  - python -c "import datashape; datashape.test()"
 
 
 about:
