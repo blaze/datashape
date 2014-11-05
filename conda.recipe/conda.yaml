@@ -1,3 +1,6 @@
+source:
+    git_url: git@github.com:ContinuumIO/datashape.git
+
 package:
     name: datashape
     version: "0.4.1"
@@ -5,7 +8,6 @@ package:
 build:
     number: {{environ.get('BINSTAR_BUILD', 1)}}
     script:
-      - cd $RECIPE_DIR
       - $PYTHON setup.py install
 
 requirements:
@@ -20,10 +22,10 @@ requirements:
 
 test:
   requires:
-    - pytest
-
+  - pytest
   commands:
-    - py.test -r sxX --doctest-modules --verbose --pyargs datashape
+  - python -c 'import datashape; datashape.test()'
+
 
 about:
     home: http://datashape.pydata.org
