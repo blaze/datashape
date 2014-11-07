@@ -9,8 +9,11 @@ shape and data type.
 import ctypes
 import datetime
 import operator
+import toolz
 from math import ceil
 import re
+
+import datashape
 
 import numpy as np
 
@@ -936,6 +939,31 @@ class Record(Mono):
 
     def __repr__(self):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
+
+
+class Categorical(Mono):
+    cls = MEASURE
+
+    __slots__ = '_values', '_type'
+
+    def __init__(self, values, type=None):
+        self._values = tuple(values)
+        if type is not None:
+            self._type = type
+        else:
+            self._type = datashape.discover(self._values).measure
+
+    def __repr__(self):
+        return '%s(type=%r, values=%s)' % (type(self).__name__, self.type,
+                                           tuple(toolz.unique(self.values)))
+
+    @property
+    def values(self):
+        return self._values
+
+    @property
+    def type(self):
+        return self._type
 
 
 class Tuple(Mono):
