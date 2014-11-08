@@ -2,13 +2,13 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 from dateutil.parser import parse as dateparse
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from .dispatch import dispatch
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
-                        Unit)
+                        Unit, timedelta_)
 from .predicates import isdimension
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
@@ -45,6 +45,11 @@ def discover(dt):
         return date_
     else:
         return time_
+
+
+@dispatch(timedelta)
+def discover(td):
+    return timedelta_
 
 
 @dispatch(date)
@@ -128,9 +133,9 @@ edges = [
          (string, real),
          (string, date_),
          (string, datetime_),
+         (string, timedelta_),
          (string, bool_),
          (datetime_, date_),
-         (string, datetime_),
          (int64, int32),
          (real, int64),
          (string, null)]
