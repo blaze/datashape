@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import sys
 
@@ -5,11 +6,11 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
                                  unite_merge_dimensions, do_one)
 from datashape.coretypes import (int64, float64, complex128, string, bool_,
                                  Tuple, Record, date_, datetime_, time_,
-                                 timedelta_, int32, var, Option, real, Null)
+                                 timedelta_, int32, var, Option, real, Null,
+                                 TimeDelta)
 from itertools import starmap
 from datashape import dshape
 from datetime import date, time, datetime, timedelta
-from datashape.py2help import xfail
 
 
 def test_simple():
@@ -91,12 +92,19 @@ def test_timedelta_strings():
               "1 microsecond",
               "1003 milliseconds"]
     for ts in inputs:
-        assert discover(ts) == timedelta_
+        assert discover(ts) == TimeDelta(unit=ts.split()[1])
+
+    with pytest.raises(ValueError):
+        TimeDelta(unit='buzz light-years')
 
 
-@xfail
 def test_time_string():
     assert discover('12:00:01') == time_
+    assert discover('12:00:01.000') == time_
+    assert discover('12:00:01.123456') == time_
+    assert discover('12:00:01.1234') == time_
+    assert discover('10-10-01T12:00:01') == datetime_
+    assert discover('10-10-01 12:00:01') == datetime_
 
 
 def test_integrative():
