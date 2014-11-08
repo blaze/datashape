@@ -298,7 +298,7 @@ class DateTime(Unit):
         return np.dtype('datetime64[us]')
 
 
-_canonical_deltas = set(['us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y'])
+_canonical_deltas = set(['ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y'])
 
 
 class TimeDelta(Unit):
@@ -306,15 +306,15 @@ class TimeDelta(Unit):
     __slots__ = 'unit',
 
     def __init__(self, unit='us'):
+        self.unit = str(unit)
         if unit not in _canonical_deltas:
-            raise ValueError("Unsupported unit %s" % repr(unit).strip('u'))
-        self.unit = unit
+            raise ValueError("Unsupported unit %s" % unit)
 
     def __str__(self):
-        return 'timedelta[unit=%s]' % repr(self.unit).strip('u')
+        return 'timedelta[unit=%r]' % self.unit
 
     def __repr__(self):
-        return '%s(unit=%s)' % (type(self).__name__, repr(self.unit).strip('u'))
+        return '%s(unit=%r)' % (type(self).__name__, self.unit)
 
     def to_numpy_dtype(self):
         return np.dtype('timedelta64[%s]' % self.unit)
@@ -723,6 +723,9 @@ class CType(Unit):
             unit, _ = np.datetime_data(dt)
             defaults = {'D': date_, 'Y': date_, 'M': date_, 'W': date_}
             return defaults.get(unit, datetime_)
+        elif np.issubdtype(dt, np.timedelta64):
+            unit, _ = np.datetime_data(dt)
+            return TimeDelta(unit=unit)
         elif np.issubdtype(dt, np.unicode_):
             return String(dt.itemsize // 4, 'U32')
         elif np.issubdtype(dt, np.str_) or np.issubdtype(dt, np.bytes_):

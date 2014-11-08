@@ -5,7 +5,7 @@ import pytest
 import unittest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
-                                 Fixed, Option)
+                                 Fixed, Option, _canonical_deltas)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -67,9 +67,8 @@ def test_timedelta_bad_unit():
         dshape('timedelta[unit="foo"]')
 
 
-@pytest.mark.xfail(raises=ValueError, reason='No nanosecond support')
 def test_timedelta_nano():
-    dshape('timedelta[unit="ns"]')
+    dshape('timedelta[unit="ns"]').measure.unit == 'ns'
 
 
 class TestFromNumPyDtype(object):
@@ -93,6 +92,12 @@ class TestFromNumPyDtype(object):
         for d in ('D', 'M', 'Y', 'W'):
             assert from_numpy((2,),
                               np.dtype('M8[%s]' % d)) == dshape('2 * date')
+
+    def test_timedelta(self):
+        for d in _canonical_deltas:
+            assert from_numpy((2,),
+                              np.dtype('m8[%s]' % d)) == \
+                dshape('2 * timedelta[unit=%r]' % d)
 
     def test_ascii_string(self):
         assert (from_numpy((2,), np.dtype('S7')) ==
