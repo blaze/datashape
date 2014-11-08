@@ -5,7 +5,7 @@ import pytest
 import unittest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
-        Fixed, Option)
+                                 Fixed, Option)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -49,6 +49,10 @@ class TestToNumpyDtype(object):
 
     def test_dimensions(self):
         return to_numpy_dtype(dshape('var * int32')) == np.int32
+
+    def test_timedelta(self):
+        assert to_numpy_dtype(dshape('2 * timedelta')) == np.dtype('m8[us]')
+        assert to_numpy_dtype(dshape("2 * timedelta[unit='ns']")) == np.dtype('m8[ns]')
 
 
 class TestFromNumPyDtype(object):
@@ -98,6 +102,7 @@ def test_serializable():
     ds2 = pickle.loads(pickle.dumps(ds))
 
     assert str(ds) == str(ds2)
+
 
 def test_subshape():
     ds = dshape('5 * 3 * float32')
