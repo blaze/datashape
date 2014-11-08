@@ -2,12 +2,15 @@ import numpy as np
 import sys
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
-        unite_merge_dimensions, do_one, lowest_common_dshape)
-from datashape.coretypes import *
-from datashape.internal_utils import raises
+                                 unite_merge_dimensions, do_one)
+from datashape.coretypes import (int64, float64, complex128, string, bool_,
+                                 Tuple, Record, date_, datetime_, time_,
+                                 timedelta_, int32, var, Option, real, Null)
+from itertools import chain, starmap
 from datashape import dshape
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timedelta
 from datashape.py2help import xfail
+
 
 def test_simple():
     assert discover(3) == int64
@@ -32,7 +35,6 @@ def test_list():
 def test_heterogeneous_ordered_container():
     print(discover(('Hello', 1)))
     assert discover(('Hello', 1)) == Tuple([discover('Hello'), discover(1)])
-
 
 
 def test_string():
@@ -76,6 +78,17 @@ def test_time():
     assert discover(time(12, 0, 1)) == time_
 
 
+def test_timedelta():
+    inputs = ["1 day",
+              "-2 hours",
+              "3 seconds",
+              "1 microsecond",
+              "1003 milliseconds"]
+    objs = starmap(timedelta, (range(10, 10 - i, -1) for i in range(1, 8)))
+    for ts in chain(inputs, objs):
+        assert discover(timedelta(10)) == timedelta_
+
+
 @xfail
 def test_time_string():
     assert discover('12:00:01') == time_
@@ -102,6 +115,7 @@ def test_numpy_array():
 unite = do_one([unite_identical,
                 unite_merge_dimensions,
                 unite_base])
+
 
 def test_unite():
     assert unite([int32, int32, int32]) == 3 * int32
