@@ -66,7 +66,8 @@ no_constructor_types = \
      ('json', ct.json),
      ('date', ct.date_),
      ('time', ct.time_),
-     ('datetime', ct.datetime_)]
+     ('datetime', ct.datetime_),
+     ('timedelta', ct.timedelta_)]
 
 # data types with a type constructor
 constructor_types = \
@@ -79,6 +80,7 @@ constructor_types = \
      ('option', ct.Option),
      ('time', ct.Time),
      ('datetime', ct.DateTime),
+     ('timedelta', ct.TimeDelta),
      ('units', ct.Units)]
 
 # dim types with no type constructor

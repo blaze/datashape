@@ -298,6 +298,20 @@ class DateTime(Unit):
         return np.dtype('datetime64[us]')
 
 
+class TimeDelta(Unit):
+    cls = MEASURE
+    __slots__ = 'unit',
+
+    def __init__(self, unit='us'):
+        self.unit = unit
+
+    def __repr__(self):
+        return '%s(unit=%r)' % (type(self).__name__, self.unit)
+
+    def to_numpy_dtype(self):
+        return np.dtype('timedelta64[%s]' % self.unit)
+
+
 class Units(Unit):
     """ Units type for values with physical units """
     cls = MEASURE
@@ -1015,9 +1029,11 @@ complex_ = complex_float64
 date_ = Date()
 time_ = Time()
 datetime_ = DateTime()
+timedelta_ = TimeDelta()
 Type.register('date', date_)
 Type.register('time', time_)
 Type.register('datetime', datetime_)
+Type.register('timedelta', timedelta_)
 
 null = Null()
 Type.register('null', null)
