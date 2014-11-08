@@ -52,7 +52,24 @@ class TestToNumpyDtype(object):
 
     def test_timedelta(self):
         assert to_numpy_dtype(dshape('2 * timedelta')) == np.dtype('m8[us]')
-        assert to_numpy_dtype(dshape("2 * timedelta[unit='ns']")) == np.dtype('m8[ns]')
+        assert to_numpy_dtype(dshape("2 * timedelta[unit='s']")) == \
+            np.dtype('m8[s]')
+
+
+def test_timedelta_repr():
+    assert eval(repr(dshape('timedelta'))) == dshape('timedelta')
+    assert eval(repr(dshape('timedelta[unit="ms"]'))) == \
+        dshape('timedelta[unit="ms"]')
+
+
+def test_timedelta_bad_unit():
+    with pytest.raises(ValueError):
+        dshape('timedelta[unit="foo"]')
+
+
+@pytest.mark.xfail(raises=ValueError, reason='No nanosecond support')
+def test_timedelta_nano():
+    dshape('timedelta[unit="ns"]')
 
 
 class TestFromNumPyDtype(object):
