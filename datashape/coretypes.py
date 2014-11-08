@@ -298,15 +298,23 @@ class DateTime(Unit):
         return np.dtype('datetime64[us]')
 
 
+_canonical_deltas = set(['us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y'])
+
+
 class TimeDelta(Unit):
     cls = MEASURE
     __slots__ = 'unit',
 
     def __init__(self, unit='us'):
+        if unit not in _canonical_deltas:
+            raise ValueError("Unsupported unit %s" % repr(unit).strip('u'))
         self.unit = unit
 
+    def __str__(self):
+        return 'timedelta[unit=%s]' % repr(self.unit).strip('u')
+
     def __repr__(self):
-        return '%s(unit=%r)' % (type(self).__name__, self.unit)
+        return '%s(unit=%s)' % (type(self).__name__, repr(self.unit).strip('u'))
 
     def to_numpy_dtype(self):
         return np.dtype('timedelta64[%s]' % self.unit)
