@@ -210,7 +210,6 @@ def unite_identical(dshapes):
         return len(dshapes) * dshapes[0]
 
 
-
 def unite_merge_dimensions(dshapes, unite=unite_identical):
     """
 
