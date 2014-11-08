@@ -79,14 +79,19 @@ def test_time():
 
 
 def test_timedelta():
+    objs = starmap(timedelta, (range(10, 10 - i, -1) for i in range(1, 8)))
+    for ts in objs:
+        assert discover(ts) == timedelta_
+
+
+def test_timedelta_strings():
     inputs = ["1 day",
               "-2 hours",
               "3 seconds",
               "1 microsecond",
               "1003 milliseconds"]
-    objs = starmap(timedelta, (range(10, 10 - i, -1) for i in range(1, 8)))
-    for ts in chain(inputs, objs):
-        assert discover(timedelta(10)) == timedelta_
+    for ts in inputs:
+        assert discover(ts) == timedelta_
 
 
 @xfail
