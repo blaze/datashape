@@ -298,7 +298,36 @@ class DateTime(Unit):
         return np.dtype('datetime64[us]')
 
 
-_canonical_deltas = set(['ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y'])
+_units = set(['ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y'])
+
+
+_unit_aliases = {'year': 'Y', 'week': 'W', 'day': 'D', 'date': 'D', 'hour':
+                 'h', 'second': 's', 'millisecond': 'ms', 'microsecond':
+                 'us', 'nanosecond': 'ns'}
+
+
+def normalize_time_unit(s):
+    """ Normalize time input to one of 'year', 'second', 'millisecond', etc..
+    Example
+    -------
+    >>> normalize_time_unit('milliseconds')
+    'ms'
+    >>> normalize_time_unit('ms')
+    'ms'
+    >>> normalize_time_unit('nanoseconds')
+    'ns'
+    >>> normalize_time_unit('nanosecond')
+    'ns'
+    """
+    s = s.strip()
+    if s in _units:
+        return s
+    if s in _unit_aliases:
+        return _unit_aliases[s]
+    if s[-1] == 's' and len(s) > 2:
+        return normalize_time_unit(s.rstrip('s'))
+
+    raise ValueError("Do not understand time unit %s" % s)
 
 
 class TimeDelta(Unit):
@@ -306,9 +335,7 @@ class TimeDelta(Unit):
     __slots__ = 'unit',
 
     def __init__(self, unit='us'):
-        self.unit = str(unit)
-        if unit not in _canonical_deltas:
-            raise ValueError("Unsupported unit %s" % unit)
+        self.unit = normalize_time_unit(str(unit))
 
     def __str__(self):
         return 'timedelta[unit=%r]' % self.unit

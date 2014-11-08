@@ -5,7 +5,7 @@ import pytest
 import unittest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
-                                 Fixed, Option, _canonical_deltas)
+                                 Fixed, Option, _units, _unit_aliases)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -71,6 +71,13 @@ def test_timedelta_nano():
     dshape('timedelta[unit="ns"]').measure.unit == 'ns'
 
 
+def test_timedelta_aliases():
+    for alias in _unit_aliases:
+        a = alias + 's'
+        assert (dshape('timedelta[unit=%r]' % a) ==
+                dshape('timedelta[unit=%r]' % _unit_aliases[alias]))
+
+
 class TestFromNumPyDtype(object):
 
     def test_int32(self):
@@ -94,7 +101,7 @@ class TestFromNumPyDtype(object):
                               np.dtype('M8[%s]' % d)) == dshape('2 * date')
 
     def test_timedelta(self):
-        for d in _canonical_deltas:
+        for d in _units:
             assert from_numpy((2,),
                               np.dtype('m8[%s]' % d)) == \
                 dshape('2 * timedelta[unit=%r]' % d)
