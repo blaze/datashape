@@ -1177,7 +1177,7 @@ def record_string(fields, values):
     body = ''
     count = len(fields)
 
-    word_re=re.compile("[a-zA-Z_]\w*$")
+    word_re=re.compile("[a-zA-Z_][a-zA-Z0-9_]*$")
 
     def print_pair(k, v):
         # If we find a troublesome non-alphanumeric character
