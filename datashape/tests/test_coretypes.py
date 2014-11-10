@@ -214,6 +214,11 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
             dshape(backslash_dshape)
 
 
+def test_record_string():
+    s = '{name_with_underscores: int32}'
+    assert s.replace(' ', '') == str(dshape(s)).replace(' ', '')
+
+
 def test_record_with_unicode_name_as_numpy_dtype():
     r = Record([(unicode('a'), 'int32')])
     assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])
