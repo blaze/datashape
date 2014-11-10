@@ -7,6 +7,7 @@ import unittest
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
         Fixed, Option)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
+from datashape.py2help import unicode
 
 
 @pytest.fixture
@@ -25,6 +26,10 @@ def test_respects_order(a, b):
 
 def test_strings():
     assert Record([('x', 'real')]) == Record([('x', real)])
+
+
+def test_error_on_datashape_with_string_argument():
+    assert pytest.raises(TypeError, lambda : DataShape('5 * int32'))
 
 
 class TestToNumpyDtype(object):
@@ -212,3 +217,8 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
 def test_record_string():
     s = '{name_with_underscores: int32}'
     assert s.replace(' ', '') == str(dshape(s)).replace(' ', '')
+
+
+def test_record_with_unicode_name_as_numpy_dtype():
+    r = Record([(unicode('a'), 'int32')])
+    assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])

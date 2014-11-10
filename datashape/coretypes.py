@@ -436,13 +436,45 @@ class String(Unit):
 
 
 class DataShape(Mono):
-    """The DataShape class, implementation for generic composite
-    datashape objects"""
+    """
+    Composite container for datashape elements.
+
+    Elements of a datashape like ``Fixed(3)``, ``Var()`` or ``int32`` are on,
+    on their own, valid datashapes.  These elements are collected together into
+    a composite ``DataShape`` to be complete.
+
+    This class is not intended to be used directly.  Instead, use the utility
+    ``dshape`` function to create datashapes from strings or datashape
+    elements.
+
+    Examples
+    --------
+
+    >>> from datashape import Fixed, int32, DataShape, dshape
+
+    >>> DataShape(Fixed(5), int32)  # Rare to DataShape directly
+    dshape("5 * int32")
+
+    >>> dshape('5 * int32')         # Instead use the dshape function
+    dshape("5 * int32")
+
+    >>> dshape([Fixed(5), int32])   # It can even do construction from elements
+    dshape("5 * int32")
+
+    See Also
+    --------
+
+    datashape.dshape
+    """
 
     __metaclass__ = Type
     composite = False
 
     def __init__(self, *parameters, **kwds):
+        if len(parameters) == 1 and isinstance(parameters[0], _strtypes):
+            raise TypeError("DataShape constructor for internal use.\n"
+                    "Use dshape function to convert strings into datashapes.\n"
+                    "Try:\n\tdshape('%s')" % parameters[0])
         if len(parameters) > 0:
             self._parameters = tuple(map(_launder, parameters))
             if getattr(self._parameters[-1], 'cls', MEASURE) != MEASURE:
@@ -893,7 +925,7 @@ class Record(Mono):
         """
         To Numpy record dtype.
         """
-        return np.dtype([(name, to_numpy_dtype(typ))
+        return np.dtype([(str(name), to_numpy_dtype(typ))
                          for name, typ in self.fields])
 
     def __getitem__(self, key):

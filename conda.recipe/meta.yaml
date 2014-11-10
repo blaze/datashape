@@ -1,11 +1,11 @@
 package:
     name: datashape
-    version: "0.3.0"
+    version: "0.4.1"
 
 build:
     number: {{environ.get('BINSTAR_BUILD', 1)}}
     script:
-      - cd $RECIPE_DIR
+      - cd $RECIPE_DIR/..
       - $PYTHON setup.py install
 
 requirements:
@@ -16,6 +16,14 @@ requirements:
       - python
       - numpy
       - multipledispatch
+      - dateutil
+
+test:
+  requires:
+  - pytest
+  commands:
+  - python -c "import datashape; datashape.test()"
+
 
 about:
     home: http://datashape.pydata.org
