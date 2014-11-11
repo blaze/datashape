@@ -518,9 +518,11 @@ class DataShape(Mono):
         return res
 
     def __repr__(self):
-        return ''.join(["dshape(\"",
-                        pprint(self).encode('unicode_escape').decode('ascii'),
-                        "\")"])
+        s = pprint(self)
+        if '\n' in s:
+            return 'dshape("""%s""")' % s
+        else:
+            return 'dshape("%s")' % s
 
     @property
     def shape(self):
