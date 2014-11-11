@@ -1,14 +1,15 @@
 from __future__ import print_function, division, absolute_import
 
+import re
 import numpy as np
 from dateutil.parser import parse as dateparse
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from .dispatch import dispatch
 
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
-                        Unit)
+                        Unit, timedelta_, TimeDelta)
 from .predicates import isdimension
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
@@ -47,6 +48,11 @@ def discover(dt):
         return time_
 
 
+@dispatch(timedelta)
+def discover(td):
+    return TimeDelta(unit='us')
+
+
 @dispatch(date)
 def discover(dt):
     return date_
@@ -68,7 +74,26 @@ bools = {'False': False,
          'true': True}
 
 
-string_coercions = [int, float, bools.__getitem__, dateparse]
+def timeparse(x, formats=('%H:%M:%S', '%H:%M:%S.%f')):
+    e = None
+    for format in formats:
+        try:
+            return datetime.strptime(x, format).time()
+        except ValueError as e:  # raises if it doesn't match the format
+            pass
+    raise e
+
+
+def deltaparse(x):
+    value, unit = re.split('\s+', x.strip())
+    value = float(value)
+    if not value.is_integer():
+        raise ValueError('floating point timedelta values not supported')
+    return np.timedelta64(int(value), TimeDelta(unit=unit).unit)
+
+
+string_coercions = [int, float, bools.__getitem__, deltaparse, timeparse,
+                    dateparse]
 
 
 @dispatch(_strtypes)
@@ -128,9 +153,9 @@ edges = [
          (string, real),
          (string, date_),
          (string, datetime_),
+         (string, timedelta_),
          (string, bool_),
          (datetime_, date_),
-         (string, datetime_),
          (int64, int32),
          (real, int64),
          (string, null)]
@@ -205,7 +230,6 @@ def unite_identical(dshapes):
         return len(dshapes) * dshapes[0]
 
 
-
 def unite_merge_dimensions(dshapes, unite=unite_identical):
     """
 
@@ -259,6 +283,11 @@ def discover(d):
 @dispatch(np.number)
 def discover(n):
     return from_numpy((), type(n))
+
+
+@dispatch(np.timedelta64)
+def discover(n):
+    return from_numpy((), n)
 
 
 @dispatch(np.ndarray)

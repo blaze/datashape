@@ -5,7 +5,7 @@ import pytest
 import unittest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
-        Fixed, Option)
+                                 Fixed, Option, _units, _unit_aliases)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -50,6 +50,33 @@ class TestToNumpyDtype(object):
     def test_dimensions(self):
         return to_numpy_dtype(dshape('var * int32')) == np.int32
 
+    def test_timedelta(self):
+        assert to_numpy_dtype(dshape('2 * timedelta')) == np.dtype('m8[us]')
+        assert to_numpy_dtype(dshape("2 * timedelta[unit='s']")) == \
+            np.dtype('m8[s]')
+
+
+def test_timedelta_repr():
+    assert eval(repr(dshape('timedelta'))) == dshape('timedelta')
+    assert eval(repr(dshape('timedelta[unit="ms"]'))) == \
+        dshape('timedelta[unit="ms"]')
+
+
+def test_timedelta_bad_unit():
+    with pytest.raises(ValueError):
+        dshape('timedelta[unit="foo"]')
+
+
+def test_timedelta_nano():
+    dshape('timedelta[unit="ns"]').measure.unit == 'ns'
+
+
+def test_timedelta_aliases():
+    for alias in _unit_aliases:
+        a = alias + 's'
+        assert (dshape('timedelta[unit=%r]' % a) ==
+                dshape('timedelta[unit=%r]' % _unit_aliases[alias]))
+
 
 class TestFromNumPyDtype(object):
 
@@ -72,6 +99,12 @@ class TestFromNumPyDtype(object):
         for d in ('D', 'M', 'Y', 'W'):
             assert from_numpy((2,),
                               np.dtype('M8[%s]' % d)) == dshape('2 * date')
+
+    def test_timedelta(self):
+        for d in _units:
+            assert from_numpy((2,),
+                              np.dtype('m8[%s]' % d)) == \
+                dshape('2 * timedelta[unit=%r]' % d)
 
     def test_ascii_string(self):
         assert (from_numpy((2,), np.dtype('S7')) ==
@@ -98,6 +131,7 @@ def test_serializable():
     ds2 = pickle.loads(pickle.dumps(ds))
 
     assert str(ds) == str(ds2)
+
 
 def test_subshape():
     ds = dshape('5 * 3 * float32')

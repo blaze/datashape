@@ -298,6 +298,55 @@ class DateTime(Unit):
         return np.dtype('datetime64[us]')
 
 
+_units = set(['ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y'])
+
+
+_unit_aliases = {'year': 'Y', 'week': 'W', 'day': 'D', 'date': 'D', 'hour':
+                 'h', 'second': 's', 'millisecond': 'ms', 'microsecond':
+                 'us', 'nanosecond': 'ns'}
+
+
+def normalize_time_unit(s):
+    """ Normalize time input to one of 'year', 'second', 'millisecond', etc..
+    Example
+    -------
+    >>> normalize_time_unit('milliseconds')
+    'ms'
+    >>> normalize_time_unit('ms')
+    'ms'
+    >>> normalize_time_unit('nanoseconds')
+    'ns'
+    >>> normalize_time_unit('nanosecond')
+    'ns'
+    """
+    s = s.strip()
+    if s in _units:
+        return s
+    if s in _unit_aliases:
+        return _unit_aliases[s]
+    if s[-1] == 's' and len(s) > 2:
+        return normalize_time_unit(s.rstrip('s'))
+
+    raise ValueError("Do not understand time unit %s" % s)
+
+
+class TimeDelta(Unit):
+    cls = MEASURE
+    __slots__ = 'unit',
+
+    def __init__(self, unit='us'):
+        self.unit = normalize_time_unit(str(unit))
+
+    def __str__(self):
+        return 'timedelta[unit=%r]' % self.unit
+
+    def __repr__(self):
+        return '%s(unit=%r)' % (type(self).__name__, self.unit)
+
+    def to_numpy_dtype(self):
+        return np.dtype('timedelta64[%s]' % self.unit)
+
+
 class Units(Unit):
     """ Units type for values with physical units """
     cls = MEASURE
@@ -701,6 +750,9 @@ class CType(Unit):
             unit, _ = np.datetime_data(dt)
             defaults = {'D': date_, 'Y': date_, 'M': date_, 'W': date_}
             return defaults.get(unit, datetime_)
+        elif np.issubdtype(dt, np.timedelta64):
+            unit, _ = np.datetime_data(dt)
+            return TimeDelta(unit=unit)
         elif np.issubdtype(dt, np.unicode_):
             return String(dt.itemsize // 4, 'U32')
         elif np.issubdtype(dt, np.str_) or np.issubdtype(dt, np.bytes_):
@@ -1015,9 +1067,11 @@ complex_ = complex_float64
 date_ = Date()
 time_ = Time()
 datetime_ = DateTime()
+timedelta_ = TimeDelta()
 Type.register('date', date_)
 Type.register('time', time_)
 Type.register('datetime', datetime_)
+Type.register('timedelta', timedelta_)
 
 null = Null()
 Type.register('null', null)
