@@ -503,8 +503,6 @@ class TestDataShapeParseStruct(unittest.TestCase):
 
     def test_struct_errors(self):
         self.assertRaises(datashape.DataShapeSyntaxError,
-                          parse, '{\n}\n', self.sym)
-        self.assertRaises(datashape.DataShapeSyntaxError,
                           parse,
                           '{id: int64, name: string amount: invalidtype}',
                           self.sym)
