@@ -50,7 +50,7 @@ def discover(dt):
 
 @dispatch(timedelta)
 def discover(td):
-    return timedelta_
+    return TimeDelta(unit='us')
 
 
 @dispatch(date)
