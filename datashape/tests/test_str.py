@@ -46,7 +46,7 @@ class TestDataShapeStr(unittest.TestCase):
 
     def test_structure_repr(self):
         self.assertEqual(repr(dshape('{x:int32, y:int64}')),
-                        'dshape("{ x : int32, y : int64 }")')
+                        'dshape("{x: int32, y: int64}")')
 
     def test_array_repr(self):
         self.assertEqual(repr(dshape('3*5*int16')),
