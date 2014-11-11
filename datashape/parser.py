@@ -476,10 +476,7 @@ class DataShapeParser(object):
         self.advance_tok()
         fields = self.parse_homogeneous_list(self.parse_struct_field, lexer.COMMA,
                                              'Invalid field in struct',
-                                             trailing_sep=True)
-        if fields is None and self.tok.id == lexer.RBRACE:
-            self.raise_error('At least one field is required in ' +
-                             'struct datashape')
+                                             trailing_sep=True) or []
         if self.tok.id != lexer.RBRACE:
             self.raise_error('Invalid field in struct')
         self.advance_tok()

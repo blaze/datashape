@@ -4,7 +4,7 @@ import ctypes
 import unittest
 
 import datashape
-from datashape import dshape, error
+from datashape import dshape, error, DataShape, Record
 from datashape.py2help import xfail
 
 
@@ -101,6 +101,9 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape('units["second", int32]')[0].unit, 'second')
         self.assertEqual(dshape('units["second", int32]')[0].tp,
                          dshape('int32'))
+
+    def test_empty_struct(self):
+        self.assertEqual(dshape('{}'), DataShape(Record([])))
 
     def test_struct_of_array(self):
         self.assertEqual(str(dshape('5 * int32')), '5 * int32')
