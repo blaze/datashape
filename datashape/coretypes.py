@@ -519,7 +519,7 @@ class DataShape(Mono):
 
     def __repr__(self):
         return ''.join(["dshape(\"",
-                        str(self).encode('unicode_escape').decode('ascii'),
+                        pprint(self).encode('unicode_escape').decode('ascii'),
                         "\")"])
 
     @property
@@ -1245,3 +1245,66 @@ def type_constructor(ds):
     The type constructor indicates how types unify (see unification.py).
     """
     return type(ds)
+
+
+def pprint(ds, width=80):
+    """ Pretty print a datashape
+
+    >>> from datashape import dshape, pprint
+    >>> print(pprint(dshape('5 * 3 * int32')))
+    5 * 3 * int32
+
+    >>> ds = dshape('5000000000 * {a: (int, float32, real, string, datetime), b: {c: 5 * int, d: var * 100 * float32}}')
+    >>> print(pprint(ds))
+    5000000000 * {
+      a: (int32, float32, float64, string, datetime),
+      b: {c: 5 * int32, d: var * 100 * float32}
+      }
+
+    Control width of the result
+    >>> print(pprint(ds, width=30))
+    5000000000 * {
+      a: (
+        int32,
+        float32,
+        float64,
+        string,
+        datetime
+        ),
+      b: {
+        c: 5 * int32,
+        d: var * 100 * float32
+        }
+      }
+    >>>
+    """
+    result = ''
+
+    if isinstance(ds, DataShape):
+        if ds.shape:
+            result += ' * '.join(map(str, ds.shape))
+            result += ' * '
+        ds = ds[-1]
+
+    if isinstance(ds, Record):
+        pairs = ['%s: %s' % (name, pprint(typ, width-len(result)-len(name)))
+                for name, typ in zip(ds.names, ds.types)]
+        short = '{' + ', '.join(pairs) + '}'
+        if len(result + short) < width:
+            return result + short
+        else:
+            long = '{\n' + ',\n'.join(pairs) + '\n}'
+            return result + long.replace('\n', '\n  ')
+
+    elif isinstance(ds, Tuple):
+        typs = [pprint(typ, width-len(result))
+                for typ in ds.dshapes]
+        short = '(' + ', '.join(typs) + ')'
+        if len(result + short) < width:
+            return result + short
+        else:
+            long = '(\n' + ',\n'.join(typs) + '\n)'
+            return result + long.replace('\n', '\n  ')
+    else:
+        result += str(ds)
+    return result
