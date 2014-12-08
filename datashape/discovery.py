@@ -109,7 +109,7 @@ def discover(s):
     return string
 
 
-@dispatch((tuple, list))
+@dispatch((tuple, list, set))
 def discover(seq):
     if not seq:
         return var * string

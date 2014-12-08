@@ -33,6 +33,10 @@ def test_list():
     assert discover([1.0, 2.0, 3.0]) == 3 * discover(1.0)
 
 
+def test_set():
+    assert discover(set([1])) == 1 * discover(1)
+
+
 def test_heterogeneous_ordered_container():
     print(discover(('Hello', 1)))
     assert discover(('Hello', 1)) == Tuple([discover('Hello'), discover(1)])
