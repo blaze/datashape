@@ -65,7 +65,7 @@ class Mono(object):
     @property
     def parameters(self):
         if hasattr(self, '__slots__'):
-            return tuple(getattr(self, slot) for slot in self.__slots__)
+            return tuple([getattr(self, slot) for slot in self.__slots__])
         else:
             return self._parameters
 
