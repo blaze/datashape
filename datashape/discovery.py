@@ -113,6 +113,8 @@ def discover(s):
 def discover(seq):
     if not seq:
         return var * string
+    if len(seq) > 50:
+        return len(seq) * discover(seq[:50]).subshape[0]
     unite = do_one([unite_identical, unite_base, unite_merge_dimensions])
     # [(a, b), (a, c)]
     if (all(isinstance(item, (tuple, list)) for item in seq) and

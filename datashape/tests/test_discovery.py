@@ -250,3 +250,7 @@ def test_unite_base_on_records():
                dshape('{name: string, amount: int64}')]
     assert unite_base(dshapes) == \
             dshape('2 * {name: string, amount: int64}')
+
+
+def test_long_list():
+    assert discover(range(60)) == 60 * discover(1)
