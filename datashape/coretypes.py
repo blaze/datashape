@@ -399,54 +399,43 @@ _canonical_string_encodings = {
 
 
 class String(Unit):
-    """ String container """
+    """ String container
+
+    >>> String()
+    ctype("string")
+    >>> String(10, 'ascii')
+    ctype("string[10, 'A']")
+    """
     cls = MEASURE
     __slots__ = 'fixlen', 'encoding'
 
-    def __init__(self, fixlen=None, encoding=None):
-        # TODO: Do this constructor better...
-        if fixlen is None and encoding is None:
-            # String()
-            self.fixlen = None
-            self.encoding = u'U8'
-        elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
-                        encoding is None:
-            # String(fixlen)
-            if isinstance(fixlen, IntegerConstant):
-                self.fixlen = fixlen.val
-            else:
-                self.fixlen = fixlen
-            self.encoding = u'U8'
-        elif isinstance(fixlen, _strtypes + (StringConstant,)) and \
-                        encoding is None:
-            # String('encoding')
-            self.fixlen = None
-            if isinstance(fixlen, StringConstant):
-                self.encoding = fixlen.val
-            else:
-                self.encoding = unicode(fixlen)
-        elif isinstance(fixlen, _inttypes + (IntegerConstant,)) and \
-                        isinstance(encoding, _strtypes + (StringConstant,)):
-            # String(fixlen, 'encoding')
-            if isinstance(fixlen, IntegerConstant):
-                self.fixlen = fixlen.val
-            else:
-                self.fixlen = fixlen
-            if isinstance(encoding, StringConstant):
-                self.encoding = encoding.val
-            else:
-                self.encoding = unicode(encoding)
-        else:
-            raise ValueError(('Unexpected types to String constructor '
-                            '(%s, %s)') % (type(fixlen), type(encoding)))
+    def __init__(self, *args):
+        if len(args) == 0:
+            fixlen, encoding = None, None
+        if len(args) == 1:
+            if isinstance(args[0], _strtypes):
+                fixlen, encoding = None, args[0]
+            if isinstance(args[0], _inttypes + (IntegerConstant,)):
+                fixlen, encoding = args[0], None
+        if len(args) == 2:
+            fixlen, encoding = args
 
-        # Validate the encoding
-        if not self.encoding in _canonical_string_encodings:
+        encoding = encoding or 'U8'
+        if isinstance(encoding, str):
+            encoding = unicode(encoding)
+        try:
+            encoding = _canonical_string_encodings[encoding]
+        except KeyError:
             raise ValueError('Unsupported string encoding %s' %
-                            repr(self.encoding))
+                            repr(encoding))
+
+        if isinstance(fixlen, IntegerConstant):
+            fixlen = fixlen.val
+
+        self.encoding = encoding
+        self.fixlen = fixlen
 
         # Put it in a canonical form
-        self.encoding = _canonical_string_encodings[self.encoding]
 
     def __str__(self):
         if self.fixlen is None and self.encoding == 'U8':
