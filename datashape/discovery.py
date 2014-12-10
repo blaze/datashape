@@ -9,8 +9,8 @@ from .dispatch import dispatch
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
-                        Unit, timedelta_, TimeDelta)
-from .predicates import isdimension
+                        Unit, timedelta_, TimeDelta, object_)
+from .predicates import isdimension, isrecord
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
 
@@ -290,9 +290,34 @@ def discover(n):
     return from_numpy((), n)
 
 
+def is_string_array(x):
+    """ Is an array of strings
+
+    >>> is_string_array(np.array(['Hello', 'world'], dtype='O'))
+    True
+    >>> is_string_array(np.array(['Hello', None], dtype='O'))
+    False
+    """
+    return all(isinstance(i, _strtypes) for i in x.flat[:5].tolist())
+
+
 @dispatch(np.ndarray)
-def discover(X):
-    return from_numpy(X.shape, X.dtype)
+def discover(x):
+    ds = from_numpy(x.shape, x.dtype)
+
+    # NumPy uses object dtype both for strings (which we want to call string)
+    # and for Python objects (which we want to call object)
+    # Lets look at the first few elements and check
+    if ds.measure == object_ and is_string_array(x):
+        return DataShape(*(ds.shape + (string,)))
+
+    if isrecord(ds.measure) and object_ in ds.measure.types:
+        m = Record([[name, string if typ == object_ and is_string_array(x[name])
+                                  else typ]
+                    for name, typ in ds.measure.parameters[0]])
+        return DataShape(*(ds.shape + (m,)))
+    else:
+        return ds
 
 
 def descendents(d, x):

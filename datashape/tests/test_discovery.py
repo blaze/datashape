@@ -129,6 +129,17 @@ def test_numpy_array():
     assert discover(np.ones((3, 2), dtype=np.int32)) == dshape('3 * 2 * int32')
 
 
+def test_numpy_array_with_strings():
+    x = np.array(['Hello', 'world'], dtype='O')
+    assert discover(x) == 2 * string
+
+
+def test_numpy_recarray_with_strings():
+    x = np.array([('Alice', 1), ('Bob', 2)],
+            dtype=[('name', 'O'), ('amt', 'i4')])
+    assert discover(x) == dshape('2 * {name: string, amt: int32}')
+
+
 unite = do_one([unite_identical,
                 unite_merge_dimensions,
                 unite_base])
