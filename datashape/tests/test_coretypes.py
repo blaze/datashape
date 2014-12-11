@@ -28,6 +28,10 @@ def test_strings():
     assert Record([('x', 'real')]) == Record([('x', real)])
 
 
+def test_integers():
+    assert Record([(0, 'real')]) == Record([('0', real)])
+
+
 def test_error_on_datashape_with_string_argument():
     assert pytest.raises(TypeError, lambda : DataShape('5 * int32'))
 

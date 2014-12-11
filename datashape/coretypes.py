@@ -909,6 +909,18 @@ def _launder(x):
         return x[0]
     return x
 
+def _launder_key(k):
+    """
+
+    >>> _launder_key('Hello')
+    'Hello'
+    >>> _launder_key(0)
+    '0'
+    """
+    if isinstance(k, _strtypes):
+        return k
+    return str(k)
+
 
 class Record(Mono):
     """
@@ -945,7 +957,7 @@ class Record(Mono):
         # preserved. Using RecordDecl there is some magic to also
         # ensure that the fields align in the order they are
         # declared.
-        fields = tuple((k, _launder(v)) for k, v in fields)
+        fields = tuple((_launder_key(k), _launder(v)) for k, v in fields)
         self._parameters = (tuple(map(tuple, fields)),)
 
     @property
