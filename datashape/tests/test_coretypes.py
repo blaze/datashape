@@ -260,3 +260,8 @@ def test_record_string():
 def test_record_with_unicode_name_as_numpy_dtype():
     r = Record([(unicode('a'), 'int32')])
     assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])
+
+
+def test_tuple_datashape_to_numpy_dtype():
+    ds = dshape('5 * (int32, float32)')
+    assert to_numpy_dtype(ds) == [('f0', 'i4'), ('f1', 'f4')]

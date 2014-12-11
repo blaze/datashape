@@ -1017,6 +1017,14 @@ class Tuple(Mono):
     def __repr__(self):
         return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
 
+    def to_numpy_dtype(self):
+        """
+        To Numpy record dtype.
+        """
+        return np.dtype([('f%d' % i, to_numpy_dtype(typ))
+                         for i, typ in enumerate(self.parameters[0])])
+
+
 
 class JSON(Mono):
     """ JSON measure """
