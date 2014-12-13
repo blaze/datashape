@@ -40,12 +40,7 @@ def discover(z):
 
 @dispatch(datetime)
 def discover(dt):
-    if dt.time() and dt.date():
-        return datetime_
-    elif dt.date():
-        return date_
-    else:
-        return time_
+    return datetime_
 
 
 @dispatch(timedelta)
@@ -100,11 +95,20 @@ string_coercions = [int, float, bools.__getitem__, deltaparse, timeparse,
 def discover(s):
     if not s:
         return null
-    for f in string_coercions:
+    for f in [int, float, bools.__getitem__, deltaparse, timeparse]:
         try:
             return discover(f(s))
         except:
             pass
+    try:
+        d = dateparse(s)
+        if not d.time():
+            return date_
+        if not d.date():
+            return time_
+        return datetime_
+    except:
+        pass
 
     return string
 
