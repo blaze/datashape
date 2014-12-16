@@ -28,9 +28,13 @@ def test_long():
 
 
 def test_list():
-    print(discover([1, 2, 3]))
     assert discover([1, 2, 3]) == 3 * discover(1)
     assert discover([1.0, 2.0, 3.0]) == 3 * discover(1.0)
+
+
+def test_set():
+    assert discover(set([1, 2, 3])) == 3 * discover(1)
+    assert discover(set([1.0, 2.0, 3.0])) == 3 * discover(1.0)
 
 
 def test_heterogeneous_ordered_container():
