@@ -11,6 +11,7 @@ from .overload_resolver import *
 from .discovery import discover
 from .util import *
 from .coercion import coercion_cost
+from .promote import promote, optionify
 from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
                     CoercionError)
 
