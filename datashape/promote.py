@@ -41,6 +41,8 @@ def optionify(lhs, rhs, dshape):
     >>> optionify(x, y, int64)
     ?int64
     """
+    if hasattr(dshape.measure, 'ty'):
+        return dshape
     if hasattr(lhs, 'ty') or hasattr(rhs, 'ty'):
         return datashape.Option(dshape)
     return dshape
