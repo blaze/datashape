@@ -12,10 +12,10 @@ def promote(lhs, rhs):
 
     Examples
     --------
-    >>> from blaze import symbol
-    >>> x = symbol('x', '?int32')
-    >>> y = symbol('y', 'int64')
-    >>> promote(x.schema.measure, y.schema.measure)
+    >>> from datashape import int32, int64, Option
+    >>> x = Option(int32)
+    >>> y = int64
+    >>> promote(x, y)
     ?int64
     """
     left, right = getattr(lhs, 'ty', lhs), getattr(rhs, 'ty', rhs)
@@ -31,11 +31,14 @@ def optionify(lhs, rhs, dshape):
 
     Examples
     --------
-    >>> from blaze import symbol
-    >>> from datashape import int64
-    >>> x = symbol('x', '?int32')
-    >>> y = symbol('y', 'int64')
-    >>> optionify(x.schema.measure, y.schema.measure, int64)
+    >>> from datashape import int32, int64, Option
+    >>> x = Option(int32)
+    >>> x
+    ?int32
+    >>> y = int64
+    >>> y
+    ctype("int64")
+    >>> optionify(x, y, int64)
     ?int64
     """
     if hasattr(lhs, 'ty') or hasattr(rhs, 'ty'):
