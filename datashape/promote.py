@@ -10,6 +10,8 @@ __all__ = ['promote', 'optionify']
 def promote(lhs, rhs):
     """Promote two scalar dshapes to a possibly larger, but compatibile type
 
+
+
     Examples
     --------
     >>> from datashape import int32, int64, Option
@@ -17,6 +19,12 @@ def promote(lhs, rhs):
     >>> y = int64
     >>> promote(x, y)
     ?int64
+
+    Notes
+    ----
+    This uses ``numpy.promote_types`` for type promotion logic.  See the numpy
+    documentation at
+    http://docs.scipy.org/doc/numpy/reference/generated/numpy.promote_types.html
     """
     left, right = getattr(lhs, 'ty', lhs), getattr(rhs, 'ty', rhs)
     dtype = np.promote_types(datashape.to_numpy_dtype(left),
