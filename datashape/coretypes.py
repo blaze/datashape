@@ -921,7 +921,13 @@ def _launder_key(k):
     return str(k)
 
 
-class Record(Mono):
+class CollectionPrinter(object):
+    def __repr__(self):
+        s = str(self)
+        return 'dshape("%s")' % s.encode('unicode_escape').decode('ascii')
+
+
+class Record(CollectionPrinter, Mono):
     """
     A composite data structure of ordered fields mapped to types.
 
@@ -989,7 +995,7 @@ class Record(Mono):
         return pprint(self)
 
 
-class Tuple(Mono):
+class Tuple(CollectionPrinter, Mono):
     """
     A product type.
     """
