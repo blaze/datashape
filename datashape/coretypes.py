@@ -1223,8 +1223,9 @@ def from_numpy(shape, dt):
     elif dtype.kind == 'U':
         measure = String(dtype.itemsize // 4, 'U32')
     elif dtype.fields:
-        field_items = [(name, dtype.fields[name]) for name in dtype.names]
-        rec = [(a,CType.from_numpy_dtype(b[0])) for a,b in field_items]
+        fields = [(name, dtype.fields[name]) for name in dtype.names]
+        rec = [(name, from_numpy(t.shape, t.base))  # recurse into nested dtype
+               for name, (t, _) in fields]  # _ is the byte offset: ignore it
         measure = Record(rec)
     else:
         measure = CType.from_numpy_dtype(dtype)
