@@ -7,10 +7,8 @@ shape and data type.
 """
 
 import ctypes
-import datetime
 import operator
 from math import ceil
-import re
 
 import numpy as np
 
@@ -91,9 +89,6 @@ class Mono(object):
     def __getitem__(self, key):
         lst = [self]
         return lst[key]
-
-    def __ne__(self, other):
-        return not (self == other)
 
     def __repr__(self):
         return '%s(%s)' % (type(self).__name__,
@@ -501,7 +496,6 @@ class DataShape(Mono):
 
     See Also
     --------
-
     datashape.dshape
     """
 
@@ -600,7 +594,6 @@ class DataShape(Mono):
         if isinstance(other, _inttypes):
             other = Fixed(other)
         return DataShape(other, *self)
-
 
     @property
     def subshape(self):
@@ -909,6 +902,7 @@ def _launder(x):
         return x[0]
     return x
 
+
 def _launder_key(k):
     """
 
@@ -1025,14 +1019,10 @@ class Tuple(Mono):
                          for i, typ in enumerate(self.parameters[0])])
 
 
-
 class JSON(Mono):
     """ JSON measure """
     cls = MEASURE
     __slots__ = ()
-
-    def __init__(self):
-        pass
 
     def __str__(self):
         return 'json'
@@ -1151,10 +1141,12 @@ class NotNumpyCompatible(Exception):
     """
     pass
 
+
 def to_numpy_dtype(ds):
     """ Throw away the shape information and just return the
     measure as NumPy dtype instance."""
     return to_numpy(ds.measure)[1]
+
 
 def to_numpy(ds):
     """
@@ -1170,8 +1162,6 @@ def to_numpy(ds):
 
     shape = tuple()
     dtype = None
-
-    #assert isinstance(ds, DataShape)
 
     if isinstance(ds, DataShape):
         # The datashape dimensions
@@ -1231,28 +1221,6 @@ def from_numpy(shape, dt):
         return DataShape(*tuple(map(Fixed, shape))+(measure,))
 
 
-def typeof(obj):
-    """
-    Return a datashape ctype for a python scalar.
-    """
-    if hasattr(obj, "dshape"):
-        return obj.dshape
-    elif isinstance(obj, np.ndarray):
-        return from_numpy(obj.shape, obj.dtype)
-    elif isinstance(obj, _inttypes):
-        return DataShape(int_)
-    elif isinstance(obj, float):
-        return DataShape(double)
-    elif isinstance(obj, complex):
-        return DataShape(complex128)
-    elif isinstance(obj, _strtypes):
-        return DataShape(string)
-    elif isinstance(obj, datetime.timedelta):
-        return DataShape(timedelta64)
-    elif isinstance(obj, datetime.datetime):
-        return DataShape(datetime64)
-    else:
-        return DataShape(pyobj)
 
 
 def expr_string(spine, const_args, outer=None):
@@ -1265,28 +1233,6 @@ def expr_string(spine, const_args, outer=None):
         return str(spine)
 
 
-def record_string(fields, values):
-    """ String representation of Record types
-
-    >>> record_string(['a', 'b'], [int32, float32])
-    '{ a : int32, b : float32 }'
-    """
-    body = ''
-    count = len(fields)
-
-    word_re=re.compile("[a-zA-Z_][a-zA-Z0-9_]*$")
-
-    def print_pair(k, v):
-        # If we find a troublesome non-alphanumeric character
-        # in the key, wrap the key in quotes.  Any troublesome, but
-        # non-unicode characters should be escaped now.  Unicode will be
-        # escaped later.
-        if word_re.match(k):
-            return '%s : %s' % (k, v)
-        else:
-            return "'%s' : %s" % (re.sub(r"(['\\])", r"\\\g<1>", k), v)
-
-    return '{ %s }' % ', '.join(map(print_pair, fields, values))
 
 
 def free(ds):
@@ -1302,14 +1248,6 @@ def free(ds):
         return result
     else:
         return []
-
-
-def type_constructor(ds):
-    """
-    Get the type constructor for the datashape type (Mono).
-    The type constructor indicates how types unify (see unification.py).
-    """
-    return type(ds)
 
 
 def pprint(ds, width=80):
