@@ -251,3 +251,10 @@ def test_unite_base_on_records():
     dshapes = [dshape('{name: string, amount: int32}'),
                dshape('{name: string, amount: int64}')]
     assert unite_base(dshapes) == dshape('2 * {name: string, amount: int64}')
+
+
+def test_nested_complex_record_type():
+    dt = np.dtype([('a', 'U7'), ('b', [('c', 'int64', 2), ('d', 'float64')])])
+    x = np.zeros(5, dt)
+    s = "5 * {a: string[7, 'U32'], b: {c: 2 * int64, d: float64}}"
+    assert discover(x) == dshape(s)
