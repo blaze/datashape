@@ -111,12 +111,13 @@ class TestDataShapeCreation(unittest.TestCase):
     def test_struct_of_array(self):
         self.assertEqual(str(dshape('5 * int32')), '5 * int32')
         self.assertEqual(str(dshape('{field: 5 * int32}')),
-                         '{ field : 5 * int32 }')
+                         '{field: 5 * int32}')
         self.assertEqual(str(dshape('{field: M * int32}')),
-                         '{ field : M * int32 }')
+                         '{field: M * int32}')
 
     def test_ragged_array(self):
-        self.assertTrue(isinstance(dshape('3 * var * int32')[1], datashape.Var))
+        self.assertTrue(isinstance(dshape('3 * var * int32')[1],
+                        datashape.Var))
 
     def test_from_numpy_fields(self):
         import numpy as np
