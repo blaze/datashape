@@ -96,7 +96,8 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape('datetime[tz="UTC"]')[0].tz, 'UTC')
         self.assertEqual(dshape('datetime[tz="America/Vancouver"]')[0].tz,
                          'America/Vancouver')
-        self.assertEqual(str(dshape('datetime[tz="UTC"]')), "datetime[tz='UTC']")
+        self.assertEqual(str(dshape('datetime[tz="UTC"]')),
+                         "datetime[tz='UTC']")
 
     def test_units(self):
         self.assertEqual(dshape('units["second"]')[0].unit, 'second')
@@ -183,7 +184,8 @@ class TestDataShapeCreation(unittest.TestCase):
                'uintptr',
                '{id: int8, value: bool, result: int16}',
                '{a: int32, b: int64, x: uint8, y: uint16, z: uint32}',
-               '{a: float32, b: float64, c: complex64, d: complex128, e: string, f: json, g: date, h: time, i: datetime}']
+               '{a: float32, b: float64, c: complex64, d: complex128, '
+               ' e: string, f: json, g: date, h: time, i: datetime}']
 
     dimensions = ['2',
                   '100',
