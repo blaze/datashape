@@ -68,6 +68,9 @@ class TestDataShapeCreation(unittest.TestCase):
     @xfail(reason='type decl has been removed in the new parser')
     def test_type_decl(self):
         self.assertRaises(error.DataShapeTypeError, dshape, 'type X T = 3, T')
+
+    @xfail(reason='type decl has been removed in the new parser')
+    def test_type_decl_concrete(self):
         self.assertEqual(dshape('3, int32'), dshape('type X = 3, int32'))
 
     def test_string_atom(self):
