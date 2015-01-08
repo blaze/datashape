@@ -606,16 +606,16 @@ class DataShape(Mono):
 
         >>> ds = dshape('var * {name: string, amount: int32}')
         >>> print(ds.subshape[0])
-        { name : string, amount : int32 }
+        {name: string, amount: int32}
 
         >>> print(ds.subshape[0:3])
-        3 * { name : string, amount : int32 }
+        3 * {name: string, amount: int32}
 
         >>> print(ds.subshape[0:7:2, 'amount'])
         4 * int32
 
         >>> print(ds.subshape[[1, 10, 15]])
-        3 * { name : string, amount : int32 }
+        3 * {name: string, amount: int32}
 
         >>> ds = dshape('{x: int, y: int}')
         >>> print(ds.subshape['x'])
@@ -627,14 +627,14 @@ class DataShape(Mono):
 
         >>> ds = dshape('var * {name: string, amount: int32, id: int32}')
         >>> print(ds.subshape[:, [0, 2]])
-        var * { name : string, id : int32 }
+        var * {name: string, id: int32}
 
         >>> ds = dshape('var * {name: string, amount: int32, id: int32}')
         >>> print(ds.subshape[:, ['name', 'id']])
-        var * { name : string, id : int32 }
+        var * {name: string, id: int32}
 
         >>> print(ds.subshape[0, 1:])
-        { amount : int32, id : int32 }
+        {amount: int32, id: int32}
         """
         from .predicates import isdimension
         if isinstance(index, _inttypes) and isdimension(self[0]):
@@ -936,7 +936,7 @@ class Record(Mono):
     -------
 
     >>> Record([['id', 'int'], ['name', 'string'], ['amount', 'real']])
-    dshape("{ id : int32, name : string, amount : float64 }")
+    dshape("{id: int32, name: string, amount: float64}")
     """
     cls = MEASURE
 
