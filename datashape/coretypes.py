@@ -1260,6 +1260,13 @@ def free(ds):
         return []
 
 
+def print_unicode_string(s):
+    try:
+        return s.decode('unicode_escape').encode('ascii')
+    except AttributeError:
+        return s
+
+
 def pprint(ds, width=80):
     """ Pretty print a datashape
 
@@ -1301,8 +1308,7 @@ def pprint(ds, width=80):
 
     if isinstance(ds, Record):
         pairs = ['%s: %s' % (name if ' ' not in name else
-                             repr(name.decode('unicode_escape').encode(
-                                  'ascii')),
+                             repr(print_unicode_string(name)),
                              pprint(typ, width - len(result) - len(name)))
                  for name, typ in zip(ds.names, ds.types)]
         short = '{%s}' % ', '.join(pairs)
