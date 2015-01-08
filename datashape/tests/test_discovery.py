@@ -28,7 +28,6 @@ def test_long():
 
 
 def test_list():
-    print(discover([1, 2, 3]))
     assert discover([1, 2, 3]) == 3 * discover(1)
     assert discover([1.0, 2.0, 3.0]) == 3 * discover(1.0)
 
@@ -38,7 +37,6 @@ def test_set():
 
 
 def test_heterogeneous_ordered_container():
-    print(discover(('Hello', 1)))
     assert discover(('Hello', 1)) == Tuple([discover('Hello'), discover(1)])
 
 
@@ -202,21 +200,17 @@ def test_discover_mixed():
     assert dshape(discover([[1, 2, 1.0, 2.0]] * 10)) == \
             10 * Tuple([i, i, f, f])
 
-    print(dshape(discover([[1, 2, 1.0, 2.0], [1.0, 2.0, 1, 2]] * 5)))
     assert dshape(discover([[1, 2, 1.0, 2.0], [1.0, 2.0, 1, 2]] * 5)) == \
             10 * (4 * f)
 
 
 def test_test():
-    print(discover([['Alice', 100], ['Bob', 200]]))
-    print(2 * Tuple([string, int64]))
     assert discover([['Alice', 100], ['Bob', 200]]) == \
             2 * Tuple([string, int64])
 
 
 def test_discover_appropriate():
     assert discover((1, 1.0)) == Tuple([int64, real])
-    print(discover([(1, 1.0), (1, 1.0), (1, 1)]))
     assert discover([(1, 1.0), (1, 1.0), (1, 1)]) == \
             3 * Tuple([int64, real])
 
