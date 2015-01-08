@@ -981,10 +981,7 @@ class Record(Mono):
         return self.dict[key]
 
     def __str__(self):
-        return record_string(self.names, self.types)
-
-    def __repr__(self):
-        return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
+        return pprint(self)
 
 
 class Tuple(Mono):
