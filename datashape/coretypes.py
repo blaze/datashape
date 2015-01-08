@@ -207,7 +207,8 @@ class IntegerConstant(Unit):
         elif isinstance(other, IntegerConstant):
             return self.val == other.val
         else:
-            raise TypeError("Cannot compare type %s to type %s" % (type(self), type(other)))
+            raise TypeError("Cannot compare type %r to type %r" %
+                            (type(self).__name__, type(other).__name__))
 
     def __hash__(self):
         return hash(self.val)
@@ -235,7 +236,8 @@ class StringConstant(Unit):
         elif isinstance(other, StringConstant):
             return self.val == other.val
         else:
-            raise TypeError("Cannot compare type %s to type %s" % (type(self), type(other)))
+            raise TypeError("Cannot compare type %r to type %r" %
+                            (type(self).__name__, type(other).__name__))
 
     def __hash__(self):
         return hash(self.val)
@@ -422,7 +424,7 @@ class String(Unit):
             encoding = _canonical_string_encodings[encoding]
         except KeyError:
             raise ValueError('Unsupported string encoding %s' %
-                            repr(encoding))
+                             repr(encoding))
 
         if isinstance(fixlen, IntegerConstant):
             fixlen = fixlen.val
@@ -440,11 +442,12 @@ class String(Unit):
         elif self.fixlen is None and self.encoding != 'U8':
             return 'string[%s]' % repr(self.encoding).strip('u')
         else:
-            return 'string[%i, %s]' % \
-                            (self.fixlen, repr(self.encoding).strip('u'))
+            return 'string[%i, %s]' % (self.fixlen,
+                                       repr(self.encoding).strip('u'))
 
     def __repr__(self):
-        return ''.join(["ctype(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
+        s = str(self)
+        return 'ctype("%s")' % s.encode('unicode_escape').decode('ascii')
 
     def to_numpy_dtype(self):
         """
@@ -505,8 +508,9 @@ class DataShape(Mono):
     def __init__(self, *parameters, **kwds):
         if len(parameters) == 1 and isinstance(parameters[0], _strtypes):
             raise TypeError("DataShape constructor for internal use.\n"
-                    "Use dshape function to convert strings into datashapes.\n"
-                    "Try:\n\tdshape('%s')" % parameters[0])
+                            "Use dshape function to convert strings into "
+                            "datashapes.\nTry:\n\tdshape('%s')"
+                            % parameters[0])
         if len(parameters) > 0:
             self._parameters = tuple(map(_launder, parameters))
             if getattr(self._parameters[-1], 'cls', MEASURE) != MEASURE:
@@ -519,8 +523,8 @@ class DataShape(Mono):
                                     ' last position of a datashape, not %s') %
                                     repr(dim))
         else:
-            raise ValueError(('the data shape should be constructed from 2 or'
-                            ' more parameters, only got %s') % (len(parameters)))
+            raise ValueError('the data shape should be constructed from 2 or'
+                             ' more parameters, only got %s' % len(parameters))
         self.composite = True
 
         name = kwds.get('name')
@@ -545,7 +549,7 @@ class DataShape(Mono):
         if self.name:
             res = self.name
         else:
-            res = (' * '.join(map(str, self.parameters)))
+            res = ' * '.join(map(str, self.parameters))
 
         return res
 
@@ -568,7 +572,8 @@ class DataShape(Mono):
         """Return a data shape object with Fixed dimensions replaced
         by TypeVar dimensions.
         """
-        newparams = [TypeVar('i%s'%n) for n in range(len(self.parameters)-1)]
+        newparams = [TypeVar('i%d' % n)
+                     for n in range(len(self.parameters) - 1)]
         newparams.append(self.parameters[-1])
         return DataShape(*newparams)
 
@@ -583,8 +588,8 @@ class DataShape(Mono):
         dshape("3 * int32")
         """
         if leading >= len(self.parameters):
-            raise IndexError(('Not enough dimensions in data shape '
-                            'to remove %d leading dimensions.') % leading)
+            raise IndexError('Not enough dimensions in data shape '
+                             'to remove %d leading dimensions.' % leading)
         elif leading in [len(self.parameters) - 1, -1]:
             return DataShape(self.parameters[-1])
         else:
@@ -647,7 +652,7 @@ class DataShape(Mono):
             rec = self[0]
             # Translate strings to corresponding integers
             index = [self[0].names.index(i) if isinstance(i, _strtypes) else i
-                        for i in index]
+                     for i in index]
             return DataShape(Record([rec.parameters[0][i] for i in index]))
         if isinstance(self[0], Record) and isinstance(index, slice):
             rec = self[0]
@@ -693,8 +698,7 @@ class Option(Mono):
     def __str__(self):
         return '?%s' % str(self.ty)
 
-    def __repr__(self):
-        return str(self)
+    __repr__ = __str__
 
 
 class CType(Unit):
@@ -764,15 +768,16 @@ class CType(Unit):
         """
         # Fixup the complex type to how numpy does it
         s = self.name
-        s = {'complex[float32]':'complex64',
-             'complex[float64]':'complex128'}.get(s, s)
+        s = {'complex[float32]': 'complex64',
+             'complex[float64]': 'complex128'}.get(s, s)
         return np.dtype(s)
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return ''.join(["ctype(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
+        s = str(self)
+        return 'ctype("%s")' % s.encode('unicode_escape').decode('ascii')
 
 
 class Fixed(Unit):
@@ -834,7 +839,7 @@ class TypeVar(Unit):
         self.symbol = symbol
 
     def __repr__(self):
-        return "TypeVar(%s)" % (str(self),)
+        return "TypeVar(%s)" % self
 
     def __str__(self):
         return str(self.symbol)
@@ -855,7 +860,7 @@ class Implements(Mono):
         return self.parameters[1]
 
     def __repr__(self):
-        return '%s : %s' % (self.typevar, self.typeset.name)
+        return '%s: %s' % (self.typevar, self.typeset.name)
 
 
 class Function(Mono):
@@ -877,8 +882,8 @@ class Function(Mono):
     #     return " -> ".join(map(repr, self.parameters))
 
     def __str__(self):
-        return ('(' + ', '.join(map(str, self.parameters[:-1])) +
-                ') -> ' + str(self.parameters[-1]))
+        return '(%s) -> %s' % (', '.join(map(str, self.parameters[:-1])),
+                               self.parameters[-1])
 
 
 def _launder(x):
@@ -999,14 +1004,11 @@ class Tuple(Mono):
             The datashapes which make up the tuple.
         """
         dshapes = [DataShape(ds) if not isinstance(ds, DataShape) else ds
-                for ds in dshapes]
+                   for ds in dshapes]
         self.dshapes = tuple(dshapes)
 
     def __str__(self):
-        return '(' + ', '.join(str(x) for x in self.dshapes) + ')'
-
-    def __repr__(self):
-        return ''.join(["dshape(\"", str(self).encode('unicode_escape').decode('ascii'), "\")"])
+        return '(%s)' % ', '.join(map(str, self.dshapes))
 
     def to_numpy_dtype(self):
         """
@@ -1045,19 +1047,22 @@ uint64 = CType('uint64', 8, ctypes.alignment(ctypes.c_uint64))
 float16 = CType('float16', 2, ctypes.alignment(ctypes.c_uint16))
 float32 = CType('float32', 4, ctypes.alignment(ctypes.c_float))
 float64 = CType('float64', 8, ctypes.alignment(ctypes.c_double))
-#float128 = CType('float128', 16)
+# float128 = CType('float128', 16)
 
 # real is an alias for float64
 real = float64
 Type.register('real', real)
 
-complex_float32 = CType('complex[float32]', 8, ctypes.alignment(ctypes.c_float))
-complex_float64 = CType('complex[float64]', 16, ctypes.alignment(ctypes.c_double))
+complex_float32 = CType('complex[float32]', 8,
+                        ctypes.alignment(ctypes.c_float))
+complex_float64 = CType('complex[float64]', 16,
+                        ctypes.alignment(ctypes.c_double))
 Type.register('complex64', complex_float32)
-complex64  = complex_float32
+complex64 = complex_float32
+
 Type.register('complex128', complex_float64)
 complex128 = complex_float64
-#complex256 = CType('complex256', 32)
+# complex256 = CType('complex256', 32)
 
 # complex is an alias for complex[float64]
 complex_ = complex_float64
@@ -1102,8 +1107,11 @@ Type.register('uintptr', uintptr)
 c_half = float16
 c_float = float32
 c_double = float64
-# TODO: Deal with the longdouble == one of float64/float80/float96/float128 situation
-#c_longdouble = float128
+
+# TODO: Deal with the longdouble == one of float64/float80/float96/float128
+# situation
+
+# c_longdouble = float128
 
 half = float16
 single = float32
@@ -1111,8 +1119,8 @@ double = float64
 
 void = CType('void', 0, 1)
 object_ = pyobj = CType('object',
-                ctypes.sizeof(ctypes.py_object),
-                ctypes.alignment(ctypes.py_object))
+                        ctypes.sizeof(ctypes.py_object),
+                        ctypes.alignment(ctypes.py_object))
 
 na = Null
 NullRecord = Record(())
@@ -1170,7 +1178,8 @@ def to_numpy(ds):
             elif isinstance(dim, TypeVar):
                 shape += (-1,)
             else:
-                raise NotNumpyCompatible('DataShape dimension %s is not NumPy-compatible' % dim)
+                raise NotNumpyCompatible('DataShape dimension %s is not'
+                                         ' NumPy-compatible' % dim)
 
         # The datashape measure
         msr = ds[-1]
@@ -1180,11 +1189,13 @@ def to_numpy(ds):
     try:
         dtype = msr.to_numpy_dtype()
     except AttributeError:
-        raise NotNumpyCompatible('DataShape measure %s is not NumPy-compatible' % msr)
+        raise NotNumpyCompatible('DataShape measure %s is not NumPy-compatible'
+                                 % msr)
 
     if type(dtype) != np.dtype:
-        raise NotNumpyCompatible('Internal Error: Failed to produce NumPy dtype')
-    return (shape, dtype)
+        raise NotNumpyCompatible('Internal Error: Failed to produce NumPy '
+                                 'dtype')
+    return shape, dtype
 
 
 def from_numpy(shape, dt):
@@ -1212,24 +1223,19 @@ def from_numpy(shape, dt):
     else:
         measure = CType.from_numpy_dtype(dtype)
 
-    if shape == ():
+    if not shape:
         return measure
-    else:
-        return DataShape(*tuple(map(Fixed, shape))+(measure,))
+    return DataShape(*tuple(map(Fixed, shape)) + (measure,))
 
 
+def expr_string(spine, const_args, outer='()'):
+    assert len(outer) == 2
 
-
-def expr_string(spine, const_args, outer=None):
-    if not outer:
-        outer = '()'
+    lhs, rhs = outer
 
     if const_args:
-        return str(spine) + outer[0] + ','.join(map(str,const_args)) + outer[1]
-    else:
-        return str(spine)
-
-
+        return '%s%s%s%s' % (spine, lhs, ','.join(map(str, const_args)), rhs)
+    return str(spine)
 
 
 def free(ds):
@@ -1287,23 +1293,26 @@ def pprint(ds, width=80):
         ds = ds[-1]
 
     if isinstance(ds, Record):
-        pairs = ['%s: %s' % (name, pprint(typ, width-len(result)-len(name)))
-                for name, typ in zip(ds.names, ds.types)]
-        short = '{' + ', '.join(pairs) + '}'
+        pairs = ['%s: %s' % (name if ' ' not in name else
+                             repr(name.decode('unicode_escape').encode(
+                                  'ascii')),
+                             pprint(typ, width - len(result) - len(name)))
+                 for name, typ in zip(ds.names, ds.types)]
+        short = '{%s}' % ', '.join(pairs)
         if len(result + short) < width:
             return result + short
         else:
-            long = '{\n' + ',\n'.join(pairs) + '\n}'
+            long = '{\n%s\n}' % ',\n'.join(pairs)
             return result + long.replace('\n', '\n  ')
 
     elif isinstance(ds, Tuple):
         typs = [pprint(typ, width-len(result))
                 for typ in ds.dshapes]
-        short = '(' + ', '.join(typs) + ')'
+        short = '(%s)' % ', '.join(typs)
         if len(result + short) < width:
             return result + short
         else:
-            long = '(\n' + ',\n'.join(typs) + '\n)'
+            long = '(\n%s\n)' % ',\n'.join(typs)
             return result + long.replace('\n', '\n  ')
     else:
         result += str(ds)
