@@ -68,6 +68,9 @@ class TestDataShapeCreation(unittest.TestCase):
     @xfail(reason='type decl has been removed in the new parser')
     def test_type_decl(self):
         self.assertRaises(error.DataShapeTypeError, dshape, 'type X T = 3, T')
+
+    @xfail(reason='type decl has been removed in the new parser')
+    def test_type_decl_concrete(self):
         self.assertEqual(dshape('3, int32'), dshape('type X = 3, int32'))
 
     def test_string_atom(self):
@@ -93,7 +96,8 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape('datetime[tz="UTC"]')[0].tz, 'UTC')
         self.assertEqual(dshape('datetime[tz="America/Vancouver"]')[0].tz,
                          'America/Vancouver')
-        self.assertEqual(str(dshape('datetime[tz="UTC"]')), "datetime[tz='UTC']")
+        self.assertEqual(str(dshape('datetime[tz="UTC"]')),
+                         "datetime[tz='UTC']")
 
     def test_units(self):
         self.assertEqual(dshape('units["second"]')[0].unit, 'second')
@@ -108,12 +112,13 @@ class TestDataShapeCreation(unittest.TestCase):
     def test_struct_of_array(self):
         self.assertEqual(str(dshape('5 * int32')), '5 * int32')
         self.assertEqual(str(dshape('{field: 5 * int32}')),
-                         '{ field : 5 * int32 }')
+                         '{field: 5 * int32}')
         self.assertEqual(str(dshape('{field: M * int32}')),
-                         '{ field : M * int32 }')
+                         '{field: M * int32}')
 
     def test_ragged_array(self):
-        self.assertTrue(isinstance(dshape('3 * var * int32')[1], datashape.Var))
+        self.assertTrue(isinstance(dshape('3 * var * int32')[1],
+                        datashape.Var))
 
     def test_from_numpy_fields(self):
         import numpy as np
@@ -179,7 +184,8 @@ class TestDataShapeCreation(unittest.TestCase):
                'uintptr',
                '{id: int8, value: bool, result: int16}',
                '{a: int32, b: int64, x: uint8, y: uint16, z: uint32}',
-               '{a: float32, b: float64, c: complex64, d: complex128, e: string, f: json, g: date, h: time, i: datetime}']
+               '{a: float32, b: float64, c: complex64, d: complex128, '
+               ' e: string, f: json, g: date, h: time, i: datetime}']
 
     dimensions = ['2',
                   '100',
@@ -197,4 +203,4 @@ class TestDataShapeCreation(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main()  # pragma: no cover
