@@ -157,7 +157,8 @@ def supertype(measure):
     >>> supertype(bool_)
     {boolean}
     """
-    measure = getattr(measure, 'ty', measure)
+    if isinstance(measure, Option):
+        measure = measure.ty
     assert matches_typeset(measure, scalar), 'measure must be numeric'
     return supertype_map[measure]
 
