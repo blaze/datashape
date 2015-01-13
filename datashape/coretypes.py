@@ -924,7 +924,8 @@ def _launder_key(k):
 class CollectionPrinter(object):
     def __repr__(self):
         s = str(self)
-        return 'dshape("%s")' % s.encode('unicode_escape').decode('ascii')
+        strs = ('"""%s"""' if '\n' in s else '"%s"') % s
+        return 'dshape(%s)' % strs
 
 
 class Record(CollectionPrinter, Mono):
@@ -1279,6 +1280,22 @@ def pprint(ds, width=80):
     5000000000 * {
       a: (int32, float32, float64, string, datetime),
       b: {c: 5 * int32, d: var * 100 * float32}
+      }
+
+    Record measures print like full datashapes
+    >>> print(pprint(ds.measure, width=30))
+    {
+      a: (
+        int32,
+        float32,
+        float64,
+        string,
+        datetime
+        ),
+      b: {
+        c: 5 * int32,
+        d: var * 100 * float32
+        }
       }
 
     Control width of the result
