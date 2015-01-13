@@ -12,7 +12,8 @@ from .coretypes import DataShape, Option
 
 
 __all__ = ['TypeSet', 'matches_typeset', 'signed', 'unsigned', 'integral',
-           'floating', 'complexes', 'boolean', 'numeric', 'scalar']
+           'floating', 'complexes', 'boolean', 'numeric', 'scalar',
+           'maxtype']
 
 
 class TypeSet(Unit):
