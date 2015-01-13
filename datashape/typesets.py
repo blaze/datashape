@@ -5,11 +5,15 @@ Traits constituting sets of types.
 from itertools import chain
 
 from .error import DataShapeTypeError
-from .coretypes import (Unit, int8, int16, int32, int64, uint8, uint16, uint32, uint64,
-                        float32, float64, complex64, complex128, bool_)
+from .coretypes import (Unit, int8, int16, int32, int64, uint8, uint16, uint32,
+                        uint64, float16, float32, float64, complex64,
+                        complex128, bool_)
+from .coretypes import DataShape, Option
+
 
 __all__ = ['TypeSet', 'matches_typeset', 'signed', 'unsigned', 'integral',
-           'floating', 'complexes', 'boolean', 'numeric', 'scalar']
+           'floating', 'complexes', 'boolean', 'numeric', 'scalar',
+           'maxtype']
 
 
 class TypeSet(Unit):
@@ -46,7 +50,8 @@ class TypeSet(Unit):
     def __repr__(self):
         if self.name:
             return '{%s}' % (self.name,)
-        return "%s(%s, name=%s)" % (self.__class__.__name__, self._set, self.name)
+        return "%s(%s, name=%s)" % (self.__class__.__name__, self._set,
+                                    self.name)
 
     def __or__(self, other):
         return TypeSet(*chain(self, other))
@@ -115,3 +120,71 @@ boolean = TypeSet(bool_, name='boolean')
 real = TypeSet(*integral | floating, name='real')
 numeric = TypeSet(*integral | floating | complexes, name='numeric')
 scalar = TypeSet(*boolean | numeric, name='signed')
+
+
+supertype_map = {
+    int8: signed,
+    int16: signed,
+    int32: signed,
+    int64: signed,
+    uint8: unsigned,
+    uint16: unsigned,
+    uint32: unsigned,
+    uint64: unsigned,
+    float16: floating,
+    float32: floating,
+    float64: floating,
+    complex64: complexes,
+    complex128: complexes,
+    bool_: boolean
+}
+
+
+def supertype(measure):
+    """Get the super type of a concrete numeric type
+
+    Examples
+    --------
+    >>> supertype(int8)
+    {signed}
+
+    >>> supertype(float32)
+    {floating}
+
+    >>> supertype(complex128)
+    {complexes}
+
+    >>> supertype(bool_)
+    {boolean}
+    """
+    if isinstance(measure, Option):
+        measure = measure.ty
+    assert matches_typeset(measure, scalar), 'measure must be numeric'
+    return supertype_map[measure]
+
+
+def maxtype(measure):
+    """Get the maximum width for a particular numeric type
+
+    Examples
+    --------
+    >>> maxtype(int8)
+    ctype("int64")
+
+    >>> maxtype(Option(float64))
+    ?float64
+
+    >>> maxtype(bool_)
+    ctype("bool")
+    """
+    measure = measure.measure
+    isoption = isinstance(measure, Option)
+    if isoption:
+        measure = measure.ty
+    assert matches_typeset(measure, scalar), 'measure must be numeric'
+
+    if measure == bool_:
+        result = bool_
+    else:
+        result = max(supertype(measure).types, key=lambda x: x.itemsize)
+    return Option(result) if isoption else result
