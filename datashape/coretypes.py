@@ -687,7 +687,11 @@ class DataShape(Mono):
 
             return count * self.subarray(1)
         if isinstance(index, tuple):
-            if len(index) == 1:
+            if not index:
+                return self
+            elif index[0] is None:
+                return 1 * self._subshape(index[1:])
+            elif len(index) == 1:
                 return self._subshape(index[0])
             else:
                 ds = self.subarray(1)._subshape(index[1:])

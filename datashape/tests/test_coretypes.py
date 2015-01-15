@@ -144,8 +144,14 @@ def test_subshape():
     ds = dshape('5 * 3 * float32')
     assert ds.subshape[::2] == dshape('3 * 3 * float32')
 
+def test_negative_slicing():
     ds = dshape('10 * int')
     assert ds.subshape[-3:] == dshape('3 * int')
+
+def test_newaxis_slicing():
+    ds = dshape('10 * int')
+    assert ds.subshape[None, :] == dshape('1 * 10 * int')
+    assert ds.subshape[:, None] == dshape('10 * 1 * int')
 
 
 def test_DataShape_coerces_ints():
