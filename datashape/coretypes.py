@@ -677,7 +677,9 @@ class DataShape(Mono):
                         count = -start
                     else:
                         count = var
-                if (stop >= 0) == (start >= 0):
+                if (stop is not None and
+                    start is not None and
+                    (stop >= 0) == (start >= 0)):
                     count = stop - start
                 else:
                     count = var
