@@ -144,6 +144,9 @@ def test_subshape():
     ds = dshape('5 * 3 * float32')
     assert ds.subshape[::2] == dshape('3 * 3 * float32')
 
+    ds = dshape('10 * int')
+    assert ds.subshape[-3:] == dshape('3 * int')
+
 
 def test_DataShape_coerces_ints():
     assert DataShape(5, 'int32')[0] == Fixed(5)
