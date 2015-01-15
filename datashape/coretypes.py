@@ -659,18 +659,41 @@ class DataShape(Mono):
             return DataShape(Record(rec.parameters[0][index]))
         if isinstance(index, list) and isdimension(self[0]):
             return len(index) * self.subarray(1)
-        if isinstance(index, slice) and isdimension(self[0]):
-            if (isinstance(self[0], Fixed) or index.stop is not None):
+        if isinstance(index, slice):
+            if isinstance(self[0], Fixed):
+                n = int(self[0])
                 start = index.start or 0
-                stop = index.stop or int(self[0])
+                stop = index.stop or n
+                if start < 0:
+                    start = n + start
+                if stop < 0:
+                    stop = n + stop
                 count = stop - start
-                if index.step is not None:
-                    count = int(ceil(count / index.step))
-                return count * self.subarray(1)
             else:
-                return var * self.subarray(1)
+                start = index.start or 0
+                stop = index.stop
+                if not stop:
+                    if start < 0:
+                        count = -start
+                    else:
+                        count = var
+                if (stop is not None and
+                    start is not None and
+                    (stop >= 0) == (start >= 0)):
+                    count = stop - start
+                else:
+                    count = var
+
+            if count != var and index.step is not None:
+                count = int(ceil(count / index.step))
+
+            return count * self.subarray(1)
         if isinstance(index, tuple):
-            if len(index) == 1:
+            if not index:
+                return self
+            elif index[0] is None:
+                return 1 * self._subshape(index[1:])
+            elif len(index) == 1:
                 return self._subshape(index[0])
             else:
                 ds = self.subarray(1)._subshape(index[1:])
