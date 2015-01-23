@@ -1,5 +1,7 @@
-cd %RECIPE_DIR%\..
-"%PYTHON%" setup.py install
+@echo off
 
-if errorlevel 1 exit 1
-
+SET BLD_DIR=%CD%
+cd /D "%RECIPE_DIR%\.."
+FOR /F "delims=" %%i IN ('git describe --tags') DO set DATASHAPE_VERSION=%%i
+echo.%DATASHAPE_VERSION% | %PYTHON% .\conda.recipe\version.py > %SRC_DIR%\__conda_version__.txt
+%PYTHON% setup.py --quiet install
