@@ -17,6 +17,38 @@ from .internal_utils import _toposort, groupby
 
 __all__ = ['discover']
 
+@dispatch(object)
+def discover(o, **kwargs):
+    """ Discover datashape of object
+
+    A datashape encodes the datatypes and the shape/length of an object.
+    Discover returns the datashape of a Python object.  This object can refer
+    to external data.
+
+    Datashapes range from simple scalars
+
+    >>> discover(10)
+    ctype('int64')
+
+    To collections
+
+    >>> discover([[1, 2, 3], [4, 5, 6]])
+    dshape('2 * 3 * int64')
+
+    To record types and other objects
+
+    >>> x = np.array([('Alice', 100), ('Bob', 200)], dtype=[('name', 'S7'),
+    ...                                                     ('amount', 'i4')])
+    >>> discover(x)
+    dshape('2 * {name: string[7, "ascii"], amount: int32}')
+
+    See http://datashape.pydata.org/grammar.html#some-simple-examples
+    for more examples
+    """
+    raise NotImplementedError("Don't know how to discover type %s" %
+            type(o).__name__)
+
+
 
 @dispatch(_inttypes)
 def discover(i):
