@@ -262,6 +262,6 @@ def test_nested_complex_record_type():
 
 def test_letters_only_strings():
     strings = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
-               'friday', 'saturday', 'a', 'b', 'now', 'yesterday')
+               'friday', 'saturday', 'a', 'b', 'now', 'yesterday', 'tonight')
     for s in strings:
         assert discover(s) == string
