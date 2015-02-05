@@ -260,8 +260,8 @@ def test_nested_complex_record_type():
     assert discover(x) == dshape(s)
 
 
-def test_weekday_string():
-    weekdays = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
-                'friday', 'saturday')
-    for weekday in weekdays:
-        assert discover(weekday) == string
+def test_letters_only_strings():
+    strings = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
+               'friday', 'saturday', 'a', 'b', 'now', 'yesterday')
+    for s in strings:
+        assert discover(s) == string
