@@ -258,3 +258,10 @@ def test_nested_complex_record_type():
     x = np.zeros(5, dt)
     s = "5 * {a: string[7, 'U32'], b: {c: 2 * int64, d: float64}}"
     assert discover(x) == dshape(s)
+
+
+def test_weekday_string():
+    weekdays = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
+                'friday', 'saturday')
+    for weekday in weekdays:
+        assert discover(weekday) == string

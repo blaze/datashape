@@ -119,15 +119,24 @@ def deltaparse(x):
     return np.timedelta64(int(value), TimeDelta(unit=unit).unit)
 
 
-string_coercions = [int, float, bools.__getitem__, deltaparse, timeparse,
-                    dateparse]
+string_coercions = int, float, bools.__getitem__, deltaparse, timeparse
+
+
+weekday_values = frozenset(['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat',
+                            'sunday', 'monday', 'tuesday', 'wednesday',
+                            'thursday', 'friday', 'saturday'])
 
 
 @dispatch(_strtypes)
 def discover(s):
     if not s:
         return null
-    for f in [int, float, bools.__getitem__, deltaparse, timeparse]:
+
+    # dateutil parses these as the next date corresponding to this day name so
+    # ignore it
+    if s.lower() in weekday_values:
+        return string
+    for f in string_coercions:
         try:
             return discover(f(s))
         except:
