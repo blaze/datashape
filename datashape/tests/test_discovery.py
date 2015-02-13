@@ -265,3 +265,12 @@ def test_letters_only_strings():
                'friday', 'saturday', 'a', 'b', 'now', 'yesterday', 'tonight')
     for s in strings:
         assert discover(s) == string
+
+
+def test_discover_array_like():
+    class MyArray(object):
+        def __init__(self, shape, dtype):
+            self.shape = shape
+            self.dtype = dtype
+
+    assert discover(MyArray((4, 3), 'f4')) == dshape('4 * 3 * float32')

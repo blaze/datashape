@@ -45,6 +45,8 @@ def discover(o, **kwargs):
     See http://datashape.pydata.org/grammar.html#some-simple-examples
     for more examples
     """
+    if hasattr(o, 'shape') and hasattr(o, 'dtype'):
+        return from_numpy(o.shape, o.dtype)
     raise NotImplementedError("Don't know how to discover type %s" %
             type(o).__name__)
 
