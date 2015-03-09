@@ -11,7 +11,7 @@ engine:
   - python=3.3
   - python=3.4
 script:
-  - conda build conda.recipe/
+  - conda build conda.recipe
 build_targets:
   files: conda
   channels: main
