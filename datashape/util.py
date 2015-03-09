@@ -17,6 +17,7 @@ from .internal_utils import reverse_dict
 __all__ = ['dshape', 'dshapes', 'has_var_dim', 'has_ellipsis',
            'cat_dshapes', 'from_ctypes', 'from_cffi', 'to_ctypes']
 
+subclasses = operator.methodcaller('__subclasses__')
 
 PY3 = sys.version_info[:2] >= (3, 0)
 
