@@ -17,6 +17,7 @@ from .internal_utils import _toposort, groupby
 
 __all__ = ['discover']
 
+
 @dispatch(object)
 def discover(o, **kwargs):
     """ Discover datashape of object
@@ -47,14 +48,18 @@ def discover(o, **kwargs):
     """
     if hasattr(o, 'shape') and hasattr(o, 'dtype'):
         return from_numpy(o.shape, o.dtype)
-    raise NotImplementedError("Don't know how to discover type %s" %
-            type(o).__name__)
-
+    raise NotImplementedError("Don't know how to discover type %r" %
+                              type(o).__name__)
 
 
 @dispatch(_inttypes)
 def discover(i):
     return int64
+
+
+@dispatch((np.integer, np.floating))
+def discover(n):
+    return from_numpy((), n.dtype)
 
 
 @dispatch(float)
