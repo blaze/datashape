@@ -58,13 +58,7 @@ def discover(i):
     return int64
 
 
-npinttypes = tuple(chain.from_iterable((x for x in subclasses(icls)
-                                        if x.__name__.startswith(('int',
-                                                                  'uint')))
-                                       for icls in subclasses(np.integer)))
-
-
-@dispatch(npinttypes)
+@dispatch(np.integer)
 def discover(n):
     return from_numpy((), n.dtype)
 
