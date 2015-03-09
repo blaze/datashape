@@ -5,7 +5,7 @@ import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date, time, timedelta
 from .dispatch import dispatch
-
+from toolz import concat
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
@@ -13,6 +13,7 @@ from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
 from .predicates import isdimension, isrecord
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
+from .util import subclasses
 
 
 __all__ = ['discover']
@@ -57,7 +58,12 @@ def discover(i):
     return int64
 
 
-@dispatch((np.integer, np.floating))
+npinttypes = tuple(concat((x for x in subclasses(icls)
+                           if x.__name__.startswith(('int', 'uint')))
+                          for icls in subclasses(np.integer)))
+
+
+@dispatch(npinttypes)
 def discover(n):
     return from_numpy((), n.dtype)
 
