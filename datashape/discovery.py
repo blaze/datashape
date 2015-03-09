@@ -5,7 +5,7 @@ import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date, time, timedelta
 from .dispatch import dispatch
-from toolz import concat
+from itertoolz import chain
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
@@ -58,9 +58,10 @@ def discover(i):
     return int64
 
 
-npinttypes = tuple(concat((x for x in subclasses(icls)
-                           if x.__name__.startswith(('int', 'uint')))
-                          for icls in subclasses(np.integer)))
+npinttypes = tuple(chain.from_iterable((x for x in subclasses(icls)
+                                        if x.__name__.startswith(('int',
+                                                                  'uint')))
+                                       for icls in subclasses(np.integer)))
 
 
 @dispatch(npinttypes)
