@@ -5,7 +5,7 @@ import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date, time, timedelta
 from .dispatch import dispatch
-from itertoolz import chain
+from itertools import chain
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
