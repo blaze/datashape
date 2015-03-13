@@ -248,7 +248,7 @@ def to_ctypes(dshape):
     """
     Constructs a ctypes type from a datashape
 
-    >>> to_ctypes(coretypes.float64)
+    >>> to_ctypes(coretypes.float64)  # doctest: +SKIP
     <class 'ctypes.c_double'>
     """
     if len(dshape) == 1:
