@@ -15,7 +15,9 @@ from .promote import promote, optionify
 from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
                     CoercionError)
 
-__version__ = '0.4.3'
+
+__version__ = '0.4.4'
+
 
 def test(verbose=False, xunitfile=None, exit=False):
     """
