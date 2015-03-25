@@ -169,6 +169,10 @@ def test_shape():
 def test_option_sanitizes_strings():
     assert Option('float32').ty == dshape('float32').measure
 
+def test_option_passes_itemsize():
+    assert dshape('?float32').measure.itemsize ==\
+            dshape('float32').measure.itemsize
+
 
 class TestComplexFieldNames(object):
     """

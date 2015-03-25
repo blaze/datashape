@@ -718,6 +718,10 @@ class Option(Mono):
     def shape(self):
         return self.ty.shape
 
+    @property
+    def itemsize(self):
+        return self.ty.itemsize
+
     def __str__(self):
         return '?%s' % str(self.ty)
 
