@@ -7,7 +7,7 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
 from datashape.coretypes import (int64, float64, complex128, string, bool_,
                                  Tuple, Record, date_, datetime_, time_,
                                  timedelta_, int32, var, Option, real, Null,
-                                 TimeDelta)
+                                 TimeDelta, String)
 from itertools import starmap
 from datashape import dshape
 from datetime import date, time, datetime, timedelta
@@ -274,3 +274,12 @@ def test_discover_array_like():
             self.dtype = dtype
 
     assert discover(MyArray((4, 3), 'f4')) == dshape('4 * 3 * float32')
+
+
+@pytest.mark.xfail(sys.version_info[0] == 2,
+                   raises=AssertionError,
+                   reason=('discovery behavior is different for raw strings '
+                           'in python 2'))
+def test_discover_bytes():
+    x = b'abcdefg'
+    assert discover(x) == String('A')

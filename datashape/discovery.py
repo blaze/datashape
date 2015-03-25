@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 import re
+import sys
 import numpy as np
 from dateutil.parser import parse as dateparse
 from datetime import datetime, date, time, timedelta
@@ -9,7 +10,7 @@ from itertools import chain
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
-                        Unit, timedelta_, TimeDelta, object_)
+                        Unit, timedelta_, TimeDelta, object_, String)
 from .predicates import isdimension, isrecord
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
@@ -62,6 +63,12 @@ npinttypes = tuple(chain.from_iterable((x for x in subclasses(icls)
                                         if x.__name__.startswith(('int',
                                                                   'uint')))
                                        for icls in subclasses(np.integer)))
+
+
+if sys.version_info[0] == 3:
+    @dispatch(bytes)
+    def discover(b):
+        return String('A')
 
 
 @dispatch(npinttypes)
