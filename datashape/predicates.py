@@ -98,6 +98,8 @@ def _dimensions(ds):
         return _dimensions(ds.ty)
     if isinstance(ds, Record):
         return 1 + max(map(_dimensions, ds.types))
+    if isinstance(ds, Tuple):
+        return 1 + max(map(_dimensions, ds.dshapes))
     if isinstance(ds, DataShape) and isdimension(ds[0]):
         return 1 + _dimensions(ds.subshape[0])
     if isscalar(ds):
