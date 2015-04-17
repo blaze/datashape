@@ -155,7 +155,7 @@ def discover(s):
             pass
 
     # don't let dateutil parse things like sunday, monday etc into dates
-    if s.isalpha():
+    if s.isalpha() or s.isspace():
         return string
 
     try:
