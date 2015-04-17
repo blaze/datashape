@@ -77,6 +77,10 @@ def test_date():
     assert discover(date(2014, 1, 1)) == date_
 
 
+def test_single_space_string_is_not_date():
+    assert discover(' ') == string
+
+
 def test_string_that_looks_like_date():
     # GH 91
     assert discover("31-DEC-99 12.00.00.000000000") == string
