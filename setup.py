@@ -5,23 +5,26 @@ from distutils.core import setup
 # Used for the long_description.  It's nice, because now 1) we have a top level
 # README file and 2) it's easier to type in the README file than to put a raw
 # string in below ...
+
+
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        return f.read()
+
 
 setup(
-    name = "DataShape",
-    version = "0.4.4",
-    author = "Continuum Analytics",
-    author_email = "blaze-dev@continuum.io",
-    description = ("A data description language."),
-    license = "BSD",
-    keywords = "data language",
-    url = "http://packages.python.org/datashape",
-    packages = ["datashape",
-                "datashape.tests"],
-    install_requires=open('requirements.txt').read().strip().split('\n'),
-    long_description = read('README.rst'),
-    classifiers = [
+    name="datashape",
+    version="0.4.4",
+    author="Continuum Analytics",
+    author_email="blaze-dev@continuum.io",
+    description="A data description language.",
+    license="BSD",
+    keywords="data language",
+    url="http://packages.python.org/datashape",
+    packages=["datashape", "datashape.tests"],
+    install_requires=read('requirements.txt').strip().split('\n'),
+    long_description=read('README.rst'),
+    classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Topic :: Software Development",

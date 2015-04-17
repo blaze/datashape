@@ -14,15 +14,17 @@ requirements:
 
   run:
     - python
-    - numpy
-    - multipledispatch
-    - dateutil
+    - numpy >=1.7
+    - multipledispatch >=0.4.7
+    - python-dateutil
 
 test:
   requires:
-  - pytest
+    - pytest
+  imports:
+    - datashape
   commands:
-  - py.test --doctest-modules --pyargs datashape
+    - py.test --doctest-modules --pyargs datashape
 
 
 about:
