@@ -24,7 +24,7 @@ test:
   imports:
     - datashape
   commands:
-    - py.test --doctest-modules --pyargs datashape
+    - py.test -x --doctest-modules --pyargs datashape
 
 
 about:
