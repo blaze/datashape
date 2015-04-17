@@ -20,7 +20,7 @@ def read(fname):
 
 
 setup(
-    name="datashape",
+    name="DataShape",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     author="Continuum Analytics",
