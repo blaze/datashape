@@ -27,9 +27,8 @@ requirements:
 test:
   requires:
     - pytest
-  imports:
-    - datashape
   commands:
+    - python -c 'import datashape; assert datashape.__version__ != "unknown"'
     - py.test -x --doctest-modules --pyargs datashape
 
 

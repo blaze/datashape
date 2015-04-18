@@ -1,5 +1,6 @@
 import os
-from setuptools import setup, find_packages
+from distutils.core import setup
+from setuptools import find_packages
 
 import versioneer
 versioneer.VCS = 'git'
@@ -21,7 +22,7 @@ def read(fname):
 
 setup(
     name="datashape",
-    version=versioneer.get_version(),
+    version=versioneer.get_version(verbose=True),
     cmdclass=versioneer.get_cmdclass(),
     author="Continuum Analytics",
     author_email="blaze-dev@continuum.io",
