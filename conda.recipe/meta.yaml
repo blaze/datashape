@@ -24,7 +24,7 @@ test:
   requires:
     - pytest
   commands:
-    - python -c 'import datashape; assert datashape.__version__ != "unknown"'
+    - python -c "import datashape; assert datashape.__version__ != 'unknown'"
     - py.test -vx --doctest-modules --pyargs datashape
 
 
