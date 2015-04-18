@@ -28,7 +28,7 @@ test:
     - pytest
   commands:
     - python -c 'import datashape; assert datashape.__version__ != "unknown"'
-    - py.test -x --doctest-modules --pyargs datashape
+    - py.test -vx --doctest-modules --pyargs datashape
 
 
 about:
