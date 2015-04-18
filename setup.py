@@ -1,6 +1,5 @@
 import os
 from distutils.core import setup
-from setuptools import find_packages
 
 import versioneer
 versioneer.VCS = 'git'
@@ -30,7 +29,7 @@ setup(
     license="BSD",
     keywords="data language",
     url="http://packages.python.org/datashape",
-    packages=find_packages(),
+    packages=['datashape', 'datashape.tests'],
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
     classifiers=[
