@@ -13,10 +13,6 @@ source:
 requirements:
   build:
     - python
-    - setuptools
-    - python-dateutil
-    - numpy >=1.7
-    - multipledispatch >=0.4.7
 
   run:
     - python
@@ -27,10 +23,9 @@ requirements:
 test:
   requires:
     - pytest
-  imports:
-    - datashape
   commands:
-    - py.test -x --doctest-modules --pyargs datashape
+    - python -c 'import datashape; assert datashape.__version__ != "unknown"'
+    - py.test -vx --doctest-modules --pyargs datashape
 
 
 about:

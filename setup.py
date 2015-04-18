@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from distutils.core import setup
 
 import versioneer
 versioneer.VCS = 'git'
@@ -20,22 +20,22 @@ def read(fname):
 
 
 setup(
-    name="DataShape",
-    version=versioneer.get_version(),
+    name='datashape',
+    version=versioneer.get_version(verbose=True),
     cmdclass=versioneer.get_cmdclass(),
-    author="Continuum Analytics",
-    author_email="blaze-dev@continuum.io",
-    description="A data description language.",
-    license="BSD",
-    keywords="data language",
-    url="http://packages.python.org/datashape",
-    packages=["datashape", "datashape.tests"],
+    author='Continuum Analytics',
+    author_email='blaze-dev@continuum.io',
+    description='A data description language.',
+    license='BSD',
+    keywords='data language',
+    url='http://packages.python.org/datashape',
+    packages=['datashape', 'datashape.tests'],
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
     classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "Topic :: Software Development",
-        "License :: OSI Approved :: BSD License",
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development',
+        'License :: OSI Approved :: BSD License',
     ],
 )
