@@ -20,22 +20,22 @@ def read(fname):
 
 
 setup(
-    name="datashape",
+    name='datashape',
     version=versioneer.get_version(verbose=True),
     cmdclass=versioneer.get_cmdclass(),
-    author="Continuum Analytics",
-    author_email="blaze-dev@continuum.io",
-    description="A data description language.",
-    license="BSD",
-    keywords="data language",
-    url="http://packages.python.org/datashape",
+    author='Continuum Analytics',
+    author_email='blaze-dev@continuum.io',
+    description='A data description language.',
+    license='BSD',
+    keywords='data language',
+    url='http://packages.python.org/datashape',
     packages=['datashape', 'datashape.tests'],
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
     classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "Topic :: Software Development",
-        "License :: OSI Approved :: BSD License",
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development',
+        'License :: OSI Approved :: BSD License',
     ],
 )
