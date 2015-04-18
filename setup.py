@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import versioneer
 versioneer.VCS = 'git'
@@ -20,7 +20,7 @@ def read(fname):
 
 
 setup(
-    name="DataShape",
+    name="datashape",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     author="Continuum Analytics",
@@ -29,7 +29,7 @@ setup(
     license="BSD",
     keywords="data language",
     url="http://packages.python.org/datashape",
-    packages=["datashape", "datashape.tests"],
+    packages=find_packages(),
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
     classifiers=[
