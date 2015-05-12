@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
-                                 Fixed, Option, _units, _unit_aliases)
+                                 Fixed, Option, _units, _unit_aliases, Date,
+                                 DateTime, TimeDelta)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -280,3 +281,18 @@ def test_record_with_unicode_name_as_numpy_dtype():
 def test_tuple_datashape_to_numpy_dtype():
     ds = dshape('5 * (int32, float32)')
     assert to_numpy_dtype(ds) == [('f0', 'i4'), ('f1', 'f4')]
+
+
+def test_option_date_to_numpy():
+    assert Option(Date()).to_numpy_dtype() == np.dtype('datetime64[D]')
+
+
+def test_option_datetime_to_numpy():
+    assert Option(DateTime()).to_numpy_dtype() == np.dtype('datetime64[us]')
+
+
+@pytest.mark.parametrize('unit',
+                         ['Y', 'M', 'D', 'h', 'm', 's', 'ms', 'us', 'ns'])
+def test_option_timedelta_to_numpy(unit):
+    assert (Option(TimeDelta(unit=unit)).to_numpy_dtype() ==
+            np.dtype('timedelta64[%s]' % unit))

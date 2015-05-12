@@ -704,6 +704,9 @@ class DataShape(Mono):
         self.__init__(*state)
 
 
+numpy_provides_missing = frozenset((Date, DateTime, TimeDelta))
+
+
 class Option(Mono):
     """
     Measure types which may or may not hold data. Makes no
@@ -726,6 +729,12 @@ class Option(Mono):
         return '?%s' % str(self.ty)
 
     __repr__ = __str__
+
+    def to_numpy_dtype(self):
+        if type(self.ty) in numpy_provides_missing:
+            return self.ty.to_numpy_dtype()
+        raise NotNumpyCompatible('DataShape measure %s is not '
+                                 'NumPy-compatible' % self)
 
 
 class CType(Unit):
