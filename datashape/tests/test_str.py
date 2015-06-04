@@ -2,7 +2,7 @@ import unittest
 import pytest
 
 import datashape
-from datashape import dshape
+from datashape import dshape, DataShapeSyntaxError
 
 
 class TestDataShapeStr(unittest.TestCase):
@@ -59,9 +59,12 @@ class TestDataShapeStr(unittest.TestCase):
                           '{"./a b c": float64}',
                           '{"./a b\tc": string}',
                           '{"./a/[0 1 2]/b/\\n": float32}',
-                          pytest.mark.xfail('{"/a/b/0/c\v/d": int8}'),
-                          pytest.mark.xfail('{"/a/b/0/c\n/d": int8}'),
-                          pytest.mark.xfail('{"/a/b/0/c\r/d": int8}')])
+                          pytest.mark.xfail('{"/a/b/0/c\v/d": int8}',
+                                            raises=DataShapeSyntaxError),
+                          pytest.mark.xfail('{"/a/b/0/c\n/d": int8}',
+                                            raises=DataShapeSyntaxError),
+                          pytest.mark.xfail('{"/a/b/0/c\r/d": int8}',
+                                            raises=DataShapeSyntaxError)])
 def test_arbitrary_string(s):
     ds = dshape(s)
     assert dshape(str(ds)) == ds
