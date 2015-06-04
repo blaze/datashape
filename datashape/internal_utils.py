@@ -6,6 +6,9 @@ Do not import datashape modules into this module.  See util.py in that case
 
 from __future__ import print_function, division, absolute_import
 
+import keyword
+import re
+
 
 class IndexCallable(object):
     """ Provide getitem syntax for functions
@@ -18,6 +21,7 @@ class IndexCallable(object):
     4
     """
     __slots__ = 'fn',
+
     def __init__(self, fn):
         self.fn = fn
 
@@ -134,3 +138,8 @@ def raises(exception, lamda):
         return False
     except exception:
         return True
+
+
+def isidentifier(s):
+    return (keyword.iskeyword(s) or
+            re.match(r'^[_a-zA-Z][_a-zA-Z0-9]*$', s) is not None)

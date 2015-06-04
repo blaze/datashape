@@ -13,7 +13,7 @@ from math import ceil
 import numpy as np
 
 from .py2help import _inttypes, _strtypes, unicode
-from .internal_utils import IndexCallable
+from .internal_utils import IndexCallable, isidentifier
 
 
 # Classes of unit types.
@@ -1360,11 +1360,12 @@ def pprint(ds, width=80):
         ds = ds[-1]
 
     if isinstance(ds, Record):
-        pairs = ['%s: %s' % (name if ' ' not in name else
+        pairs = ['%s: %s' % (name if isidentifier(name) else
                              repr(print_unicode_string(name)),
                              pprint(typ, width - len(result) - len(name)))
                  for name, typ in zip(ds.names, ds.types)]
         short = '{%s}' % ', '.join(pairs)
+
         if len(result + short) < width:
             return result + short
         else:
