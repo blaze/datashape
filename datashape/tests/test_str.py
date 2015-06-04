@@ -1,4 +1,5 @@
 import unittest
+import pytest
 
 import datashape
 from datashape import dshape
@@ -51,6 +52,19 @@ class TestDataShapeStr(unittest.TestCase):
     def test_array_repr(self):
         self.assertEqual(repr(dshape('3*5*int16')),
                          'dshape("3 * 5 * int16")')
+
+
+@pytest.mark.parametrize('s',
+                         ['{"./abc": int64}',
+                          '{"./a b c": float64}',
+                          '{"./a b\tc": string}',
+                          '{"./a/[0 1 2]/b/\\n": float32}',
+                          pytest.mark.xfail('{"/a/b/0/c\v/d": int8}'),
+                          pytest.mark.xfail('{"/a/b/0/c\n/d": int8}'),
+                          pytest.mark.xfail('{"/a/b/0/c\r/d": int8}')])
+def test_arbitrary_string(s):
+    ds = dshape(s)
+    assert dshape(str(ds)) == ds
 
 
 if __name__ == '__main__':
