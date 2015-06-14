@@ -1,15 +1,15 @@
 from __future__ import absolute_import
 
 import numbers
-import json
 
 from itertools import chain
-
-import numpy as np
 
 import datashape
 from .dispatch import dispatch
 from .coretypes import Record, CType, DataShape, Var, Fixed, Option
+
+
+__all__ = 'to_json', 'from_json'
 
 
 @dispatch(basestring)
@@ -26,10 +26,6 @@ def to_json(ds):
 @dispatch((Option, CType))
 def to_json(u):
     return to_json(str(u))
-
-
-def jsonify(dshape):
-    return json.dumps(to_json(dshape))
 
 
 @dispatch(Var)
