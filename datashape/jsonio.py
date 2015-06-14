@@ -1,15 +1,78 @@
 from __future__ import absolute_import
 
 import numbers
+import json
 
 from itertools import chain
 
 import datashape
 from .dispatch import dispatch
-from .coretypes import Record, CType, DataShape, Var, Fixed, Option
+from .coretypes import Record, CType, DataShape, Var, Fixed, Option, String
 
 
-__all__ = 'to_json', 'from_json'
+__all__ = 'jsonify', 'unjsonify', 'to_json', 'from_json'
+
+
+def jsonify(ds):
+    """Convert a datashape to a JSON string.
+
+    Parameters
+    ----------
+    ds : DataShape
+        A DataShape
+
+    Returns
+    -------
+    s : str
+        A valid JSON string
+
+    Examples
+    --------
+    >>> from datashape import dshape
+    >>> jsonify(dshape("int32"))
+    '{"shape": [], "measure": "int32"}'
+    >>> jsonify(dshape("10 * int32"))
+    '{"shape": [10], "measure": "int32"}'
+    >>> jsonify(dshape('?string["A"]'))
+    '{"shape": [], "measure": "?string[\\'A\\']"}'
+    >>> jsonify(dshape("var * {a: ?int32, b: float64}"))
+    '{"shape": ["var"], "measure": {"names": ["a", "b"], "types": {"a": "?int32", "b": "float64"}}}'
+    """
+    return json.dumps(to_json(ds))
+
+
+def unjsonify(js):
+    """Reconstruct a DataShape instance from a JSON blob.
+
+    Parameters
+    ----------
+    js : str
+        A JSON blob encoding a DataShape
+
+    Returns
+    -------
+    ds : DataShape
+        A DataShape instance
+
+    Examples
+    --------
+    >>> unjsonify('{"shape": [], "measure": "int32"}')
+    dshape("int32")
+    >>> unjsonify('{"shape": [10, 20], "measure": "?string[\\'A\\']"}')
+    dshape("10 * 20 * ?string['A']")
+    >>> unjsonify('''{
+    ...     "shape": ["var"],
+    ...     "measure": {
+    ...         "names": ["a", "b"],
+    ...         "types": {
+    ...             "a": "?int32",
+    ...             "b": "float64"
+    ...         }
+    ...     }
+    ... }''')
+    dshape("var * {a: ?int32, b: float64}")
+    """
+    return from_json(json.loads(js))
 
 
 @dispatch(basestring)
@@ -23,7 +86,7 @@ def to_json(ds):
                 types=dict((name, to_json(typ)) for name, typ in ds.fields))
 
 
-@dispatch((Option, CType))
+@dispatch((Option, CType, String))
 def to_json(u):
     return to_json(str(u))
 
@@ -59,10 +122,9 @@ def from_json(d):
 
 @dispatch(basestring)
 def from_json(s):
-    try:
-        return datashape.dshape(s).measure
-    except datashape.DataShapeSyntaxError:
-        return getattr(datashape, s, s)
+    if hasattr(datashape, s):
+        return getattr(datashape, s)
+    return datashape.dshape(s).measure
 
 
 @dispatch(numbers.Number)
