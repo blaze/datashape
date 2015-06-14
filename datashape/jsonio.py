@@ -8,6 +8,7 @@ from itertools import chain
 import datashape
 from .dispatch import dispatch
 from .coretypes import Record, CType, DataShape, Var, Fixed, Option, String
+from .py2help import basestring
 
 
 __all__ = 'jsonify', 'unjsonify', 'to_json', 'from_json'
