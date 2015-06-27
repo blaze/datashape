@@ -2,10 +2,10 @@ import pickle
 
 import numpy as np
 import pytest
-import unittest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
-        Fixed, Option)
+                                 Fixed, Option, _units, _unit_aliases, Date,
+                                 DateTime, TimeDelta)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -28,8 +28,13 @@ def test_strings():
     assert Record([('x', 'real')]) == Record([('x', real)])
 
 
+def test_integers():
+    assert Record([(0, 'real')]) == Record([('0', real)])
+
+
 def test_error_on_datashape_with_string_argument():
-    assert pytest.raises(TypeError, lambda : DataShape('5 * int32'))
+    with pytest.raises(TypeError):
+        DataShape('5 * int32')
 
 
 class TestToNumpyDtype(object):
@@ -49,6 +54,33 @@ class TestToNumpyDtype(object):
 
     def test_dimensions(self):
         return to_numpy_dtype(dshape('var * int32')) == np.int32
+
+    def test_timedelta(self):
+        assert to_numpy_dtype(dshape('2 * timedelta')) == np.dtype('m8[us]')
+        assert to_numpy_dtype(dshape("2 * timedelta[unit='s']")) == \
+            np.dtype('m8[s]')
+
+
+def test_timedelta_repr():
+    assert eval(repr(dshape('timedelta'))) == dshape('timedelta')
+    assert eval(repr(dshape('timedelta[unit="ms"]'))) == \
+        dshape('timedelta[unit="ms"]')
+
+
+def test_timedelta_bad_unit():
+    with pytest.raises(ValueError):
+        dshape('timedelta[unit="foo"]')
+
+
+def test_timedelta_nano():
+    dshape('timedelta[unit="ns"]').measure.unit == 'ns'
+
+
+def test_timedelta_aliases():
+    for alias in _unit_aliases:
+        a = alias + 's'
+        assert (dshape('timedelta[unit=%r]' % a) ==
+                dshape('timedelta[unit=%r]' % _unit_aliases[alias]))
 
 
 class TestFromNumPyDtype(object):
@@ -72,6 +104,12 @@ class TestFromNumPyDtype(object):
         for d in ('D', 'M', 'Y', 'W'):
             assert from_numpy((2,),
                               np.dtype('M8[%s]' % d)) == dshape('2 * date')
+
+    def test_timedelta(self):
+        for d in _units:
+            assert from_numpy((2,),
+                              np.dtype('m8[%s]' % d)) == \
+                dshape('2 * timedelta[unit=%r]' % d)
 
     def test_ascii_string(self):
         assert (from_numpy((2,), np.dtype('S7')) ==
@@ -99,12 +137,22 @@ def test_serializable():
 
     assert str(ds) == str(ds2)
 
+
 def test_subshape():
     ds = dshape('5 * 3 * float32')
     assert ds.subshape[2:] == dshape('3 * 3 * float32')
 
     ds = dshape('5 * 3 * float32')
     assert ds.subshape[::2] == dshape('3 * 3 * float32')
+
+def test_negative_slicing():
+    ds = dshape('10 * int')
+    assert ds.subshape[-3:] == dshape('3 * int')
+
+def test_newaxis_slicing():
+    ds = dshape('10 * int')
+    assert ds.subshape[None, :] == dshape('1 * 10 * int')
+    assert ds.subshape[:, None] == dshape('10 * 1 * int')
 
 
 def test_DataShape_coerces_ints():
@@ -122,19 +170,26 @@ def test_shape():
 def test_option_sanitizes_strings():
     assert Option('float32').ty == dshape('float32').measure
 
+def test_option_passes_itemsize():
+    assert dshape('?float32').measure.itemsize ==\
+            dshape('float32').measure.itemsize
+
 
 class TestComplexFieldNames(object):
     """
-    The tests in this class should verify that the datashape parser can handle field names that contain
-      strange characters like spaces, quotes, and backslashes
-    The idea is that any given input datashape should be recoverable once we have created the actual dshape object.
+    The tests in this class should verify that the datashape parser can handle
+    field names that contain strange characters like spaces, quotes, and
+    backslashes
 
-    This test suite is by no means complete, but it does handle some of the more common special cases (common special? oxymoron?)
+    The idea is that any given input datashape should be recoverable once we
+    have created the actual dshape object.
+
+    This test suite is by no means complete, but it does handle some of the
+    more common special cases (common special? oxymoron?)
     """
     def test_spaces_01(self):
-        space_dshape="""{ 'Unique Key' : ?int64 }"""
-        ds1=dshape(space_dshape)
-        assert space_dshape == str(ds1)
+        space_dshape = "{'Unique Key': ?int64}"
+        assert space_dshape == str(dshape(space_dshape))
 
     def test_spaces_02(self):
         big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string,
@@ -160,46 +215,45 @@ Borough : string, 'X Coordinate (State Plane)' : ?int64,
 'Ferry Direction' : string, 'Ferry Terminal Name' : string,
 Latitude : ?float64, Longitude : ?float64, Location : string }"""
 
-
-        ds1=dshape(big_space_dshape)
-        ds2=dshape(str(ds1))
+        ds1 = dshape(big_space_dshape)
+        ds2 = dshape(str(ds1))
 
         assert str(ds1) == str(ds2)
 
     def test_single_quotes_01(self):
 
-        quotes_dshape="""{ 'field \\' with \\' quotes' : string }"""
+        quotes_dshape = """{ 'field \\' with \\' quotes' : string }"""
 
-        ds1=dshape(quotes_dshape)
-        ds2=dshape(str(ds1))
+        ds1 = dshape(quotes_dshape)
+        ds2 = dshape(str(ds1))
 
         assert str(ds1) == str(ds2)
 
     def test_double_quotes_01(self):
-        quotes_dshape="""{ 'doublequote \" field \"' : int64 }"""
-        ds1=dshape(quotes_dshape)
-        ds2=dshape(str(ds1))
+        quotes_dshape = """{ 'doublequote \" field \"' : int64 }"""
+        ds1 = dshape(quotes_dshape)
+        ds2 = dshape(str(ds1))
 
         assert str(ds1) == str(ds2)
 
     def test_multi_quotes_01(self):
-        quotes_dshape="""{ 'field \\' with \\' quotes' : string, 'doublequote \" field \"' : int64 }"""
+        quotes_dshape = """{ 'field \\' with \\' quotes' : string, 'doublequote \" field \"' : int64 }"""
 
-        ds1=dshape(quotes_dshape)
-        ds2=dshape(str(ds1))
+        ds1 = dshape(quotes_dshape)
+        ds2 = dshape(str(ds1))
 
         assert str(ds1) == str(ds2)
 
     def test_mixed_quotes_01(self):
-        quotes_dshape="""{ 'field \" with \\' quotes' : string, 'doublequote \" field \\'' : int64 }"""
+        quotes_dshape = """{ 'field \" with \\' quotes' : string, 'doublequote \" field \\'' : int64 }"""
 
-        ds1=dshape(quotes_dshape)
-        ds2=dshape(str(ds1))
+        ds1 = dshape(quotes_dshape)
+        ds2 = dshape(str(ds1))
 
         assert str(ds1) == str(ds2)
 
     def test_bad_02(self):
-        bad_dshape="""{ Unique Key : int64}"""
+        bad_dshape = """{ Unique Key : int64}"""
         with pytest.raises(error.DataShapeSyntaxError):
             dshape(bad_dshape)
 
@@ -208,12 +262,37 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
         in lexer.py as of 2014-10-02. This is probably an oversight that should
         be fixed.
         """
-        backslash_dshape="""{ 'field with \\\\   backslashes' : int64 }"""
+        backslash_dshape = """{ 'field with \\\\   backslashes' : int64 }"""
 
         with pytest.raises(error.DataShapeSyntaxError):
             dshape(backslash_dshape)
 
 
+def test_record_string():
+    s = '{name_with_underscores: int32}'
+    assert s.replace(' ', '') == str(dshape(s)).replace(' ', '')
+
+
 def test_record_with_unicode_name_as_numpy_dtype():
     r = Record([(unicode('a'), 'int32')])
     assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])
+
+
+def test_tuple_datashape_to_numpy_dtype():
+    ds = dshape('5 * (int32, float32)')
+    assert to_numpy_dtype(ds) == [('f0', 'i4'), ('f1', 'f4')]
+
+
+def test_option_date_to_numpy():
+    assert Option(Date()).to_numpy_dtype() == np.dtype('datetime64[D]')
+
+
+def test_option_datetime_to_numpy():
+    assert Option(DateTime()).to_numpy_dtype() == np.dtype('datetime64[us]')
+
+
+@pytest.mark.parametrize('unit',
+                         ['Y', 'M', 'D', 'h', 'm', 's', 'ms', 'us', 'ns'])
+def test_option_timedelta_to_numpy(unit):
+    assert (Option(TimeDelta(unit=unit)).to_numpy_dtype() ==
+            np.dtype('timedelta64[%s]' % unit))

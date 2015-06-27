@@ -1,13 +1,17 @@
+import pytest
 import numpy as np
 import sys
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
-        unite_merge_dimensions, do_one, lowest_common_dshape)
-from datashape.coretypes import *
-from datashape.internal_utils import raises
+                                 unite_merge_dimensions, do_one)
+from datashape.coretypes import (int64, float64, complex128, string, bool_,
+                                 Tuple, Record, date_, datetime_, time_,
+                                 timedelta_, int32, var, Option, real, Null,
+                                 TimeDelta, String)
+from itertools import starmap
 from datashape import dshape
-from datetime import date, time, datetime
-from datashape.py2help import xfail
+from datetime import date, time, datetime, timedelta
+
 
 def test_simple():
     assert discover(3) == int64
@@ -24,15 +28,16 @@ def test_long():
 
 
 def test_list():
-    print(discover([1, 2, 3]))
     assert discover([1, 2, 3]) == 3 * discover(1)
     assert discover([1.0, 2.0, 3.0]) == 3 * discover(1.0)
 
 
-def test_heterogeneous_ordered_container():
-    print(discover(('Hello', 1)))
-    assert discover(('Hello', 1)) == Tuple([discover('Hello'), discover(1)])
+def test_set():
+    assert discover(set([1])) == 1 * discover(1)
 
+
+def test_heterogeneous_ordered_container():
+    assert discover(('Hello', 1)) == Tuple([discover('Hello'), discover(1)])
 
 
 def test_string():
@@ -43,9 +48,9 @@ def test_string():
 
 
 def test_record():
-    assert discover({'name': 'Alice', 'amount': 100}) == \
+    assert (discover({'name': 'Alice', 'amount': 100}) ==
             Record([['amount', discover(100)],
-                    ['name', discover('Alice')]])
+                    ['name', discover('Alice')]]))
 
 
 def test_datetime():
@@ -72,13 +77,45 @@ def test_date():
     assert discover(date(2014, 1, 1)) == date_
 
 
+def test_single_space_string_is_not_date():
+    assert discover(' ') == string
+
+
+def test_string_that_looks_like_date():
+    # GH 91
+    assert discover("31-DEC-99 12.00.00.000000000") == string
+
+
 def test_time():
     assert discover(time(12, 0, 1)) == time_
 
 
-@xfail
+def test_timedelta():
+    objs = starmap(timedelta, (range(10, 10 - i, -1) for i in range(1, 8)))
+    for ts in objs:
+        assert discover(ts) == timedelta_
+
+
+def test_timedelta_strings():
+    inputs = ["1 day",
+              "-2 hours",
+              "3 seconds",
+              "1 microsecond",
+              "1003 milliseconds"]
+    for ts in inputs:
+        assert discover(ts) == TimeDelta(unit=ts.split()[1])
+
+    with pytest.raises(ValueError):
+        TimeDelta(unit='buzz light-years')
+
+
 def test_time_string():
     assert discover('12:00:01') == time_
+    assert discover('12:00:01.000') == time_
+    assert discover('12:00:01.123456') == time_
+    assert discover('12:00:01.1234') == time_
+    assert discover('10-10-01T12:00:01') == datetime_
+    assert discover('10-10-01 12:00:01') == datetime_
 
 
 def test_integrative():
@@ -86,8 +123,8 @@ def test_integrative():
             {'name': 'Bob', 'amount': '200'},
             {'name': 'Charlie', 'amount': '300'}]
 
-    assert dshape(discover(data)) == \
-            dshape('3 * {amount: int64, name: string}')
+    assert (dshape(discover(data)) ==
+            dshape('3 * {amount: int64, name: string}'))
 
 
 def test_numpy_scalars():
@@ -99,9 +136,21 @@ def test_numpy_array():
     assert discover(np.ones((3, 2), dtype=np.int32)) == dshape('3 * 2 * int32')
 
 
+def test_numpy_array_with_strings():
+    x = np.array(['Hello', 'world'], dtype='O')
+    assert discover(x) == 2 * string
+
+
+def test_numpy_recarray_with_strings():
+    x = np.array([('Alice', 1), ('Bob', 2)],
+                 dtype=[('name', 'O'), ('amt', 'i4')])
+    assert discover(x) == dshape('2 * {name: string, amt: int32}')
+
+
 unite = do_one([unite_identical,
                 unite_merge_dimensions,
                 unite_base])
+
 
 def test_unite():
     assert unite([int32, int32, int32]) == 3 * int32
@@ -116,31 +165,31 @@ def test_unite_missing_values():
 
 
 def test_unite_tuples():
-    assert discover([[1, 1, 'hello'],
+    assert (discover([[1, 1, 'hello'],
                      [1, '', ''],
-                     [1, 1, 'hello']]) == \
-                    3 * Tuple([int64, Option(int64), Option(string)])
+                     [1, 1, 'hello']]) ==
+            3 * Tuple([int64, Option(int64), Option(string)]))
 
-    assert discover([[1, 1, 'hello', 1],
+    assert (discover([[1, 1, 'hello', 1],
                      [1, '', '', 1],
-                     [1, 1, 'hello', 1]]) == \
-                    3 * Tuple([int64, Option(int64), Option(string), int64])
+                     [1, 1, 'hello', 1]]) ==
+            3 * Tuple([int64, Option(int64), Option(string), int64]))
 
 
 def test_unite_records():
-    assert discover([{'name': 'Alice', 'balance': 100},
-                     {'name': 'Bob', 'balance': ''}]) == \
-                    2 * Record([['balance', Option(int64)], ['name', string]])
+    assert (discover([{'name': 'Alice', 'balance': 100},
+                     {'name': 'Bob', 'balance': ''}]) ==
+            2 * Record([['balance', Option(int64)], ['name', string]]))
 
-    assert discover([{'name': 'Alice', 's': 'foo'},
-                     {'name': 'Bob', 's': None}]) == \
-                    2 * Record([['name', string], ['s', Option(string)]])
+    assert (discover([{'name': 'Alice', 's': 'foo'},
+                     {'name': 'Bob', 's': None}]) ==
+            2 * Record([['name', string], ['s', Option(string)]]))
 
-    assert discover([{'name': 'Alice', 's': 'foo', 'f': 1.0},
-                     {'name': 'Bob', 's': None, 'f': None}]) == \
-                    2 * Record([['f', Option(float64)],
-                                ['name', string],
-                                ['s', Option(string)]])
+    assert (discover([{'name': 'Alice', 's': 'foo', 'f': 1.0},
+                     {'name': 'Bob', 's': None, 'f': None}]) ==
+            2 * Record([['f', Option(float64)],
+                        ['name', string],
+                        ['s', Option(string)]]))
 
     # assert unite((Record([['name', string], ['balance', int32]]),
     #               Record([['name', string]]))) == \
@@ -148,35 +197,30 @@ def test_unite_records():
 
 
 def test_dshape_missing_data():
-    assert discover([[1, 2, '', 3],
+    assert (discover([[1, 2, '', 3],
                      [1, 2, '', 3],
-                     [1, 2, '', 3]]) == \
-                3 * Tuple([int64, int64, null, int64])
+                     [1, 2, '', 3]]) ==
+            3 * Tuple([int64, int64, null, int64]))
 
 
 def test_discover_mixed():
     i = discover(1)
     f = discover(1.0)
-    assert dshape(discover([[1, 2, 1.0, 2.0]] * 10)) == \
-            10 * Tuple([i, i, f, f])
+    exp = 10 * Tuple([i, i, f, f])
+    assert dshape(discover([[1, 2, 1.0, 2.0]] * 10)) == exp
 
-    print(dshape(discover([[1, 2, 1.0, 2.0], [1.0, 2.0, 1, 2]] * 5)))
-    assert dshape(discover([[1, 2, 1.0, 2.0], [1.0, 2.0, 1, 2]] * 5)) == \
-            10 * (4 * f)
+    exp = 10 * (4 * f)
+    assert dshape(discover([[1, 2, 1.0, 2.0], [1.0, 2.0, 1, 2]] * 5)) == exp
 
 
 def test_test():
-    print(discover([['Alice', 100], ['Bob', 200]]))
-    print(2 * Tuple([string, int64]))
-    assert discover([['Alice', 100], ['Bob', 200]]) == \
-            2 * Tuple([string, int64])
+    expected = 2 * Tuple([string, int64])
+    assert discover([['Alice', 100], ['Bob', 200]]) == expected
 
 
 def test_discover_appropriate():
     assert discover((1, 1.0)) == Tuple([int64, real])
-    print(discover([(1, 1.0), (1, 1.0), (1, 1)]))
-    assert discover([(1, 1.0), (1, 1.0), (1, 1)]) == \
-            3 * Tuple([int64, real])
+    assert discover([(1, 1.0), (1, 1.0), (1, 1)]) == 3 * Tuple([int64, real])
 
 
 def test_big_discover():
@@ -208,14 +252,43 @@ def test_list_of_dicts_difference():
 def test_unite_base_on_records():
     dshapes = [dshape('{name: string, amount: int32}'),
                dshape('{name: string, amount: int32}')]
-    assert unite_base(dshapes) == \
-            dshape('2 * {name: string, amount: int32}')
+    assert unite_base(dshapes) == dshape('2 * {name: string, amount: int32}')
 
     dshapes = [Null(), dshape('{name: string, amount: int32}')]
-    assert unite_base(dshapes) == \
-            dshape('2 * ?{name: string, amount: int32}')
+    assert unite_base(dshapes) == dshape('2 * ?{name: string, amount: int32}')
 
     dshapes = [dshape('{name: string, amount: int32}'),
                dshape('{name: string, amount: int64}')]
-    assert unite_base(dshapes) == \
-            dshape('2 * {name: string, amount: int64}')
+    assert unite_base(dshapes) == dshape('2 * {name: string, amount: int64}')
+
+
+def test_nested_complex_record_type():
+    dt = np.dtype([('a', 'U7'), ('b', [('c', 'int64', 2), ('d', 'float64')])])
+    x = np.zeros(5, dt)
+    s = "5 * {a: string[7, 'U32'], b: {c: 2 * int64, d: float64}}"
+    assert discover(x) == dshape(s)
+
+
+def test_letters_only_strings():
+    strings = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
+               'friday', 'saturday', 'a', 'b', 'now', 'yesterday', 'tonight')
+    for s in strings:
+        assert discover(s) == string
+
+
+def test_discover_array_like():
+    class MyArray(object):
+        def __init__(self, shape, dtype):
+            self.shape = shape
+            self.dtype = dtype
+
+    assert discover(MyArray((4, 3), 'f4')) == dshape('4 * 3 * float32')
+
+
+@pytest.mark.xfail(sys.version_info[0] == 2,
+                   raises=AssertionError,
+                   reason=('discovery behavior is different for raw strings '
+                           'in python 2'))
+def test_discover_bytes():
+    x = b'abcdefg'
+    assert discover(x) == String('A')

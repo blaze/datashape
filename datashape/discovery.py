@@ -1,25 +1,79 @@
 from __future__ import print_function, division, absolute_import
 
+import re
+import sys
 import numpy as np
 from dateutil.parser import parse as dateparse
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from .dispatch import dispatch
-
+from itertools import chain
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
-                        Unit)
-from .predicates import isdimension
+                        Unit, timedelta_, TimeDelta, object_, String)
+from .predicates import isdimension, isrecord
 from .py2help import _strtypes, _inttypes
 from .internal_utils import _toposort, groupby
+from .util import subclasses
 
 
 __all__ = ['discover']
 
 
+@dispatch(object)
+def discover(o, **kwargs):
+    """ Discover datashape of object
+
+    A datashape encodes the datatypes and the shape/length of an object.
+    Discover returns the datashape of a Python object.  This object can refer
+    to external data.
+
+    Datashapes range from simple scalars
+
+    >>> discover(10)
+    ctype('int64')
+
+    To collections
+
+    >>> discover([[1, 2, 3], [4, 5, 6]])
+    dshape('2 * 3 * int64')
+
+    To record types and other objects
+
+    >>> x = np.array([('Alice', 100), ('Bob', 200)], dtype=[('name', 'S7'),
+    ...                                                     ('amount', 'i4')])
+    >>> discover(x)
+    dshape('2 * {name: string[7, "ascii"], amount: int32}')
+
+    See http://datashape.pydata.org/grammar.html#some-simple-examples
+    for more examples
+    """
+    if hasattr(o, 'shape') and hasattr(o, 'dtype'):
+        return from_numpy(o.shape, o.dtype)
+    raise NotImplementedError("Don't know how to discover type %r" %
+                              type(o).__name__)
+
+
 @dispatch(_inttypes)
 def discover(i):
     return int64
+
+
+npinttypes = tuple(chain.from_iterable((x for x in subclasses(icls)
+                                        if x.__name__.startswith(('int',
+                                                                  'uint')))
+                                       for icls in subclasses(np.integer)))
+
+
+if sys.version_info[0] == 3:
+    @dispatch(bytes)
+    def discover(b):
+        return String('A')
+
+
+@dispatch(npinttypes)
+def discover(n):
+    return from_numpy((), n.dtype)
 
 
 @dispatch(float)
@@ -39,12 +93,12 @@ def discover(z):
 
 @dispatch(datetime)
 def discover(dt):
-    if dt.time() and dt.date():
-        return datetime_
-    elif dt.date():
-        return date_
-    else:
-        return time_
+    return datetime_
+
+
+@dispatch(timedelta)
+def discover(td):
+    return TimeDelta(unit='us')
 
 
 @dispatch(date)
@@ -68,23 +122,56 @@ bools = {'False': False,
          'true': True}
 
 
-string_coercions = [int, float, bools.__getitem__, dateparse]
+def timeparse(x, formats=('%H:%M:%S', '%H:%M:%S.%f')):
+    e = None
+    for format in formats:
+        try:
+            return datetime.strptime(x, format).time()
+        except ValueError as e:  # raises if it doesn't match the format
+            pass
+    raise e
+
+
+def deltaparse(x):
+    value, unit = re.split('\s+', x.strip())
+    value = float(value)
+    if not value.is_integer():
+        raise ValueError('floating point timedelta values not supported')
+    return np.timedelta64(int(value), TimeDelta(unit=unit).unit)
+
+
+string_coercions = int, float, bools.__getitem__, deltaparse, timeparse
 
 
 @dispatch(_strtypes)
 def discover(s):
     if not s:
         return null
+
     for f in string_coercions:
         try:
             return discover(f(s))
         except:
             pass
 
+    # don't let dateutil parse things like sunday, monday etc into dates
+    if s.isalpha() or s.isspace():
+        return string
+
+    try:
+        d = dateparse(s)
+        if not d.time():
+            return date_
+        if not d.date():
+            return time_
+        return datetime_
+    except:
+        pass
+
     return string
 
 
-@dispatch((tuple, list))
+@dispatch((tuple, list, set))
 def discover(seq):
     if not seq:
         return var * string
@@ -128,9 +215,9 @@ edges = [
          (string, real),
          (string, date_),
          (string, datetime_),
+         (string, timedelta_),
          (string, bool_),
          (datetime_, date_),
-         (string, datetime_),
          (int64, int32),
          (real, int64),
          (string, null)]
@@ -205,7 +292,6 @@ def unite_identical(dshapes):
         return len(dshapes) * dshapes[0]
 
 
-
 def unite_merge_dimensions(dshapes, unite=unite_identical):
     """
 
@@ -261,9 +347,39 @@ def discover(n):
     return from_numpy((), type(n))
 
 
+@dispatch(np.timedelta64)
+def discover(n):
+    return from_numpy((), n)
+
+
+def is_string_array(x):
+    """ Is an array of strings
+
+    >>> is_string_array(np.array(['Hello', 'world'], dtype='O'))
+    True
+    >>> is_string_array(np.array(['Hello', None], dtype='O'))
+    False
+    """
+    return all(isinstance(i, _strtypes) for i in x.flat[:5].tolist())
+
+
 @dispatch(np.ndarray)
-def discover(X):
-    return from_numpy(X.shape, X.dtype)
+def discover(x):
+    ds = from_numpy(x.shape, x.dtype)
+
+    # NumPy uses object dtype both for strings (which we want to call string)
+    # and for Python objects (which we want to call object)
+    # Lets look at the first few elements and check
+    if ds.measure == object_ and is_string_array(x):
+        return DataShape(*(ds.shape + (string,)))
+
+    if isrecord(ds.measure) and object_ in ds.measure.types:
+        m = Record([[name, string if typ == object_ and is_string_array(x[name])
+                                  else typ]
+                    for name, typ in ds.measure.parameters[0]])
+        return DataShape(*(ds.shape + (m,)))
+    else:
+        return ds
 
 
 def descendents(d, x):

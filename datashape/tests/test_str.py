@@ -1,7 +1,8 @@
 import unittest
+import pytest
 
 import datashape
-from datashape import dshape
+from datashape import dshape, DataShapeSyntaxError
 
 
 class TestDataShapeStr(unittest.TestCase):
@@ -22,11 +23,11 @@ class TestDataShapeStr(unittest.TestCase):
 
     def test_structure_str(self):
         self.assertEqual(str(dshape('{x:int32, y:int64}')),
-                        '{ x : int32, y : int64 }')
+                         '{x: int32, y: int64}')
 
     def test_array_str(self):
         self.assertEqual(str(dshape('3*5*int16')),
-                        '3 * 5 * int16')
+                         '3 * 5 * int16')
 
     def test_primitive_measure_repr(self):
         self.assertEqual(repr(datashape.int8),      'ctype("int8")')
@@ -42,17 +43,32 @@ class TestDataShapeStr(unittest.TestCase):
         self.assertEqual(repr(datashape.string),    'ctype("string")')
         self.assertEqual(repr(datashape.String(3)), 'ctype("string[3]")')
         self.assertEqual(repr(datashape.String('A')),
-                        'ctype("string[\'A\']")')
+                         """ctype("string['A']")""")
 
     def test_structure_repr(self):
         self.assertEqual(repr(dshape('{x:int32, y:int64}')),
-                        'dshape("{ x : int32, y : int64 }")')
+                         'dshape("{x: int32, y: int64}")')
 
     def test_array_repr(self):
         self.assertEqual(repr(dshape('3*5*int16')),
-                        'dshape("3 * 5 * int16")')
+                         'dshape("3 * 5 * int16")')
+
+
+@pytest.mark.parametrize('s',
+                         ['{"./abc": int64}',
+                          '{"./a b c": float64}',
+                          '{"./a b\tc": string}',
+                          '{"./a/[0 1 2]/b/\\n": float32}',
+                          pytest.mark.xfail('{"/a/b/0/c\v/d": int8}',
+                                            raises=DataShapeSyntaxError),
+                          pytest.mark.xfail('{"/a/b/0/c\n/d": int8}',
+                                            raises=DataShapeSyntaxError),
+                          pytest.mark.xfail('{"/a/b/0/c\r/d": int8}',
+                                            raises=DataShapeSyntaxError)])
+def test_arbitrary_string(s):
+    ds = dshape(s)
+    assert dshape(str(ds)) == ds
 
 
 if __name__ == '__main__':
-    unittest.main()
-
+    unittest.main()  # pragma: no cover

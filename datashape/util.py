@@ -8,7 +8,6 @@ import sys
 from . import py2help
 from . import parser
 from . import type_symbol_table
-from .error import UnificationError
 from .validation import validate
 from . import coretypes
 from itertools import chain
@@ -18,8 +17,9 @@ from .internal_utils import reverse_dict
 __all__ = ['dshape', 'dshapes', 'has_var_dim', 'has_ellipsis',
            'cat_dshapes', 'from_ctypes', 'from_cffi', 'to_ctypes']
 
+subclasses = operator.methodcaller('__subclasses__')
 
-PY3 = (sys.version_info[:2] >= (3, 0))
+PY3 = sys.version_info[:2] >= (3, 0)
 
 #------------------------------------------------------------------------
 # Utility Functions for DataShapes
@@ -160,8 +160,8 @@ def _from_cffi_internal(ffi, ctype):
         #       cffi, numpy, etc so that the field offsets always work!
         #       Also need to make sure there are no bitsize/bitshift
         #       values that would be incompatible.
-        return Record([(f[0], _from_cffi_internal(ffi, f[1].type))
-                        for f in ctype.fields])
+        return coretypes.Record([(f[0], _from_cffi_internal(ffi, f[1].type))
+                                 for f in ctype.fields])
     elif k == 'array':
         if ctype.length is None:
             # Only the first array can have the size
@@ -177,8 +177,7 @@ def _from_cffi_internal(ffi, ctype):
         return coretypes.DataShape(*dsparams)
     elif k == 'primitive':
         cn = ctype.cname
-        if cn in ['signed char', 'short', 'int',
-                        'long', 'long long']:
+        if cn in ['signed char', 'short', 'int', 'long', 'long long']:
             so = ffi.sizeof(ctype)
             if so == 1:
                 return coretypes.int8
@@ -228,16 +227,18 @@ def from_cffi(ffi, ctype):
         ctype = ctype.item
     return _from_cffi_internal(ffi, ctype)
 
-typedict = {ctypes.c_int8:   coretypes.int8,
-            ctypes.c_int16:  coretypes.int16,
-            ctypes.c_int32:  coretypes.int32,
-            ctypes.c_int64:  coretypes.int64,
-            ctypes.c_uint8:  coretypes.uint8,
-            ctypes.c_uint16: coretypes.uint16,
-            ctypes.c_uint32: coretypes.uint32,
-            ctypes.c_uint64: coretypes.uint64,
-            ctypes.c_float:  coretypes.float32,
-            ctypes.c_double: coretypes.float64}
+typedict = {
+    ctypes.c_int8: coretypes.int8,
+    ctypes.c_int16: coretypes.int16,
+    ctypes.c_int32: coretypes.int32,
+    ctypes.c_int64: coretypes.int64,
+    ctypes.c_uint8: coretypes.uint8,
+    ctypes.c_uint16: coretypes.uint16,
+    ctypes.c_uint32: coretypes.uint32,
+    ctypes.c_uint64: coretypes.uint64,
+    ctypes.c_float: coretypes.float32,
+    ctypes.c_double: coretypes.float64
+}
 
 
 revtypedict = reverse_dict(typedict)
@@ -247,8 +248,8 @@ def to_ctypes(dshape):
     """
     Constructs a ctypes type from a datashape
 
-    >>> to_ctypes(coretypes.int32)
-    <class 'ctypes.c_int'>
+    >>> to_ctypes(coretypes.float64)  # doctest: +SKIP
+    <class 'ctypes.c_double'>
     """
     if len(dshape) == 1:
         ctype = revtypedict.get(dshape)
@@ -268,10 +269,10 @@ def to_ctypes(dshape):
             return Complex128
         elif isinstance(dshape, coretypes.Record):
             fields = [(name, to_ctypes(dshape.fields[name]))
-                                          for name in dshape.names]
-            class temp(ctypes.Structure):
-                _fields_ = fields
-            return temp
+                      for name in dshape.names]
+
+            # generate a class based on the fields and types of the record
+            return type('temp', (ctypes.Structure,), {'_fields_': fields})
         else:
             raise TypeError("Cannot convert datashape %r into ctype" % dshape)
     # Create arrays
@@ -280,7 +281,8 @@ def to_ctypes(dshape):
             num = 0
         else:
             num = int(dshape[0])
-        return num*to_ctypes(dshape.subarray(1))
+        return num * to_ctypes(dshape.subarray(1))
+
 
 # FIXME: Add a field
 def from_ctypes(ctype):
@@ -297,7 +299,7 @@ def from_ctypes(ctype):
         for nm, tp in ctype._fields_:
             child_ds = from_ctypes(tp)
             fields.append((nm, child_ds))
-        ds = Record(fields)
+        ds = coretypes.Record(fields)
         # TODO: Validate that the ctypes offsets match
         #       the C offsets blaze uses
         return ds

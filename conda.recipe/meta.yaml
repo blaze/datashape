@@ -1,30 +1,32 @@
 package:
-    name: datashape
-    version: "0.4.1"
+  name: datashape
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '')}}
 
 build:
-    number: {{environ.get('BINSTAR_BUILD', 1)}}
-    script:
-      - cd $RECIPE_DIR/..
-      - $PYTHON setup.py install
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  {% if environ.get('GIT_DESCRIBE_NUMBER', '0') == '0' %}string: py{{ environ.get('PY_VER').replace('.', '') }}_0
+  {% else %}string: py{{ environ.get('PY_VER').replace('.', '') }}_{{ environ.get('GIT_BUILD_STR', 'GIT_STUB') }}{% endif %}
+
+source:
+  git_url: ../
 
 requirements:
-    build:
-      - python
+  build:
+    - python
 
-    run:
-      - python
-      - numpy
-      - multipledispatch
-      - dateutil
+  run:
+    - python
+    - numpy >=1.7
+    - multipledispatch >=0.4.7
+    - python-dateutil
 
 test:
   requires:
-  - pytest
+    - pytest
   commands:
-  - python -c "import datashape; datashape.test()"
+    - py.test -vx --doctest-modules --pyargs datashape
 
 
 about:
-    home: http://datashape.pydata.org
-    license: BSD
+  home: http://datashape.pydata.org
+  license: BSD
