@@ -302,5 +302,4 @@ def test_option_timedelta_to_numpy(unit):
 def test_categorical(data):
     c = Categorical(data)
     assert set(c.categories) == set(data)
-    assert len(c) == len(set(data))
     assert repr(c) == 'categorical[(%s)]' % ', '.join(map(repr, c.categories))
