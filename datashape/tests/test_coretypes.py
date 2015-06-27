@@ -306,3 +306,5 @@ def test_categorical(data):
     assert (dshape("categorical[categories=[%s]]" %
                    ', '.join(map(repr, c.categories))) ==
             DataShape(c))
+    assert (dshape("categorical[[%s]]" % ', '.join(map(repr, c.categories))) ==
+            DataShape(c))
