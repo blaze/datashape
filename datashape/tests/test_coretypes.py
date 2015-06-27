@@ -298,10 +298,18 @@ def test_option_timedelta_to_numpy(unit):
             np.dtype('timedelta64[%s]' % unit))
 
 
+def unique(x):
+    seen = set()
+    for el in x:
+        if el not in seen:
+            yield el
+            seen.add(el)
+
+
 @pytest.mark.parametrize('data', [list('aaaabbbccc'), [-1, 2, 3, 4, 4, 3, 5]])
 def test_categorical(data):
-    c = Categorical(data)
-    assert set(c.categories) == set(data)
+    c = Categorical(tuple(unique(data)))
+    assert list(unique(c.categories)) == list(unique(data))
     assert repr(c) == 'categorical[(%s)]' % ', '.join(map(repr, c.categories))
     assert (dshape("categorical[categories=[%s]]" %
                    ', '.join(map(repr, c.categories))) ==
