@@ -8,10 +8,17 @@ shape and data type.
 
 import ctypes
 import operator
-import toolz
+import warnings
+
+from pprint import pformat
 from math import ceil
 
 import datashape
+
+try:
+    from cytoolz import get
+except ImportError:
+    from toolz import get
 
 import numpy as np
 
@@ -1034,30 +1041,55 @@ class Record(CollectionPrinter, Mono):
     def __str__(self):
         return pprint(self)
 
+category_predicates = [
+    (lambda x: 0 < x <= 1 << 8, np.uint8),
+    (lambda x: 1 << 8 < x <= 1 << 16, np.uint16),
+    (lambda x: 1 << 16 < x <= 1 << 32, np.uint32),
+    (lambda x: 1 << 32 < x <= 1 << 64, np.uint64)
+]
+
+
+def dtype_for_length(n):
+    if n <= 0:
+        raise ValueError('number of categories must be greater than 0')
+    for f, dtype in category_predicates:
+        if f(n):
+            return dtype
+    raise ValueError('Number of categories is greater than 2 ** 64')
+
+
+try:
+    import pandas as pd
+except ImportError:
+    def factorize(x):
+        warnings.warn("Consider installing pandas when using Categoricals.\n"
+                      "Pandas speeds up the categorization step and will use "
+                      "less memory with a large array")
+        categories = tuple(set(x))
+        ncats = len(categories)
+        raw_codes = get(x, dict(zip(categories, range(ncats))))
+        return np.array(raw_codes, dtype=dtype_for_length(ncats)), categories
+else:
+    def factorize(x):
+        codes, categories = pd.factorize(x)
+        return (codes.astype(dtype_for_length(len(categories))),
+                tuple(categories))
+
 
 class Categorical(Mono):
+    """Unordered categorical type.
+    """
+
+    __slots__ = '_codes', 'type', 'categories'
     cls = MEASURE
 
-    __slots__ = '_values', '_type'
-
     def __init__(self, values, type=None):
-        self._values = tuple(values)
-        if type is not None:
-            self._type = type
-        else:
-            self._type = datashape.discover(self._values).measure
+        self._codes, self.categories = factorize(values)
+        self.type = type or datashape.discover(self.categories).measure
 
     def __repr__(self):
-        return '%s(type=%r, values=%s)' % (type(self).__name__, self.type,
-                                           tuple(toolz.unique(self.values)))
-
-    @property
-    def values(self):
-        return self._values
-
-    @property
-    def type(self):
-        return self._type
+        return '%s[%s]' % (type(self).__name__.lower(),
+                           pformat(self.categories))
 
 
 class Tuple(CollectionPrinter, Mono):
