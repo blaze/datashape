@@ -5,7 +5,7 @@ import pytest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
-                                 DateTime, TimeDelta)
+                                 DateTime, TimeDelta, Categorical)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -296,3 +296,11 @@ def test_option_datetime_to_numpy():
 def test_option_timedelta_to_numpy(unit):
     assert (Option(TimeDelta(unit=unit)).to_numpy_dtype() ==
             np.dtype('timedelta64[%s]' % unit))
+
+
+@pytest.mark.parametrize('data', [list('aaaabbbccc'), [-1, 2, 3, 4, 4, 3, 5]])
+def test_categorical(data):
+    c = Categorical(data)
+    assert set(c.categories) == set(data)
+    assert len(c) == len(set(data))
+    assert repr(c) == 'categorical[(%s)]' % ', '.join(map(repr, c.categories))
