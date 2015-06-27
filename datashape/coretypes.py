@@ -8,17 +8,11 @@ shape and data type.
 
 import ctypes
 import operator
-import warnings
 
 from pprint import pformat
 from math import ceil
 
 import datashape
-
-try:
-    from cytoolz import get
-except ImportError:
-    from toolz import get
 
 import numpy as np
 
@@ -1058,33 +1052,15 @@ def dtype_for_length(n):
     raise ValueError('Number of categories is greater than 2 ** 64')
 
 
-try:
-    import pandas as pd
-except ImportError:
-    def factorize(x):
-        warnings.warn("Consider installing pandas when using Categoricals.\n"
-                      "Pandas speeds up the categorization step and will use "
-                      "less memory with a large array")
-        categories = tuple(set(x))
-        ncats = len(categories)
-        raw_codes = get(x, dict(zip(categories, range(ncats))))
-        return np.array(raw_codes, dtype=dtype_for_length(ncats)), categories
-else:
-    def factorize(x):
-        codes, categories = pd.factorize(x)
-        return (codes.astype(dtype_for_length(len(categories))),
-                tuple(categories))
-
-
 class Categorical(Mono):
     """Unordered categorical type.
     """
 
-    __slots__ = '_codes', 'type', 'categories'
+    __slots__ = 'type', 'categories'
     cls = MEASURE
 
-    def __init__(self, values, type=None):
-        self._codes, self.categories = factorize(values)
+    def __init__(self, categories, type=None):
+        self.categories = tuple(categories)
         self.type = type or datashape.discover(self.categories).measure
 
     def __repr__(self):
