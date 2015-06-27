@@ -303,3 +303,6 @@ def test_categorical(data):
     c = Categorical(data)
     assert set(c.categories) == set(data)
     assert repr(c) == 'categorical[(%s)]' % ', '.join(map(repr, c.categories))
+    assert (dshape("categorical[categories=[%s]]" %
+                   ', '.join(map(repr, c.categories))) ==
+            DataShape(c))
