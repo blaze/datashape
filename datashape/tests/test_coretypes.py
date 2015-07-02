@@ -299,6 +299,6 @@ def test_option_timedelta_to_numpy(unit):
 
 
 def test_duplicate_field_names_fails():
-    fields = [('a', 'int32'), ('b', '?string'), ('a', 'float32')]
+    fields = [('a', 'int32'), ('b', 'string'), ('a', 'float32')]
     with pytest.raises(ValueError):
         Record(fields)
