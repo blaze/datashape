@@ -14,6 +14,7 @@ from .coercion import coercion_cost
 from .promote import promote, optionify
 from .error import (DataShapeSyntaxError, OverloadError, UnificationError,
                     CoercionError)
+from .jsonio import *
 
 from ._version import get_versions
 __version__ = get_versions()['version']
