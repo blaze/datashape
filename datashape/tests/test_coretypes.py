@@ -296,3 +296,9 @@ def test_option_datetime_to_numpy():
 def test_option_timedelta_to_numpy(unit):
     assert (Option(TimeDelta(unit=unit)).to_numpy_dtype() ==
             np.dtype('timedelta64[%s]' % unit))
+
+
+def test_duplicate_field_names_fails():
+    fields = [('a', 'int32'), ('b', '?string'), ('a', 'float32')]
+    with pytest.raises(ValueError):
+        Record(fields)
