@@ -302,3 +302,16 @@ def test_duplicate_field_names_fails():
     fields = [('a', 'int32'), ('b', 'string'), ('a', 'float32')]
     with pytest.raises(ValueError):
         Record(fields)
+
+
+@pytest.mark.parametrize('ds',
+                         ['int64',
+                          'var * float64',
+                          '10 * var * int16',
+                          '{a: int32, b: ?string}',
+                          'var * {a: int32, b: ?string}',
+                          '10 * {a: ?int32, b: var * {c: string[30]}}',
+                          '{"weird name": 3 * var * 2 * ?{a: int8, b: ?uint8}}',
+                          'var * {"func-y": (A) -> var * {a: 10 * float64}}'])
+def test_repr_of_eval_is_dshape(ds):
+    assert eval(repr(dshape(ds))) == dshape(ds)
