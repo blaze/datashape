@@ -496,7 +496,7 @@ class TestDataShapeParseStruct(unittest.TestCase):
         ds = parse("""2 * var * {
              "AASD @#$@#$ \' sdf": string,
               id: float32,
-              id: int64,
+              id2: int64,
               name: string }
              """, self.sym)
         self.assertEqual(len(ds[-1].names), 4)
