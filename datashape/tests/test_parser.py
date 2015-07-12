@@ -578,25 +578,22 @@ class TestDataShapeParseTuple(unittest.TestCase):
                                                 ct.DataShape(ct.int32)])))
 
 
-class TestDataShapeParseFuncProto(unittest.TestCase):
-    def setUp(self):
-        # Create a default symbol table for the parser to use
-        self.sym = datashape.TypeSymbolTable()
+def test_funcproto(sym):
+    # Simple funcproto
+    assert (parse('(float32) -> float64', sym) ==
+            ct.DataShape(ct.Function(ct.DataShape(ct.float32),
+                                     ct.DataShape(ct.float64))))
+    assert (parse('(int16, int32) -> bool', sym) ==
+            ct.DataShape(ct.Function(ct.DataShape(ct.int16),
+                                     ct.DataShape(ct.int32),
+                                     ct.DataShape(ct.bool_))))
+    # A trailing comma is ok
+    assert (parse('(float32,) -> float64', sym) ==
+            ct.DataShape(ct.Function(ct.DataShape(ct.float32),
+                                     ct.DataShape(ct.float64))))
+    assert (parse('(int16, int32,) -> bool', sym) ==
+            ct.DataShape(ct.Function(ct.DataShape(ct.int16),
+                                     ct.DataShape(ct.int32),
+                                     ct.DataShape(ct.bool_))))
 
-    def test_funcproto(self):
-        # Simple funcproto
-        self.assertEqual(parse('(float32) -> float64', self.sym),
-                         ct.DataShape(ct.Function(ct.DataShape(ct.float32),
-                                                ct.DataShape(ct.float64))))
-        self.assertEqual(parse('(int16, int32) -> bool', self.sym),
-                         ct.DataShape(ct.Function(ct.DataShape(ct.int16),
-                                                ct.DataShape(ct.int32),
-                                                ct.DataShape(ct.bool_))))
-        # A trailing comma is ok
-        self.assertEqual(parse('(float32,) -> float64', self.sym),
-                         ct.DataShape(ct.Function(ct.DataShape(ct.float32),
-                                                ct.DataShape(ct.float64))))
-        self.assertEqual(parse('(int16, int32,) -> bool', self.sym),
-                         ct.DataShape(ct.Function(ct.DataShape(ct.int16),
-                                                ct.DataShape(ct.int32),
-                                                ct.DataShape(ct.bool_))))
+
