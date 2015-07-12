@@ -37,7 +37,7 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
                          ct.DataShape(ct.int32))
         self.assertEqual(parse('int64', self.sym),
                          ct.DataShape(ct.int64))
-        #self.assertEqual(parse('int128', self.sym),
+        # self.assertEqual(parse('int128', self.sym),
         #                 ct.DataShape(ct.int128))
         self.assertEqual(parse('int', self.sym),
                          ct.DataShape(ct.int_))
@@ -56,19 +56,19 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
                          ct.DataShape(ct.uint32))
         self.assertEqual(parse('uint64', self.sym),
                          ct.DataShape(ct.uint64))
-        #self.assertEqual(parse('uint128', self.sym),
+        # self.assertEqual(parse('uint128', self.sym),
         #                 ct.DataShape(ct.uint128))
         self.assertEqual(parse('uintptr', self.sym),
                          ct.DataShape(ct.uintptr))
 
     def test_float(self):
-        #self.assertEqual(parse('float16', self.sym),
+        # self.assertEqual(parse('float16', self.sym),
         #                 ct.DataShape(ct.float16))
         self.assertEqual(parse('float32', self.sym),
                          ct.DataShape(ct.float32))
         self.assertEqual(parse('float64', self.sym),
                          ct.DataShape(ct.float64))
-        #self.assertEqual(parse('float128', self.sym),
+        # self.assertEqual(parse('float128', self.sym),
         #                 ct.DataShape(ct.float128))
         self.assertEqual(parse('real', self.sym),
                          ct.DataShape(ct.real))
@@ -94,10 +94,10 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
                          ct.DataShape(ct.Option(ct.int32)))
         self.assertEqual(parse('2 * 3 * option[int32]', self.sym),
                          ct.DataShape(ct.Fixed(2), ct.Fixed(3),
-                                     ct.Option(ct.int32)))
+                                      ct.Option(ct.int32)))
         self.assertEqual(parse('2 * 3 * ?int32', self.sym),
                          ct.DataShape(ct.Fixed(2), ct.Fixed(3),
-                                     ct.Option(ct.int32)))
+                                      ct.Option(ct.int32)))
         self.assertEqual(parse('2 * option[3 * int32]', self.sym),
                          ct.DataShape(ct.Fixed(2),
                                       ct.Option(ct.DataShape(ct.Fixed(3),
@@ -115,7 +115,9 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
         self.assertRaises(datashape.DataShapeSyntaxError,
                           parse, 'int33', self.sym)
 
+
 class TestDataShapeParserDTypeConstr(unittest.TestCase):
+
     def test_unary_dtype_constr(self):
         # Create a symbol table with no types in it, so we can
         # make some isolated type constructors for testing
@@ -128,6 +130,7 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         sym.dtype_constr['typevar'] = ct.TypeVar
         # Unary dtype constructor that asserts on the argument value
         expected_blah = [None]
+
         def _unary_type_constr(blah):
             self.assertEqual(blah, expected_blah[0])
             expected_blah[0] = None
@@ -201,6 +204,7 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         sym.dtype_constr['typevar'] = ct.TypeVar
         # Binary dtype constructor that asserts on the argument values
         expected_arg = [None, None]
+
         def _binary_type_constr(a, b):
             self.assertEqual(a, expected_arg[0])
             self.assertEqual(b, expected_arg[1])
@@ -250,6 +254,7 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         sym.dtype['uint16'] = ct.uint16
         sym.dtype['float64'] = ct.float64
         # Arbitrary dtype constructor that does nothing
+
         def _type_constr(*args, **kwargs):
             return ct.float32
         sym.dtype_constr['tcon'] = _type_constr
@@ -285,7 +290,9 @@ class TestDataShapeParserDTypeConstr(unittest.TestCase):
         self.assertRaises(DataShapeSyntaxError,
                           parse, 'tcon[[X, "x"]]', sym)
 
+
 class TestDataShapeParserDims(unittest.TestCase):
+
     def setUp(self):
         # Create a default symbol table for the parser to use
         self.sym = datashape.TypeSymbolTable()
@@ -297,10 +304,10 @@ class TestDataShapeParserDims(unittest.TestCase):
                          ct.DataShape(ct.Fixed(7), ct.Fixed(3), ct.bool_))
         self.assertEqual(parse('5 * 3 * 12 * bool', self.sym),
                          ct.DataShape(ct.Fixed(5), ct.Fixed(3),
-                                     ct.Fixed(12), ct.bool_))
+                                      ct.Fixed(12), ct.bool_))
         self.assertEqual(parse('2 * 3 * 4 * 5 * bool', self.sym),
                          ct.DataShape(ct.Fixed(2), ct.Fixed(3),
-                                     ct.Fixed(4), ct.Fixed(5), ct.bool_))
+                                      ct.Fixed(4), ct.Fixed(5), ct.bool_))
 
     def test_typevar_dims(self):
         self.assertEqual(parse('M * bool', self.sym),
@@ -309,7 +316,7 @@ class TestDataShapeParserDims(unittest.TestCase):
                          ct.DataShape(ct.TypeVar('A'), ct.TypeVar('B'), ct.bool_))
         self.assertEqual(parse('A... * X * 3 * bool', self.sym),
                          ct.DataShape(ct.Ellipsis(ct.TypeVar('A')), ct.TypeVar('X'),
-                                     ct.Fixed(3), ct.bool_))
+                                      ct.Fixed(3), ct.bool_))
 
     def test_var_dims(self):
         self.assertEqual(parse('var * bool', self.sym),
@@ -326,10 +333,11 @@ class TestDataShapeParserDims(unittest.TestCase):
                          ct.DataShape(ct.TypeVar('M'), ct.Ellipsis(), ct.bool_))
         self.assertEqual(parse('M * ... * 3 * bool', self.sym),
                          ct.DataShape(ct.TypeVar('M'), ct.Ellipsis(),
-                                     ct.Fixed(3), ct.bool_))
+                                      ct.Fixed(3), ct.bool_))
 
 
 class TestDataShapeParseStruct(unittest.TestCase):
+
     def setUp(self):
         # Create a default symbol table for the parser to use
         self.sym = datashape.TypeSymbolTable()
@@ -338,15 +346,15 @@ class TestDataShapeParseStruct(unittest.TestCase):
         # Simple struct
         self.assertEqual(parse('{x: int16, y: int32}', self.sym),
                          ct.DataShape(ct.Record([('x', ct.DataShape(ct.int16)),
-                                               ('y', ct.DataShape(ct.int32))])))
+                                                 ('y', ct.DataShape(ct.int32))])))
         # A trailing comma is ok
         self.assertEqual(parse('{x: int16, y: int32,}', self.sym),
                          ct.DataShape(ct.Record([('x', ct.DataShape(ct.int16)),
-                                               ('y', ct.DataShape(ct.int32))])))
+                                                 ('y', ct.DataShape(ct.int32))])))
         # Field names starting with _ and caps
         self.assertEqual(parse('{_x: int16, Zed: int32,}', self.sym),
                          ct.DataShape(ct.Record([('_x', ct.DataShape(ct.int16)),
-                                               ('Zed', ct.DataShape(ct.int32))])))
+                                                 ('Zed', ct.DataShape(ct.int32))])))
         # A slightly bigger example
         ds_str = """3 * var * {
                         id : int32,
@@ -365,12 +373,12 @@ class TestDataShapeParseStruct(unittest.TestCase):
         date = ct.DataShape(ct.date_)
         ds = (ct.Fixed(3), ct.Var(),
               ct.Record([('id', int32),
-                        ('name', string),
-                        ('description', ct.DataShape(ct.Record([('language', string),
-                                                              ('text', string)]))),
-                        ('entries', ct.DataShape(ct.Var(),
-                                                ct.Record([('date', date),
-                                                          ('text', string)])))]))
+                         ('name', string),
+                         ('description', ct.DataShape(ct.Record([('language', string),
+                                                                 ('text', string)]))),
+                         ('entries', ct.DataShape(ct.Var(),
+                                                  ct.Record([('date', date),
+                                                             ('text', string)])))]))
         self.assertEqual(parse(ds_str, self.sym), ct.DataShape(*ds))
 
     def test_fields_with_dshape_names(self):
@@ -494,7 +502,7 @@ class TestDataShapeParseStruct(unittest.TestCase):
         self.assertEqual(len(ds[-1].names), 25)
 
     def test_strings_in_ds(self):
-        #Name the fields with some arbitrary string!
+        # Name the fields with some arbitrary string!
         ds = parse("""5 * var * {
               id: int64,
              'my field': string,
@@ -538,7 +546,7 @@ class TestDataShapeParseStruct(unittest.TestCase):
                           "   amount+ float32;\n" +
                           "}\n",
                           self.sym)
-        #Don't accept explicitly Unicode string literals
+        # Don't accept explicitly Unicode string literals
         self.assertRaises(datashape.DataShapeSyntaxError,
                           parse,
                           "{\n" +
@@ -549,9 +557,8 @@ class TestDataShapeParseStruct(unittest.TestCase):
                           self.sym)
 
 
-
-
 class TestDataShapeParseTuple(unittest.TestCase):
+
     def setUp(self):
         # Create a default symbol table for the parser to use
         self.sym = datashape.TypeSymbolTable()
@@ -562,13 +569,13 @@ class TestDataShapeParseTuple(unittest.TestCase):
                          ct.DataShape(ct.Tuple([ct.DataShape(ct.float32)])))
         self.assertEqual(parse('(int16, int32)', self.sym),
                          ct.DataShape(ct.Tuple([ct.DataShape(ct.int16),
-                                              ct.DataShape(ct.int32)])))
+                                                ct.DataShape(ct.int32)])))
         # A trailing comma is ok
         self.assertEqual(parse('(float32,)', self.sym),
                          ct.DataShape(ct.Tuple([ct.DataShape(ct.float32)])))
         self.assertEqual(parse('(int16, int32,)', self.sym),
                          ct.DataShape(ct.Tuple([ct.DataShape(ct.int16),
-                                              ct.DataShape(ct.int32)])))
+                                                ct.DataShape(ct.int32)])))
 
 
 class TestDataShapeParseFuncProto(unittest.TestCase):
