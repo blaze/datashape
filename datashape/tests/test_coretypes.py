@@ -38,6 +38,7 @@ def test_error_on_datashape_with_string_argument():
 
 
 class TestToNumpyDtype(object):
+
     def test_simple(self):
         assert to_numpy_dtype(dshape('2 * int32')) == np.int32
         assert (to_numpy_dtype(dshape('2 * {x: int32, y: int32}')) ==
@@ -145,9 +146,11 @@ def test_subshape():
     ds = dshape('5 * 3 * float32')
     assert ds.subshape[::2] == dshape('3 * 3 * float32')
 
+
 def test_negative_slicing():
     ds = dshape('10 * int')
     assert ds.subshape[-3:] == dshape('3 * int')
+
 
 def test_newaxis_slicing():
     ds = dshape('10 * int')
@@ -155,7 +158,7 @@ def test_newaxis_slicing():
     assert ds.subshape[:, None] == dshape('10 * 1 * int')
 
 
-def test_DataShape_coerces_ints():
+def test_datashape_coerces_ints():
     assert DataShape(5, 'int32')[0] == Fixed(5)
     assert DataShape(5, 'int32')[1] == int32
 
@@ -170,12 +173,14 @@ def test_shape():
 def test_option_sanitizes_strings():
     assert Option('float32').ty == dshape('float32').measure
 
+
 def test_option_passes_itemsize():
-    assert dshape('?float32').measure.itemsize ==\
-            dshape('float32').measure.itemsize
+    assert (dshape('?float32').measure.itemsize ==
+            dshape('float32').measure.itemsize)
 
 
 class TestComplexFieldNames(object):
+
     """
     The tests in this class should verify that the datashape parser can handle
     field names that contain strange characters like spaces, quotes, and
@@ -187,12 +192,13 @@ class TestComplexFieldNames(object):
     This test suite is by no means complete, but it does handle some of the
     more common special cases (common special? oxymoron?)
     """
+
     def test_spaces_01(self):
         space_dshape = "{'Unique Key': ?int64}"
         assert space_dshape == str(dshape(space_dshape))
 
     def test_spaces_02(self):
-        big_space_dshape="""{ 'Unique Key' : ?int64, 'Created Date' : string,
+        big_space_dshape = """{ 'Unique Key' : ?int64, 'Created Date' : string,
 'Closed Date' : string, Agency : string, 'Agency Name' : string,
 'Complaint Type' : string, Descriptor : string, 'Location Type' : string,
 'Incident Zip' : ?int64, 'Incident Address' : ?string, 'Street Name' : ?string,
