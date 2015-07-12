@@ -292,3 +292,10 @@ def test_discover_array_like():
 def test_discover_bytes():
     x = b'abcdefg'
     assert discover(x) == String('A')
+
+
+def test_discover_undiscoverable():
+    class MyClass(object):
+        pass
+    with pytest.raises(NotImplementedError):
+        discover(MyClass())

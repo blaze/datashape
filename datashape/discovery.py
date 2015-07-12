@@ -133,6 +133,18 @@ def timeparse(x, formats=('%H:%M:%S', '%H:%M:%S.%f')):
 
 
 def deltaparse(x):
+    """Naive timedelta string parser
+
+    Examples
+    --------
+    >>> td = '1 day'
+    >>> deltaparse(td)
+    numpy.timedelta64(1,'D')
+    >>> deltaparse('1.2 days')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    ValueError: floating point timedelta value not supported
+    """
     value, unit = re.split('\s+', x.strip())
     value = float(value)
     if not value.is_integer():
@@ -160,13 +172,10 @@ def discover(s):
 
     try:
         d = dateparse(s)
-        if not d.time():
-            return date_
-        if not d.date():
-            return time_
-        return datetime_
-    except:
+    except ValueError:
         pass
+    else:
+        return date_ if not d.time() else datetime_
 
     return string
 
