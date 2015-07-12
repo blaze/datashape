@@ -3,10 +3,11 @@ import pickle
 import numpy as np
 import pytest
 
+import datetime
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null)
+                                 Ellipsis, null, Time)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -346,3 +347,8 @@ def test_ellipsis_with_typevar_repr():
 
 def test_null_datashape_string():
     assert str(null) == 'null'
+
+
+@pytest.mark.xfail(raises=TypeError, reason="Not yet implemented")
+def test_time_with_tz_not_a_string():
+    assert Time(tz=datetime.tzinfo())

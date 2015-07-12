@@ -193,7 +193,7 @@ class Time(Unit):
 
     def __init__(self, tz=None):
         if tz is not None and not isinstance(tz, _strtypes):
-            raise ValueError('tz parameter to time datashape must be a string')
+            raise TypeError('tz parameter to time datashape must be a string')
         # TODO validate against Olson tz database
         self.tz = tz
 
