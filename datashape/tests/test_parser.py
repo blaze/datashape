@@ -597,3 +597,41 @@ def test_funcproto(sym):
                                      ct.DataShape(ct.bool_))))
 
 
+def test_funcproto_no_return_type(sym):
+    with pytest.raises(DataShapeSyntaxError):
+        parse('(int64, int32) ->', sym)
+
+
+def test_empty_tuple_fails(sym):
+    with pytest.raises(DataShapeSyntaxError):
+        parse('()', sym)
+
+
+def test_no_right_paren_tuple(sym):
+    with pytest.raises(DataShapeSyntaxError):
+        parse('(int64', sym)
+
+
+def test_garbage_at_end(sym):
+    with pytest.raises(DataShapeSyntaxError):
+        parse('int64,asdf', sym)
+
+
+def test_type_constructor_fail(sym):
+    with pytest.raises(DataShapeSyntaxError):
+        parse('string[10,[', sym)
+
+    with pytest.raises(DataShapeSyntaxError):
+        parse('string[10,', sym)
+
+
+def test_dim_constructor_fail(sym):
+    with pytest.raises(NotImplementedError):
+        parse('fixed[10] * var * string', sym)
+    with pytest.raises(DataShapeSyntaxError):
+        parse('fixed[10 * var * string', sym)
+
+
+def test_invalid_dtype(sym):
+    with pytest.raises(DataShapeSyntaxError):
+        parse('10 * foo[10]', sym)
