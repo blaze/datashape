@@ -17,12 +17,14 @@ def promote(lhs, rhs):
     >>> y = int64
     >>> promote(x, y)
     ?int64
+    >>> promote(int64, int64)
+    ctype("int64")
 
     Notes
     ----
-    This uses ``numpy.promote_types`` for type promotion logic.  See the numpy
+    This uses ``numpy.result_type`` for type promotion logic.  See the numpy
     documentation at
-    http://docs.scipy.org/doc/numpy/reference/generated/numpy.promote_types.html
+    http://docs.scipy.org/doc/numpy/reference/generated/numpy.result_type.html
     """
     if lhs == rhs:
         return lhs
@@ -55,54 +57,3 @@ def optionify(lhs, rhs, dshape):
     if hasattr(lhs, 'ty') or hasattr(rhs, 'ty'):
         return datashape.Option(dshape)
     return dshape
-
-
-def broadcast_dims(dim1, dim2):
-    """Broadcasts two dimension types or two lists of dimension types together.
-    """
-    if isinstance(dim1, list) and isinstance(dim2, list):
-        # Broadcast a list of dimensions
-        if len(dim1) > len(dim2):
-            result = list(dim1)
-            other = dim2
-        else:
-            result = list(dim2)
-            other = dim1
-        offset = len(result) - len(other)
-        for i, dim in enumerate(other):
-            result[offset + i] = broadcast_dims(result[offset + i], dim)
-        return result
-    else:
-        # Broadcast a single dimension
-        if isinstance(dim1, Fixed):
-            if isinstance(dim2, Fixed):
-                if dim1 == Fixed(1):
-                    return dim2
-                elif dim2 == Fixed(1):
-                    return dim1
-                else:
-                    if dim1 == dim2:
-                        return dim1
-                    else:
-                        raise TypeError(
-                            "Cannot broadcast differing fixed dimensions "
-                            "%s and %s" % (dim1, dim2))
-            elif isinstance(dim2, Var):
-                if dim1 == Fixed(1):
-                    return dim2
-                else:
-                    return dim1
-            else:
-                raise TypeError("Unknown dim types, cannot broadcast: "
-                                "%s and %s" % (dim1, dim2))
-        elif isinstance(dim1, Var):
-            if isinstance(dim2, Fixed):
-                if dim2 == Fixed(1):
-                    return dim1
-                else:
-                    return dim2
-            elif isinstance(dim2, Var):
-                return dim1
-            else:
-                raise TypeError(("Unknown dim types, cannot broadcast: " +
-                                 "%s and %s") % (dim1, dim2))
