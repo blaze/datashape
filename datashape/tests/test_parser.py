@@ -585,6 +585,3 @@ class TestDataShapeParseFuncProto(unittest.TestCase):
                          ct.DataShape(ct.Function(ct.DataShape(ct.int16),
                                                 ct.DataShape(ct.int32),
                                                 ct.DataShape(ct.bool_))))
-
-if __name__ == '__main__':
-    unittest.main()
