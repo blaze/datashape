@@ -1004,6 +1004,9 @@ class Record(CollectionPrinter, Mono):
         # ensure that the fields align in the order they are
         # declared.
         fields = tuple((_launder_key(k), _launder(v)) for k, v in fields)
+        names = [k for k, _ in fields]
+        if len(set(names)) != len(names):
+            raise ValueError("duplicate field names found in %s" % names)
         self._parameters = (tuple(map(tuple, fields)),)
 
     @property

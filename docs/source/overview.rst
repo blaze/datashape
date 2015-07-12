@@ -6,7 +6,7 @@ to describe in-situ structured data without requiring transformation
 into a canonical form.
 
 Similar to NumPy, datashape includes ``shape`` and ``dtype``, but combined
-together in the type system. 
+together in the type system.
 
 Units
 -----
@@ -185,6 +185,12 @@ A type capable of rectangular variable length arrays of integers
 can be written as two free type vars::
 
     A * B * int32
+
+.. note::
+
+   Any name beginning with an uppercase letter is parsed as a symbolic type
+   (as opposed to concrete). Symbolic types can be used both as dimensions and
+   as data types.
 
 Option
 ~~~~~~
