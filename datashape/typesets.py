@@ -4,7 +4,6 @@ Traits constituting sets of types.
 
 from itertools import chain
 
-from .error import DataShapeTypeError
 from .coretypes import (Unit, int8, int16, int32, int64, uint8, uint16, uint32,
                         uint64, float16, float32, float64, complex64,
                         complex128, bool_)
@@ -91,7 +90,7 @@ class TypesetRegistry(object):
 
     def register_typeset(self, name, typeset):
         if name in typeset:
-            raise DataShapeTypeError("TypeSet %s already defined" % name)
+            raise TypeError("TypeSet %s already defined" % name)
         self.registry[name] = typeset
         return typeset
 

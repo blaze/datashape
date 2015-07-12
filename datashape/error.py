@@ -1,12 +1,5 @@
 """Error handling"""
 
-class DataShapeException(Exception):
-    """Base class for DataShape Exceptions"""
-
-#------------------------------------------------------------------------
-# Generic Syntax Errors
-#------------------------------------------------------------------------
-
 syntax_error = """
 
   File {filename}, line {lineno}
@@ -16,7 +9,7 @@ syntax_error = """
 {error}: {msg}
 """
 
-class CustomSyntaxError(DataShapeException):
+class DataShapeSyntaxError(SyntaxError):
     """
     Makes datashape parse errors look like Python SyntaxError.
     """
@@ -41,7 +34,7 @@ class CustomSyntaxError(DataShapeException):
         print(str(self)) # REMOVEME
 
     def __str__(self):
-        pointer = ' '*self.col_offset + '^'
+        pointer = ' ' * self.col_offset + '^'
 
         return syntax_error.format(
             filename=self.filename,
@@ -54,37 +47,3 @@ class CustomSyntaxError(DataShapeException):
 
     def __repr__(self):
         return str(self)
-#------------------------------------------------------------------------
-# Typing errors
-#------------------------------------------------------------------------
-
-class DataShapeSyntaxError(CustomSyntaxError):
-    pass
-
-class DataShapeTypeError(DataShapeException):
-    "Raised when there is an error with a datashape type"
-
-class DataShapeError(DataShapeTypeError):
-    """Raised for malformed datashape types"""
-
-class UnificationError(DataShapeTypeError):
-    """Raised when two DataShape types cannot be unified"""
-
-class CoercionError(DataShapeTypeError):
-    """Raised when we can't coerce a type to another type"""
-    def __init__(self, src, dst):
-        self.src = src
-        self.dst = dst
-
-    def __str__(self):
-        return 'Cannot broadcast/coerce %s to %s' % (self.src, self.dst)
-
-    def __repr__(self):
-        return str(self)
-
-
-class OverloadError(DataShapeTypeError):
-    """
-    Raised when we can't determine which overload to select for given input
-    types.
-    """
