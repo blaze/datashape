@@ -10,7 +10,7 @@ from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Ellipsis, null, Time)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
-                       float64, Tuple, to_numpy)
+                       float64, Tuple, to_numpy, float32, Range)
 from datashape.py2help import unicode
 
 
@@ -326,7 +326,6 @@ def test_duplicate_field_names_fails():
 def test_repr_of_eval_is_dshape(ds):
     assert eval(repr(dshape(ds))) == dshape(ds)
 
-
 def test_complex_with_real_component_fails():
     with pytest.raises(TypeError):
         dshape('complex[int64]')
@@ -494,3 +493,15 @@ def test_to_numpy_fails():
         to_numpy(ds)
     with pytest.raises(TypeError):
         to_numpy(Option(int32))
+
+
+@pytest.mark.parametrize('ds', (
+    ('int32', int32),
+    ('int64', int64),
+    ('float32', float32),
+    ('float64', float64),
+    ('datetime', DateTime()),
+    ('date', Date()),
+))
+def test_range(ds):
+    assert dshape('range[{d}]'.format(d=ds[0])) == dshape(str(Range(ds[1])))

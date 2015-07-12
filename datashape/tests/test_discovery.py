@@ -1,6 +1,9 @@
+from datetime import date, time, datetime, timedelta
+from itertools import starmap
+import sys
+
 import pytest
 import numpy as np
-import sys
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
                                  unite_merge_dimensions, do_one,
@@ -8,10 +11,9 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
 from datashape.coretypes import (int64, float64, complex128, string, bool_,
                                  Tuple, Record, date_, datetime_, time_,
                                  timedelta_, int32, var, Option, real, Null,
-                                 TimeDelta, String)
-from itertools import starmap
+                                 TimeDelta, String, Range)
 from datashape import dshape
-from datetime import date, time, datetime, timedelta
+from datashape.py2help import range_
 
 
 def test_simple():
@@ -315,3 +317,16 @@ def test_discover_empty_sequence(seq):
 def test_lowest_common_dshape_varlen_strings():
     assert lowest_common_dshape([String(10), String(11)]) == String(11)
     assert lowest_common_dshape([String(11), string]) == string
+
+
+@pytest.mark.xfail(sys.version_info[0] == 2,
+                   raises=NotImplementedError,
+                   reason='xrange cannot be discovered')
+def test_discover_range():
+    assert discover(range_(0)) == Range(int64)
+
+
+def test_discover_slice():
+    assert discover(slice(1)) == Range(int64)
+    with pytest.raises(NotImplementedError):
+        discover(slice(None))
