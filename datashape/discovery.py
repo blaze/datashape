@@ -182,7 +182,7 @@ def discover(seq):
         columns = list(zip(*seq))
         try:
             types = [unite([discover(data) for data in column]).subshape[0]
-                                           for column in columns]
+                     for column in columns]
             unite = do_one([unite_identical, unite_merge_dimensions, Tuple])
             return len(seq) * unite(types)
         except AttributeError:  # no subshape available
@@ -194,7 +194,7 @@ def discover(seq):
         columns = [[item.get(key) for item in seq] for key in keys]
         try:
             types = [unite([discover(data) for data in column]).subshape[0]
-                                           for column in columns]
+                     for column in columns]
             return len(seq) * Record(list(zip(keys, types)))
         except AttributeError:
             pass
@@ -211,22 +211,22 @@ identity = lambda x: x
 
 # (a, b) implies that b can turn into a
 edges = [
-         (string, int64),  # E.g. int64 can be turned into a string
-         (string, real),
-         (string, date_),
-         (string, datetime_),
-         (string, timedelta_),
-         (string, bool_),
-         (datetime_, date_),
-         (int64, int32),
-         (real, int64),
-         (string, null)]
+    (string, int64),  # E.g. int64 can be turned into a string
+    (string, real),
+    (string, date_),
+    (string, datetime_),
+    (string, timedelta_),
+    (string, bool_),
+    (datetime_, date_),
+    (int64, int32),
+    (real, int64),
+    (string, null)]
 
 numeric_edges = [
-         (int64, int32),
-         (real, int64),
-         (string, null)
-         ]
+    (int64, int32),
+    (real, int64),
+    (string, null)
+]
 
 
 # {a: [b, c]} a is more general than b or c
@@ -271,11 +271,11 @@ def unite_base(dshapes):
     if all(isinstance(ds, Unit) for ds in good_dshapes):
         base = lowest_common_dshape(good_dshapes)
     elif (all(isinstance(ds, Record) for ds in good_dshapes) and
-              ds.names == dshapes[0].names for ds in good_dshapes):
+          ds.names == dshapes[0].names for ds in good_dshapes):
         names = good_dshapes[0].names
         base = Record([[name,
-            unite_base([ds.dict.get(name, null) for ds in good_dshapes]).subshape[0]]
-            for name in names])
+                        unite_base([ds.dict.get(name, null) for ds in good_dshapes]).subshape[0]]
+                       for name in names])
     if base:
         if bynull.get(True):
             base = Option(base)
@@ -375,7 +375,7 @@ def discover(x):
 
     if isrecord(ds.measure) and object_ in ds.measure.types:
         m = Record([[name, string if typ == object_ and is_string_array(x[name])
-                                  else typ]
+                     else typ]
                     for name, typ in ds.measure.parameters[0]])
         return DataShape(*(ds.shape + (m,)))
     else:
