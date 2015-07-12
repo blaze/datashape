@@ -5,13 +5,21 @@ Test the DataShape parser.
 from __future__ import absolute_import, division, print_function
 
 import unittest
+import pytest
 
 import datashape
 from datashape.parser import parse
 from datashape import coretypes as ct
 from datashape import DataShapeSyntaxError
 
+
+@pytest.fixture
+def sym():
+    return datashape.TypeSymbolTable()
+
+
 class TestDataShapeParseBasicDType(unittest.TestCase):
+
     def setUp(self):
         # Create a default symbol table for the parser to use
         self.sym = datashape.TypeSymbolTable()
