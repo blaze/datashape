@@ -22,25 +22,28 @@ def validate(ds):
     """
     Validate a datashape to see whether it is well-formed.
 
-        >>> from datashape import dshape
-        >>> dshape('10 * int32')
-        dshape("10 * int32")
-        >>> dshape('... * int32')
-        dshape("... * int32")
-        >>> dshape('... * ... * int32') # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-            ...
-        DataShapeError: Can only use a single wildcard
-        >>> dshape('T * ... * X * ... * X') # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-            ...
-        DataShapeError: Can only use a single wildcard
-        >>> dshape('T * ...') # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-            ...
-        DataShapeSyntaxError: Expected a dtype
+    Examples
+    --------
+    >>> from datashape import dshape
+    >>> dshape('10 * int32')
+    dshape("10 * int32")
+    >>> dshape('... * int32')
+    dshape("... * int32")
+    >>> dshape('... * ... * int32') # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    DataShapeError: Can only use a single wildcard
+    >>> dshape('T * ... * X * ... * X') # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    DataShapeError: Can only use a single wildcard
+    >>> dshape('T * ...') # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    DataShapeSyntaxError: Expected a dtype
     """
     traverse(_validate, ds)
+
 
 def _validate(ds, params):
     if isinstance(ds, T.DataShape):
