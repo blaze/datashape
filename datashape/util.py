@@ -33,7 +33,7 @@ def dshapes(*args):
 
 def dshape(o):
     """
-    Parse a blaze type. For a thorough description see
+    Parse a datashape. For a thorough description see
     http://blaze.pydata.org/docs/datashape.html
 
     >>> ds = dshape('2 * int32')
@@ -99,6 +99,9 @@ def collect(pred, expr):
     >>> dshape = dshape('var * {value: int64, loc: 2 * int32}')
     >>> sorted(set(collect(predicate, dshape)), key=str)
     [Fixed(2), ctype("int32"), ctype("int64"), Var()]
+    >>> from datashape import var, int64
+    >>> sorted(set(collect(predicate, [var, int64])))
+    [ctype("int64"), Var()]
     """
     if pred(expr):
         return [expr]
