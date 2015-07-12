@@ -8,9 +8,7 @@ __all__ = ['promote', 'optionify']
 
 
 def promote(lhs, rhs):
-    """Promote two scalar dshapes to a possibly larger, but compatibile type
-
-
+    """Promote two scalar dshapes to a possibly larger, but compatible type.
 
     Examples
     --------
@@ -26,16 +24,19 @@ def promote(lhs, rhs):
     documentation at
     http://docs.scipy.org/doc/numpy/reference/generated/numpy.promote_types.html
     """
-    left, right = getattr(lhs, 'ty', lhs), getattr(rhs, 'ty', rhs)
-    dtype = np.promote_types(datashape.to_numpy_dtype(left),
-                             datashape.to_numpy_dtype(right))
-    dshape = datashape.from_numpy((), dtype)
-    return optionify(lhs, rhs, dshape)
+    if lhs == rhs:
+        return lhs
+    else:
+        left, right = getattr(lhs, 'ty', lhs), getattr(rhs, 'ty', rhs)
+        dtype = np.result_type(datashape.to_numpy_dtype(left),
+                               datashape.to_numpy_dtype(right))
+        return optionify(lhs, rhs, datashape.CType.from_numpy_dtype(dtype))
 
 
 def optionify(lhs, rhs, dshape):
-    """Check whether a binary operation's dshape came from Option dshaped
-    operands and construct an Option type accordingly
+    """Check whether a binary operation's dshape came from
+    :class:`~datashape.coretypes.Option` typed operands and construct an
+    :class:`~datashape.coretypes.Option` type accordingly.
 
     Examples
     --------
@@ -54,3 +55,54 @@ def optionify(lhs, rhs, dshape):
     if hasattr(lhs, 'ty') or hasattr(rhs, 'ty'):
         return datashape.Option(dshape)
     return dshape
+
+
+def broadcast_dims(dim1, dim2):
+    """Broadcasts two dimension types or two lists of dimension types together.
+    """
+    if isinstance(dim1, list) and isinstance(dim2, list):
+        # Broadcast a list of dimensions
+        if len(dim1) > len(dim2):
+            result = list(dim1)
+            other = dim2
+        else:
+            result = list(dim2)
+            other = dim1
+        offset = len(result) - len(other)
+        for i, dim in enumerate(other):
+            result[offset + i] = broadcast_dims(result[offset + i], dim)
+        return result
+    else:
+        # Broadcast a single dimension
+        if isinstance(dim1, Fixed):
+            if isinstance(dim2, Fixed):
+                if dim1 == Fixed(1):
+                    return dim2
+                elif dim2 == Fixed(1):
+                    return dim1
+                else:
+                    if dim1 == dim2:
+                        return dim1
+                    else:
+                        raise TypeError(
+                            "Cannot broadcast differing fixed dimensions "
+                            "%s and %s" % (dim1, dim2))
+            elif isinstance(dim2, Var):
+                if dim1 == Fixed(1):
+                    return dim2
+                else:
+                    return dim1
+            else:
+                raise TypeError("Unknown dim types, cannot broadcast: "
+                                "%s and %s" % (dim1, dim2))
+        elif isinstance(dim1, Var):
+            if isinstance(dim2, Fixed):
+                if dim2 == Fixed(1):
+                    return dim1
+                else:
+                    return dim2
+            elif isinstance(dim2, Var):
+                return dim1
+            else:
+                raise TypeError(("Unknown dim types, cannot broadcast: " +
+                                 "%s and %s") % (dim1, dim2))
