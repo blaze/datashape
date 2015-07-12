@@ -11,7 +11,6 @@ from . import type_symbol_table
 from .validation import validate
 from . import coretypes
 from itertools import chain
-from .internal_utils import reverse_dict
 
 
 __all__ = 'dshape', 'dshapes', 'has_var_dim', 'has_ellipsis', 'cat_dshapes'
