@@ -6,7 +6,7 @@ import pytest
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis)
+                                 Ellipsis, null)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -342,3 +342,7 @@ def test_multiplication_of_dshapes():
 def test_ellipsis_with_typevar_repr():
     assert str(Ellipsis(typevar=TypeVar('T'))) == 'T...'
     assert repr(Ellipsis(typevar=TypeVar('T'))) == 'Ellipsis(\'T...\')'
+
+
+def test_null_datashape_string():
+    assert str(null) == 'null'
