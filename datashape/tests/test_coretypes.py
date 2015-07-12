@@ -321,3 +321,8 @@ def test_duplicate_field_names_fails():
                           'var * {"func-y": (A) -> var * {a: 10 * float64}}'])
 def test_repr_of_eval_is_dshape(ds):
     assert eval(repr(dshape(ds))) == dshape(ds)
+
+
+def test_complex_with_real_component_fails():
+    with pytest.raises(TypeError):
+        dshape('complex[int64]')
