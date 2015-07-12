@@ -3,11 +3,12 @@ import numpy as np
 import sys
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
-                                 unite_merge_dimensions, do_one)
+                                 unite_merge_dimensions, do_one,
+                                 lowest_common_dshape)
 from datashape.coretypes import (int64, float64, complex128, string, bool_,
                                  Tuple, Record, date_, datetime_, time_,
                                  timedelta_, int32, var, Option, real, Null,
-                                 TimeDelta, String)
+                                 TimeDelta, String, string)
 from itertools import starmap
 from datashape import dshape
 from datetime import date, time, datetime, timedelta
@@ -299,3 +300,14 @@ def test_discover_undiscoverable():
         pass
     with pytest.raises(NotImplementedError):
         discover(MyClass())
+
+
+@pytest.mark.parametrize('seq', [(), [], set()])
+def test_discover_empty_sequence(seq):
+    assert discover(seq) == var * string
+
+
+@pytest.mark.xfail(raises=ValueError, reason='Not yet implemented')
+def test_lowest_common_dshape_varlen_strings():
+    assert lowest_common_dshape([String(10), String(11)]) == String(11)
+    assert lowest_common_dshape([String(11), string]) == string
