@@ -2,7 +2,7 @@ import datashape
 import pytest
 
 
-def test_scalar_subarray(self):
+def test_scalar_subarray():
     assert datashape.int32.subarray(0) == datashape.int32
     with pytest.raises(IndexError):
         datashape.int32.subarray(1)
@@ -11,7 +11,7 @@ def test_scalar_subarray(self):
         datashape.string.subarray(1)
 
 
-def test_array_subarray(self):
+def test_array_subarray():
     assert (datashape.dshape('3 * int32').subarray(0) ==
             datashape.dshape('3 * int32'))
     assert (datashape.dshape('3 * int32').subarray(1) ==
@@ -22,5 +22,5 @@ def test_array_subarray(self):
             str(datashape.float64))
 
 
-def test_dshape_compare(self):
+def test_dshape_compare():
     assert datashape.int32 != datashape.dshape('1 * int32')
