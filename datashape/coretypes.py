@@ -174,67 +174,6 @@ class Null(Unit):
         return expr_string('null', None)
 
 
-class IntegerConstant(Unit):
-    """
-    An integer which is a parameter to a type constructor. It is itself a
-    degenerate type constructor taking 0 parameters.
-
-    ::
-        1, int32   # 1 is Fixed
-
-    """
-    __slots__ = 'val',
-    cls = None
-
-    def __init__(self, i):
-        assert isinstance(i, _inttypes)
-        self.val = i
-
-    def __str__(self):
-        return str(self.val)
-
-    def __eq__(self, other):
-        if isinstance(other, _inttypes):
-            return self.val == other
-        elif isinstance(other, IntegerConstant):
-            return self.val == other.val
-        else:
-            raise TypeError("Cannot compare type %r to type %r" %
-                            (type(self).__name__, type(other).__name__))
-
-    def __hash__(self):
-        return hash(self.val)
-
-
-class StringConstant(Unit):
-    """
-    Strings at the level of the constructor.
-
-    ::
-        string(3, "utf-8")   # "utf-8" is StringConstant
-    """
-    __slots__ = 'val',
-
-    def __init__(self, i):
-        assert isinstance(i, _strtypes)
-        self.val = i
-
-    def __str__(self):
-        return repr(self.val)
-
-    def __eq__(self, other):
-        if isinstance(other, _strtypes):
-            return self.val == other
-        elif isinstance(other, StringConstant):
-            return self.val == other.val
-        else:
-            raise TypeError("Cannot compare type %r to type %r" %
-                            (type(self).__name__, type(other).__name__))
-
-    def __hash__(self):
-        return hash(self.val)
-
-
 class Date(Unit):
     """ Date type """
     cls = MEASURE
@@ -404,7 +343,7 @@ class String(Unit):
         if len(args) == 1:
             if isinstance(args[0], _strtypes):
                 fixlen, encoding = None, args[0]
-            if isinstance(args[0], _inttypes + (IntegerConstant,)):
+            if isinstance(args[0], _inttypes):
                 fixlen, encoding = args[0], None
         if len(args) == 2:
             fixlen, encoding = args
@@ -417,9 +356,6 @@ class String(Unit):
         except KeyError:
             raise ValueError('Unsupported string encoding %s' %
                              repr(encoding))
-
-        if isinstance(fixlen, IntegerConstant):
-            fixlen = fixlen.val
 
         self.encoding = encoding
         self.fixlen = fixlen
@@ -1200,9 +1136,7 @@ def to_numpy(ds):
     if isinstance(ds, DataShape):
         # The datashape dimensions
         for dim in ds[:-1]:
-            if isinstance(dim, IntegerConstant):
-                shape += (dim,)
-            elif isinstance(dim, Fixed):
+            if isinstance(dim, Fixed):
                 shape += (dim.val,)
             elif isinstance(dim, TypeVar):
                 shape += (-1,)
