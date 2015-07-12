@@ -5,7 +5,8 @@ import pytest
 
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
-                                 DateTime, TimeDelta)
+                                 DateTime, TimeDelta, Type, int64, TypeVar,
+                                 Ellipsis)
 from datashape import dshape, to_numpy_dtype, from_numpy, error
 from datashape.py2help import unicode
 
@@ -326,3 +327,18 @@ def test_repr_of_eval_is_dshape(ds):
 def test_complex_with_real_component_fails():
     with pytest.raises(TypeError):
         dshape('complex[int64]')
+
+
+def test_already_registered_type():
+    with pytest.raises(TypeError):
+        Type.register('int64', int64)
+
+
+def test_multiplication_of_dshapes():
+    with pytest.raises(TypeError):
+        int32 * 10
+
+
+def test_ellipsis_with_typevar_repr():
+    assert str(Ellipsis(typevar=TypeVar('T'))) == 'T...'
+    assert repr(Ellipsis(typevar=TypeVar('T'))) == 'Ellipsis(\'T...\')'
