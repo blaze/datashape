@@ -7,7 +7,6 @@ import pytest
 
 import datashape
 from datashape import dshape, error, DataShape, Record
-from datashape.py2help import xfail
 
 
 class TestDataShapeCreation(unittest.TestCase):
@@ -52,7 +51,7 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertRaises(error.DataShapeSyntaxError, dshape, '12')
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'var')
 
-    @xfail(reason='implements has not been implemented in the new parser')
+    @pytest.mark.xfail(reason='implements has not been implemented in the new parser')
     def test_constraints_error(self):
         self.assertRaises(error.DataShapeTypeError, dshape,
                           'A : integral * B : numeric')
@@ -61,11 +60,11 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'T * ...')
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'T * S...')
 
-    @xfail(reason='type decl has been removed in the new parser')
+    @pytest.mark.xfail(reason='type decl has been removed in the new parser')
     def test_type_decl(self):
         self.assertRaises(error.DataShapeTypeError, dshape, 'type X T = 3, T')
 
-    @xfail(reason='type decl has been removed in the new parser')
+    @pytest.mark.xfail(reason='type decl has been removed in the new parser')
     def test_type_decl_concrete(self):
         self.assertEqual(dshape('3, int32'), dshape('type X = 3, int32'))
 

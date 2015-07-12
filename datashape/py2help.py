@@ -41,12 +41,3 @@ else:
     unicode = str
     basestring = str
     _strtypes = (str,)
-
-try:
-    import pytest
-
-    xfail = pytest.mark.xfail
-    skipif = pytest.mark.skipif
-    raises = pytest.raises
-except ImportError:
-    pass
