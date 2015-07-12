@@ -33,23 +33,9 @@ def remove(predicate, seq):
     return filter(lambda x: not predicate(x), seq)
 
 
-def reverse_dict(d):
-    """
-
-    >>> reverse_dict({1: 'one', 2: 'two'}) # doctest: +SKIP
-    {'one': 1, 'two': 2}
-    """
-    new = dict()
-    for k, v in d.items():
-        if v in d:
-            raise ValueError("Repated values")
-        new[v] = k
-    return new
-
-
 # Taken from theano/theano/gof/sched.py
 # Avoids licensing issues because this was written by Matthew Rocklin
-def reverse_dict2(d):
+def reverse_dict(d):
     """Reverses direction of dependence dict
 
     >>> d = {'a': (1, 2), 'b': (2, 3), 'c':()}
@@ -88,7 +74,7 @@ def _toposort(edges):
     Communications of the ACM
     [2] http://en.wikipedia.org/wiki/Toposort#Algorithms
     """
-    incoming_edges = reverse_dict2(edges)
+    incoming_edges = reverse_dict(edges)
     incoming_edges = dict((k, set(val)) for k, val in incoming_edges.items())
     S = set((v for v in edges if v not in incoming_edges))
     L = []
@@ -101,7 +87,7 @@ def _toposort(edges):
             incoming_edges[m].remove(n)
             if not incoming_edges[m]:
                 S.add(m)
-    if any(incoming_edges.get(v, None) for v in edges):
+    if any(incoming_edges.get(v) for v in edges):
         raise ValueError("Input has cycles")
     return L
 
@@ -130,14 +116,6 @@ def groupby(func, seq):
             d[key] = list()
         d[key].append(item)
     return d
-
-
-def raises(exception, lamda):
-    try:
-        lamda()
-        return False
-    except exception:
-        return True
 
 
 def isidentifier(s):
