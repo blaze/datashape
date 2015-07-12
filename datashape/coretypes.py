@@ -148,8 +148,8 @@ class Unit(Mono):
 
 
 class Ellipsis(Mono):
-    """
-    Ellipsis (...). Used to indicate a variable number of dimensions.
+    """Ellipsis (...). Used to indicate a variable number of dimensions.
+
     E.g.:
 
         ... * float32    # float32 array w/ any number of dimensions
@@ -162,18 +162,14 @@ class Ellipsis(Mono):
         self.typevar = typevar
 
     def __str__(self):
-        if self.typevar:
-            return str(self.typevar) + '...'
-        return '...'
+        return str(self.typevar) + '...' if self.typevar else '...'
 
     def __repr__(self):
-        return 'Ellipsis("%s")' % (str(self),)
+        return '%s(%r)' % (type(self).__name__, str(self))
 
 
 class Null(Unit):
-    """
-    The null datashape.
-    """
+    """The null datashape."""
     def __str__(self):
         return expr_string('null', None)
 
