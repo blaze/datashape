@@ -94,10 +94,6 @@ class Mono(object):
         return '%s(%s)' % (type(self).__name__,
                            ", ".join(map(repr, self.parameters)))
 
-    # Form for searching signature in meta-method Dispatch Table
-    def sigform(self):
-        return self
-
     # Monotypes are their own measure
     @property
     def measure(self):
@@ -567,15 +563,6 @@ class DataShape(Mono):
     @property
     def measure(self):
         return self.parameters[-1]
-
-    def sigform(self):
-        """Return a data shape object with Fixed dimensions replaced
-        by TypeVar dimensions.
-        """
-        newparams = [TypeVar('i%d' % n)
-                     for n in range(len(self.parameters) - 1)]
-        newparams.append(self.parameters[-1])
-        return DataShape(*newparams)
 
     def subarray(self, leading):
         """Returns a data shape object of the subarray with 'leading'
