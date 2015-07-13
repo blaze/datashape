@@ -99,7 +99,7 @@ def collect(pred, expr):
     >>> sorted(set(collect(predicate, dshape)), key=str)
     [Fixed(2), ctype("int32"), ctype("int64"), Var()]
     >>> from datashape import var, int64
-    >>> sorted(set(collect(predicate, [var, int64])))
+    >>> sorted(set(collect(predicate, [var, int64])), key=str)
     [ctype("int64"), Var()]
     """
     if pred(expr):
