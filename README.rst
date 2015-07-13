@@ -2,7 +2,7 @@
 DataShape
 =========
 
-|Build Status|
+|Build Status| |PyPI| |Monthly Downloads|
 
 DataShape is a language for describing data. It is an extension of the
 NumPy dtype with an emphasis on cross language support.
@@ -31,3 +31,9 @@ Released under BSD license. See LICENSE for details.
 
 .. |Build Status| image:: https://travis-ci.org/ContinuumIO/datashape.svg?branch=master
    :target: https://travis-ci.org/ContinuumIO/datashape
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/datashape.svg
+   :target: https://pypi.python.org/pypi/DataShape
+
+.. |Monthly Downloads| image:: https://img.shields.io/pypi/dm/datashape.svg
+   :target: https://pypi.python.org/pypi/DataShape
