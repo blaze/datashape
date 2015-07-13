@@ -25,6 +25,8 @@ import itertools
 
 
 PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+
 
 if PY2:
     import __builtin__
@@ -39,12 +41,3 @@ else:
     unicode = str
     basestring = str
     _strtypes = (str,)
-
-try:
-    import pytest
-
-    xfail = pytest.mark.xfail
-    skipif = pytest.mark.skipif
-    raises = pytest.raises
-except ImportError:
-    pass

@@ -68,7 +68,3 @@ class TestDataShapeStr(unittest.TestCase):
 def test_arbitrary_string(s):
     ds = dshape(s)
     assert dshape(str(ds)) == ds
-
-
-if __name__ == '__main__':
-    unittest.main()  # pragma: no cover

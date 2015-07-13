@@ -8,9 +8,7 @@ __all__ = ['promote', 'optionify']
 
 
 def promote(lhs, rhs):
-    """Promote two scalar dshapes to a possibly larger, but compatibile type
-
-
+    """Promote two scalar dshapes to a possibly larger, but compatible type.
 
     Examples
     --------
@@ -19,23 +17,28 @@ def promote(lhs, rhs):
     >>> y = int64
     >>> promote(x, y)
     ?int64
+    >>> promote(int64, int64)
+    ctype("int64")
 
     Notes
     ----
-    This uses ``numpy.promote_types`` for type promotion logic.  See the numpy
+    This uses ``numpy.result_type`` for type promotion logic.  See the numpy
     documentation at
-    http://docs.scipy.org/doc/numpy/reference/generated/numpy.promote_types.html
+    http://docs.scipy.org/doc/numpy/reference/generated/numpy.result_type.html
     """
-    left, right = getattr(lhs, 'ty', lhs), getattr(rhs, 'ty', rhs)
-    dtype = np.promote_types(datashape.to_numpy_dtype(left),
-                             datashape.to_numpy_dtype(right))
-    dshape = datashape.from_numpy((), dtype)
-    return optionify(lhs, rhs, dshape)
+    if lhs == rhs:
+        return lhs
+    else:
+        left, right = getattr(lhs, 'ty', lhs), getattr(rhs, 'ty', rhs)
+        dtype = np.result_type(datashape.to_numpy_dtype(left),
+                               datashape.to_numpy_dtype(right))
+        return optionify(lhs, rhs, datashape.CType.from_numpy_dtype(dtype))
 
 
 def optionify(lhs, rhs, dshape):
-    """Check whether a binary operation's dshape came from Option dshaped
-    operands and construct an Option type accordingly
+    """Check whether a binary operation's dshape came from
+    :class:`~datashape.coretypes.Option` typed operands and construct an
+    :class:`~datashape.coretypes.Option` type accordingly.
 
     Examples
     --------
