@@ -2,6 +2,8 @@
 DataShape
 =========
 
+|Build Status|
+
 DataShape is a language for describing data. It is an extension of the
 NumPy dtype with an emphasis on cross language support.
 
@@ -25,8 +27,6 @@ License
 DataShape development is sponsored by Continuum Analytics.
 
 Released under BSD license. See LICENSE for details.
-
-|Build Status|
 
 
 .. |Build Status| image:: https://travis-ci.org/ContinuumIO/datashape.svg?branch=master
