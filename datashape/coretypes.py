@@ -692,12 +692,7 @@ class CType(Unit):
         return self._itemsize
 
     @property
-    def c_itemsize(self):
-        """The size of one element of this type, with C-contiguous storage."""
-        return self._itemsize
-
-    @property
-    def c_alignment(self):
+    def alignment(self):
         """The alignment of one element of this type."""
         return self._alignment
 
