@@ -172,7 +172,7 @@ class Ellipsis(Mono):
 class Null(Unit):
     """The null datashape."""
     def __str__(self):
-        return expr_string('null', None)
+        return 'null'
 
 
 class Date(Unit):
@@ -1174,31 +1174,6 @@ def from_numpy(shape, dt):
     if not shape:
         return measure
     return DataShape(*tuple(map(Fixed, shape)) + (measure,))
-
-
-def expr_string(spine, const_args, outer='()'):
-    assert len(outer) == 2
-
-    lhs, rhs = outer
-
-    if const_args:
-        return '%s%s%s%s' % (spine, lhs, ','.join(map(str, const_args)), rhs)
-    return str(spine)
-
-
-def free(ds):
-    """
-    Return the free variables (TypeVar) of a datashape type (Mono).
-    """
-    if isinstance(ds, TypeVar):
-        return [ds]
-    elif isinstance(ds, Mono) and not isinstance(ds, Unit):
-        result = []
-        for x in ds.parameters:
-            result.extend(free(x))
-        return result
-    else:
-        return []
 
 
 def print_unicode_string(s):
