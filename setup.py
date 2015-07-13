@@ -23,7 +23,7 @@ setup(
     description='A data description language.',
     license='BSD',
     keywords='data language',
-    url='http://packages.python.org/datashape',
+    url='http://datashape.readthedocs.org/en/latest/',
     packages=['datashape', 'datashape.tests'],
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
