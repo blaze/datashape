@@ -3,9 +3,10 @@ from __future__ import absolute_import, division, print_function
 import ctypes
 import unittest
 
+import pytest
+
 import datashape
 from datashape import dshape, error, DataShape, Record
-from datashape.py2help import xfail
 
 
 class TestDataShapeCreation(unittest.TestCase):
@@ -40,12 +41,6 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertEqual(dshape('complex128'), dshape('complex[float64]'))
         self.assertEqual(dshape("string"), dshape(datashape.string))
         self.assertEqual(dshape("json"), dshape(datashape.json))
-        if ctypes.sizeof(ctypes.c_void_p) == 4:
-            self.assertEqual(dshape('intptr'), dshape(datashape.int32))
-            self.assertEqual(dshape('uintptr'), dshape(datashape.uint32))
-        else:
-            self.assertEqual(dshape('intptr'), dshape(datashape.int64))
-            self.assertEqual(dshape('uintptr'), dshape(datashape.uint64))
         self.assertEqual(dshape("date"), dshape(datashape.date_))
         self.assertEqual(dshape("time"), dshape(datashape.time_))
         self.assertEqual(dshape("datetime"), dshape(datashape.datetime_))
@@ -56,7 +51,7 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertRaises(error.DataShapeSyntaxError, dshape, '12')
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'var')
 
-    @xfail(reason='implements has not been implemented in the new parser')
+    @pytest.mark.xfail(reason='implements has not been implemented in the new parser')
     def test_constraints_error(self):
         self.assertRaises(error.DataShapeTypeError, dshape,
                           'A : integral * B : numeric')
@@ -65,11 +60,11 @@ class TestDataShapeCreation(unittest.TestCase):
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'T * ...')
         self.assertRaises(error.DataShapeSyntaxError, dshape, 'T * S...')
 
-    @xfail(reason='type decl has been removed in the new parser')
+    @pytest.mark.xfail(reason='type decl has been removed in the new parser')
     def test_type_decl(self):
         self.assertRaises(error.DataShapeTypeError, dshape, 'type X T = 3, T')
 
-    @xfail(reason='type decl has been removed in the new parser')
+    @pytest.mark.xfail(reason='type decl has been removed in the new parser')
     def test_type_decl_concrete(self):
         self.assertEqual(dshape('3, int32'), dshape('type X = 3, int32'))
 
@@ -202,5 +197,19 @@ class TestDataShapeCreation(unittest.TestCase):
                 self.assertEqual(eval(repr(d)), d)
 
 
-if __name__ == '__main__':
-    unittest.main()  # pragma: no cover
+pointer_sizes = {
+    4: {
+        'intptr': datashape.int32,
+        'uintptr': datashape.uint32,
+    },
+    8: {
+        'intptr': datashape.int64,
+        'uintptr': datashape.uint64,
+    }
+}
+
+
+@pytest.mark.parametrize('kind', ['intptr', 'uintptr'])
+def test_intptr_size(kind):
+    assert (dshape(kind) ==
+            dshape(pointer_sizes[ctypes.sizeof(ctypes.c_void_p)][kind]))

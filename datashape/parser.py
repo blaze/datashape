@@ -220,7 +220,8 @@ class DataShapeParser(object):
                 args = self.parse_type_arg_list()
                 if self.tok.id == lexer.RBRACKET:
                     self.advance_tok()
-                    raise RuntimeError('dim type constructors not actually supported yet')
+                    raise NotImplementedError(
+                        'dim type constructors not actually supported yet')
                 else:
                     self.raise_error('Expected a closing "]"')
             else:

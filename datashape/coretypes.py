@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function, division, absolute_import
 
 """
@@ -94,10 +95,6 @@ class Mono(object):
         return '%s(%s)' % (type(self).__name__,
                            ", ".join(map(repr, self.parameters)))
 
-    # Form for searching signature in meta-method Dispatch Table
-    def sigform(self):
-        return self
-
     # Monotypes are their own measure
     @property
     def measure(self):
@@ -149,11 +146,13 @@ class Unit(Mono):
     """
     Unit type that does not need to be reconstructed.
     """
+    def to_numpy_dtype(self):
+        raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
 
 
 class Ellipsis(Mono):
-    """
-    Ellipsis (...). Used to indicate a variable number of dimensions.
+    """Ellipsis (...). Used to indicate a variable number of dimensions.
+
     E.g.:
 
         ... * float32    # float32 array w/ any number of dimensions
@@ -166,81 +165,16 @@ class Ellipsis(Mono):
         self.typevar = typevar
 
     def __str__(self):
-        if self.typevar:
-            return str(self.typevar) + '...'
-        return '...'
+        return str(self.typevar) + '...' if self.typevar else '...'
 
     def __repr__(self):
-        return 'Ellipsis("%s")' % (str(self),)
+        return '%s(%r)' % (type(self).__name__, str(self))
 
 
 class Null(Unit):
-    """
-    The null datashape.
-    """
+    """The null datashape."""
     def __str__(self):
-        return expr_string('null', None)
-
-
-class IntegerConstant(Unit):
-    """
-    An integer which is a parameter to a type constructor. It is itself a
-    degenerate type constructor taking 0 parameters.
-
-    ::
-        1, int32   # 1 is Fixed
-
-    """
-    __slots__ = 'val',
-    cls = None
-
-    def __init__(self, i):
-        assert isinstance(i, _inttypes)
-        self.val = i
-
-    def __str__(self):
-        return str(self.val)
-
-    def __eq__(self, other):
-        if isinstance(other, _inttypes):
-            return self.val == other
-        elif isinstance(other, IntegerConstant):
-            return self.val == other.val
-        else:
-            raise TypeError("Cannot compare type %r to type %r" %
-                            (type(self).__name__, type(other).__name__))
-
-    def __hash__(self):
-        return hash(self.val)
-
-
-class StringConstant(Unit):
-    """
-    Strings at the level of the constructor.
-
-    ::
-        string(3, "utf-8")   # "utf-8" is StringConstant
-    """
-    __slots__ = 'val',
-
-    def __init__(self, i):
-        assert isinstance(i, _strtypes)
-        self.val = i
-
-    def __str__(self):
-        return repr(self.val)
-
-    def __eq__(self, other):
-        if isinstance(other, _strtypes):
-            return self.val == other
-        elif isinstance(other, StringConstant):
-            return self.val == other.val
-        else:
-            raise TypeError("Cannot compare type %r to type %r" %
-                            (type(self).__name__, type(other).__name__))
-
-    def __hash__(self):
-        return hash(self.val)
+        return 'null'
 
 
 class Date(Unit):
@@ -262,7 +196,7 @@ class Time(Unit):
 
     def __init__(self, tz=None):
         if tz is not None and not isinstance(tz, _strtypes):
-            raise ValueError('tz parameter to time datashape must be a string')
+            raise TypeError('tz parameter to time datashape must be a string')
         # TODO validate against Olson tz database
         self.tz = tz
 
@@ -280,8 +214,8 @@ class DateTime(Unit):
 
     def __init__(self, tz=None):
         if tz is not None and not isinstance(tz, _strtypes):
-            raise ValueError('tz parameter to datetime datashape ' +
-                             'must be a string')
+            raise TypeError('tz parameter to datetime datashape must be a '
+                            'string')
         # TODO validate against Olson tz database
         self.tz = tz
 
@@ -351,13 +285,13 @@ class Units(Unit):
 
     def __init__(self, unit, tp=None):
         if not isinstance(unit, _strtypes):
-            raise ValueError('unit parameter to units datashape ' +
-                             'must be a string')
+            raise TypeError('unit parameter to units datashape must be a '
+                            'string')
         if tp is None:
             tp = DataShape(float64)
         elif not isinstance(tp, DataShape):
-            raise ValueError('tp parameter to units datashape ' +
-                             'must be a datashape type')
+            raise TypeError('tp parameter to units datashape must be a '
+                            'datashape type')
         self.unit = unit
         self.tp = tp
 
@@ -412,7 +346,7 @@ class String(Unit):
         if len(args) == 1:
             if isinstance(args[0], _strtypes):
                 fixlen, encoding = None, args[0]
-            if isinstance(args[0], _inttypes + (IntegerConstant,)):
+            if isinstance(args[0], _inttypes):
                 fixlen, encoding = args[0], None
         if len(args) == 2:
             fixlen, encoding = args
@@ -425,9 +359,6 @@ class String(Unit):
         except KeyError:
             raise ValueError('Unsupported string encoding %s' %
                              repr(encoding))
-
-        if isinstance(fixlen, IntegerConstant):
-            fixlen = fixlen.val
 
         self.encoding = encoding
         self.fixlen = fixlen
@@ -526,18 +457,10 @@ class DataShape(Mono):
             raise ValueError('the data shape should be constructed from 2 or'
                              ' more parameters, only got %s' % len(parameters))
         self.composite = True
+        self.name = kwds.get('name')
 
-        name = kwds.get('name')
-        if name:
-            self.name = name
-            self.__metaclass__._registry[name] = self
-        else:
-            self.name = None
-
-        ###
-        # TODO: Why are low-level concepts like strides and alignment on
-        # TODO: the datashape?
-        ###
+        if self.name:
+            self.__metaclass__._registry[self.name] = self
 
     def __len__(self):
         return len(self.parameters)
@@ -546,12 +469,7 @@ class DataShape(Mono):
         return self.parameters[index]
 
     def __str__(self):
-        if self.name:
-            res = self.name
-        else:
-            res = ' * '.join(map(str, self.parameters))
-
-        return res
+        return self.name or ' * '.join(map(str, self.parameters))
 
     def __repr__(self):
         s = pprint(self)
@@ -567,15 +485,6 @@ class DataShape(Mono):
     @property
     def measure(self):
         return self.parameters[-1]
-
-    def sigform(self):
-        """Return a data shape object with Fixed dimensions replaced
-        by TypeVar dimensions.
-        """
-        newparams = [TypeVar('i%d' % n)
-                     for n in range(len(self.parameters) - 1)]
-        newparams.append(self.parameters[-1])
-        return DataShape(*newparams)
 
     def subarray(self, leading):
         """Returns a data shape object of the subarray with 'leading'
@@ -673,13 +582,9 @@ class DataShape(Mono):
                 start = index.start or 0
                 stop = index.stop
                 if not stop:
-                    if start < 0:
-                        count = -start
-                    else:
-                        count = var
-                if (stop is not None and
-                    start is not None and
-                    (stop >= 0) == (start >= 0)):
+                    count = -start if start < 0 else var
+                if (stop is not None and start is not None and stop >= 0 and
+                        start >= 0):
                     count = stop - start
                 else:
                     count = var
@@ -698,7 +603,8 @@ class DataShape(Mono):
             else:
                 ds = self.subarray(1)._subshape(index[1:])
                 return (self[0] * ds)._subshape(index[0])
-        raise NotImplementedError()
+        raise TypeError('invalid index value %s of type %r' %
+                        (index, type(index).__name__))
 
     def __setstate__(self, state):
         self.__init__(*state)
@@ -733,8 +639,7 @@ class Option(Mono):
     def to_numpy_dtype(self):
         if type(self.ty) in numpy_provides_missing:
             return self.ty.to_numpy_dtype()
-        raise NotNumpyCompatible('DataShape measure %s is not '
-                                 'NumPy-compatible' % self)
+        raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
 
 
 class CType(Unit):
@@ -789,12 +694,7 @@ class CType(Unit):
         return self._itemsize
 
     @property
-    def c_itemsize(self):
-        """The size of one element of this type, with C-contiguous storage."""
-        return self._itemsize
-
-    @property
-    def c_alignment(self):
+    def alignment(self):
         """The alignment of one element of this type."""
         return self._alignment
 
@@ -1185,14 +1085,6 @@ Type.register('string', String())
 var = Var()
 
 
-class NotNumpyCompatible(Exception):
-    """
-    Raised when we try to convert a datashape into a NumPy dtype
-    but it cannot be ceorced.
-    """
-    pass
-
-
 def to_numpy_dtype(ds):
     """ Throw away the shape information and just return the
     measure as NumPy dtype instance."""
@@ -1209,39 +1101,27 @@ def to_numpy(ds):
     ((5, 5), dtype('int32'))
     >>> to_numpy(dshape('10 * string[30]'))
     ((10,), dtype('<U30'))
+    >>> to_numpy(dshape('N * int32'))
+    ((-1,), dtype('int32'))
     """
-
-    shape = tuple()
-    dtype = None
-
+    shape = []
     if isinstance(ds, DataShape):
         # The datashape dimensions
         for dim in ds[:-1]:
-            if isinstance(dim, IntegerConstant):
-                shape += (dim,)
-            elif isinstance(dim, Fixed):
-                shape += (dim.val,)
+            if isinstance(dim, Fixed):
+                shape.append(int(dim))
             elif isinstance(dim, TypeVar):
-                shape += (-1,)
+                shape.append(-1)
             else:
-                raise NotNumpyCompatible('DataShape dimension %s is not'
-                                         ' NumPy-compatible' % dim)
+                raise TypeError('DataShape dimension %s is not '
+                                'NumPy-compatible' % dim)
 
         # The datashape measure
         msr = ds[-1]
     else:
         msr = ds
 
-    try:
-        dtype = msr.to_numpy_dtype()
-    except AttributeError:
-        raise NotNumpyCompatible('DataShape measure %s is not NumPy-compatible'
-                                 % msr)
-
-    if type(dtype) != np.dtype:
-        raise NotNumpyCompatible('Internal Error: Failed to produce NumPy '
-                                 'dtype')
-    return shape, dtype
+    return tuple(shape), msr.to_numpy_dtype()
 
 
 def from_numpy(shape, dt):
@@ -1273,31 +1153,6 @@ def from_numpy(shape, dt):
     if not shape:
         return measure
     return DataShape(*tuple(map(Fixed, shape)) + (measure,))
-
-
-def expr_string(spine, const_args, outer='()'):
-    assert len(outer) == 2
-
-    lhs, rhs = outer
-
-    if const_args:
-        return '%s%s%s%s' % (spine, lhs, ','.join(map(str, const_args)), rhs)
-    return str(spine)
-
-
-def free(ds):
-    """
-    Return the free variables (TypeVar) of a datashape type (Mono).
-    """
-    if isinstance(ds, TypeVar):
-        return [ds]
-    elif isinstance(ds, Mono) and not isinstance(ds, Unit):
-        result = []
-        for x in ds.parameters:
-            result.extend(free(x))
-        return result
-    else:
-        return []
 
 
 def print_unicode_string(s):

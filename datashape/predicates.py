@@ -1,6 +1,10 @@
+import numpy as np
+
 from .util import collect, dshape
 from .internal_utils import remove
-from .coretypes import *
+from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
+                        Unit, bool_, date_, datetime_, TypeVar, to_numpy_dtype)
+from .py2help import _strtypes
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
@@ -8,7 +12,7 @@ __all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar',
         'isrecord', 'iscollection', 'isnumeric', 'isboolean', 'isdatelike',
         'isreal']
 
-dimension_types = (Fixed, Var, Ellipsis, int)
+dimension_types = Fixed, Var, Ellipsis, int
 
 def isscalar(ds):
     """ Is this dshape a single dtype?
@@ -51,6 +55,7 @@ def isrecord(ds):
 def isdimension(ds):
     """ Is a component a dimension?
 
+    >>> from datashape import int32
     >>> isdimension(Fixed(10))
     True
     >>> isdimension(Var())
@@ -64,6 +69,7 @@ def isdimension(ds):
 def ishomogeneous(ds):
     """ Does datashape contain only one dtype?
 
+    >>> from datashape import int32
     >>> ishomogeneous(int32)
     True
     >>> ishomogeneous('var * 3 * string')
@@ -80,6 +86,7 @@ def _dimensions(ds):
 
     Interprets records as dimensional
 
+    >>> from datashape import int32
     >>> _dimensions(int32)
     0
     >>> _dimensions(10 * int32)
@@ -90,8 +97,6 @@ def _dimensions(ds):
     2
     """
     ds = dshape(ds)
-    if isinstance(ds, str):
-        ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
     if isinstance(ds, Option):
@@ -104,7 +109,8 @@ def _dimensions(ds):
         return 1 + _dimensions(ds.subshape[0])
     if isscalar(ds):
         return 0
-    raise NotImplementedError('Can not compute dimensions for %s' % ds)
+    raise TypeError('Cannot count dimensions of dshape %s which is a %r' %
+                    (ds, type(ds).__name__))
 
 
 def isfixed(ds):

@@ -4,7 +4,6 @@ Traits constituting sets of types.
 
 from itertools import chain
 
-from .error import DataShapeTypeError
 from .coretypes import (Unit, int8, int16, int32, int64, uint8, uint16, uint32,
                         uint64, float16, float32, float64, complex64,
                         complex128, bool_)
@@ -90,8 +89,9 @@ class TypesetRegistry(object):
         self.lookup = self.registry.get
 
     def register_typeset(self, name, typeset):
-        if name in typeset:
-            raise DataShapeTypeError("TypeSet %s already defined" % name)
+        if name in self.registry:
+            raise TypeError("TypeSet %s already defined with types %s" %
+                            (name, self.registry[name].types))
         self.registry[name] = typeset
         return typeset
 
@@ -119,7 +119,7 @@ boolean = TypeSet(bool_, name='boolean')
 
 real = TypeSet(*integral | floating, name='real')
 numeric = TypeSet(*integral | floating | complexes, name='numeric')
-scalar = TypeSet(*boolean | numeric, name='signed')
+scalar = TypeSet(*boolean | numeric, name='scalar')
 
 
 supertype_map = {
@@ -155,6 +155,9 @@ def supertype(measure):
     {complexes}
 
     >>> supertype(bool_)
+    {boolean}
+
+    >>> supertype(Option(bool_))
     {boolean}
     """
     if isinstance(measure, Option):

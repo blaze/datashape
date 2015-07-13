@@ -43,11 +43,6 @@ def validate(schema, d):
     return all(validate(sch, d.get(k)) for k, sch in schema.parameters[0])
 
 
-@dispatch(String, str)
-def validate(schema, value):
-    return True
-
-
 @dispatch(Record, (tuple, list))
 def validate(schema, seq):
     return all(validate(sch, item) for (k, sch), item
@@ -74,18 +69,11 @@ def validate(schema, value):
     return False
 
 
-@dispatch(Time, time)
-def validate(schema, value):
-    return True
-
-
-@dispatch(Date, date)
-def validate(schema, value):
-    return True
-
-
-@dispatch(DateTime, datetime)
-def validate(schema, value):
+@validate.register(String, str)
+@validate.register(Time, time)
+@validate.register(Date, date)
+@validate.register(DateTime, datetime)
+def validate_always_true(schema, value):
     return True
 
 

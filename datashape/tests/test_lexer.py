@@ -9,6 +9,7 @@ import unittest
 import datashape
 from datashape import lexer
 
+
 class TestDataShapeLexer(unittest.TestCase):
 
     def check_isolated_token(self, ds_str, tname, val=None):
@@ -148,6 +149,3 @@ class TestDataShapeLexer(unittest.TestCase):
                                '_b # comment\n' +
                                ' \t # end'))
         self.assertEqual([(tok.id, tok.val) for tok in toks], expected_idval)
-
-if __name__ == '__main__':
-    unittest.main()
