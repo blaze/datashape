@@ -212,8 +212,8 @@ class DateTime(Unit):
 
     def __init__(self, tz=None):
         if tz is not None and not isinstance(tz, _strtypes):
-            raise ValueError('tz parameter to datetime datashape ' +
-                             'must be a string')
+            raise TypeError('tz parameter to datetime datashape must be a '
+                            'string')
         # TODO validate against Olson tz database
         self.tz = tz
 
@@ -283,13 +283,13 @@ class Units(Unit):
 
     def __init__(self, unit, tp=None):
         if not isinstance(unit, _strtypes):
-            raise ValueError('unit parameter to units datashape ' +
-                             'must be a string')
+            raise TypeError('unit parameter to units datashape must be a '
+                            'string')
         if tp is None:
             tp = DataShape(float64)
         elif not isinstance(tp, DataShape):
-            raise ValueError('tp parameter to units datashape ' +
-                             'must be a datashape type')
+            raise TypeError('tp parameter to units datashape must be a '
+                            'datashape type')
         self.unit = unit
         self.tp = tp
 
