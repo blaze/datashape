@@ -637,8 +637,7 @@ class Option(Mono):
     def to_numpy_dtype(self):
         if type(self.ty) in numpy_provides_missing:
             return self.ty.to_numpy_dtype()
-        raise NotNumpyCompatible('DataShape measure %s is not '
-                                 'NumPy-compatible' % self)
+        raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
 
 
 class CType(Unit):
@@ -1084,14 +1083,6 @@ Type.register('string', String())
 var = Var()
 
 
-class NotNumpyCompatible(Exception):
-    """
-    Raised when we try to convert a datashape into a NumPy dtype
-    but it cannot be ceorced.
-    """
-    pass
-
-
 def to_numpy_dtype(ds):
     """ Throw away the shape information and just return the
     measure as NumPy dtype instance."""
@@ -1123,24 +1114,15 @@ def to_numpy(ds):
             elif isinstance(dim, TypeVar):
                 shape += (-1,)
             else:
-                raise NotNumpyCompatible('DataShape dimension %s is not'
-                                         ' NumPy-compatible' % dim)
+                raise TypeError('DataShape dimension %s is not '
+                                'NumPy-compatible' % dim)
 
         # The datashape measure
         msr = ds[-1]
     else:
         msr = ds
 
-    try:
-        dtype = msr.to_numpy_dtype()
-    except AttributeError:
-        raise NotNumpyCompatible('DataShape measure %s is not NumPy-compatible'
-                                 % msr)
-
-    if type(dtype) != np.dtype:
-        raise NotNumpyCompatible('Internal Error: Failed to produce NumPy '
-                                 'dtype')
-    return shape, dtype
+    return shape, msr.to_numpy_dtype()
 
 
 def from_numpy(shape, dt):
