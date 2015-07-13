@@ -146,6 +146,8 @@ class Unit(Mono):
     """
     Unit type that does not need to be reconstructed.
     """
+    def to_numpy_dtype(self):
+        raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
 
 
 class Ellipsis(Mono):
