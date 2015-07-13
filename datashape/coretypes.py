@@ -1104,17 +1104,14 @@ def to_numpy(ds):
     >>> to_numpy(dshape('N * int32'))
     ((-1,), dtype('int32'))
     """
-
-    shape = tuple()
-    dtype = None
-
+    shape = []
     if isinstance(ds, DataShape):
         # The datashape dimensions
         for dim in ds[:-1]:
             if isinstance(dim, Fixed):
-                shape += (dim.val,)
+                shape.append(int(dim))
             elif isinstance(dim, TypeVar):
-                shape += (-1,)
+                shape.append(-1)
             else:
                 raise TypeError('DataShape dimension %s is not '
                                 'NumPy-compatible' % dim)
@@ -1124,7 +1121,7 @@ def to_numpy(ds):
     else:
         msr = ds
 
-    return shape, msr.to_numpy_dtype()
+    return tuple(shape), msr.to_numpy_dtype()
 
 
 def from_numpy(shape, dt):
