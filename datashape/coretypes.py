@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function, division, absolute_import
 
 """
@@ -454,18 +455,10 @@ class DataShape(Mono):
             raise ValueError('the data shape should be constructed from 2 or'
                              ' more parameters, only got %s' % len(parameters))
         self.composite = True
+        self.name = kwds.get('name')
 
-        name = kwds.get('name')
-        if name:
-            self.name = name
-            self.__metaclass__._registry[name] = self
-        else:
-            self.name = None
-
-        ###
-        # TODO: Why are low-level concepts like strides and alignment on
-        # TODO: the datashape?
-        ###
+        if self.name is not None:
+            self.__metaclass__._registry[self.name] = self
 
     def __len__(self):
         return len(self.parameters)
@@ -474,12 +467,7 @@ class DataShape(Mono):
         return self.parameters[index]
 
     def __str__(self):
-        if self.name:
-            res = self.name
-        else:
-            res = ' * '.join(map(str, self.parameters))
-
-        return res
+        return self.name or ' * '.join(map(str, self.parameters))
 
     def __repr__(self):
         s = pprint(self)
@@ -592,13 +580,9 @@ class DataShape(Mono):
                 start = index.start or 0
                 stop = index.stop
                 if not stop:
-                    if start < 0:
-                        count = -start
-                    else:
-                        count = var
-                if (stop is not None and
-                    start is not None and
-                    (stop >= 0) == (start >= 0)):
+                    count = -start if start < 0 else var
+                if (stop is not None and start is not None and stop >= 0 and
+                        start >= 0):
                     count = stop - start
                 else:
                     count = var
