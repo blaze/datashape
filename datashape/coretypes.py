@@ -459,7 +459,7 @@ class DataShape(Mono):
         self.composite = True
         self.name = kwds.get('name')
 
-        if self.name is not None:
+        if self.name:
             self.__metaclass__._registry[self.name] = self
 
     def __len__(self):
