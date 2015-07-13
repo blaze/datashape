@@ -1107,6 +1107,8 @@ def to_numpy(ds):
     ((5, 5), dtype('int32'))
     >>> to_numpy(dshape('10 * string[30]'))
     ((10,), dtype('<U30'))
+    >>> to_numpy(dshape('N * int32'))
+    ((-1,), dtype('int32'))
     """
 
     shape = tuple()
