@@ -109,6 +109,8 @@ def _dimensions(ds):
         return 1 + _dimensions(ds.subshape[0])
     if isscalar(ds):
         return 0
+    raise TypeError('Cannot count dimensions of dshape %s which is a %r' %
+                    (ds, type(ds).__name__))
 
 
 def isfixed(ds):

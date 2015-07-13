@@ -1,3 +1,6 @@
+import pytest
+
+from datashape import dshape
 from datashape.predicates import isfixed, _dimensions
 from datashape.predicates import _dimensions
 from datashape.coretypes import TypeVar, int32
@@ -16,3 +19,8 @@ def test_tuple():
     assert _dimensions('1 * (int, string)') == 2
     assert _dimensions('3 * (int, string)') == 2
     assert _dimensions('(int, string)') == 1
+
+
+def test_dimensions_fails():
+    with pytest.raises(TypeError):
+        _dimensions(dshape('(T, U) -> U'))
