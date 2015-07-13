@@ -601,7 +601,8 @@ class DataShape(Mono):
             else:
                 ds = self.subarray(1)._subshape(index[1:])
                 return (self[0] * ds)._subshape(index[0])
-        raise NotImplementedError()
+        raise TypeError('invalid index value %s of type %r' %
+                        (index, type(index).__name__))
 
     def __setstate__(self, state):
         self.__init__(*state)
