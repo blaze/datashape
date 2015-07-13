@@ -28,5 +28,6 @@ Released under BSD license. See LICENSE for details.
 
 |Build Status|
 
-.. |Build Status| image:: https://travis-ci.org/ContinuumIO/datashape.png
+
+.. |Build Status| image:: https://travis-ci.org/ContinuumIO/datashape.svg?branch=master
    :target: https://travis-ci.org/ContinuumIO/datashape
