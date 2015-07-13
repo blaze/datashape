@@ -8,7 +8,9 @@ from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
                                  Ellipsis, null, Time)
-from datashape import dshape, to_numpy_dtype, from_numpy, error
+from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
+                       uint32, Bytes, var, timedelta_, datetime_, date_,
+                       float64, Implements, floating, Tuple, to_numpy)
 from datashape.py2help import unicode
 
 
@@ -352,3 +354,150 @@ def test_null_datashape_string():
 @pytest.mark.xfail(raises=TypeError, reason="Not yet implemented")
 def test_time_with_tz_not_a_string():
     assert Time(tz=datetime.tzinfo())
+
+
+@pytest.mark.xfail(raises=TypeError, reason="Not yet implemented")
+def test_datetime_with_tz_not_a_string():
+    assert DateTime(tz=datetime.tzinfo())
+
+
+@pytest.mark.parametrize('unit', _units)
+def test_timedelta_repr(unit):
+    assert repr(TimeDelta(unit=unit)) == 'TimeDelta(unit=%r)' % unit
+
+
+@pytest.mark.parametrize('unit', _units)
+def test_timedelta_str(unit):
+    assert str(TimeDelta(unit=unit)) == 'timedelta[unit=%r]' % unit
+
+
+def test_unit_construction():
+    with pytest.raises(TypeError):
+        Units(1)
+    with pytest.raises(TypeError):
+        Units('kg', 1)
+
+
+def test_unit_str():
+    assert str(Units('kg')) == "units['kg']"
+    assert (str(Units('counts/time', DataShape(uint32))) ==
+            "units['counts/time', uint32]")
+
+
+def test_bytes_str():
+    assert str(Bytes()) == 'bytes'
+
+
+def test_unsupported_string_encoding():
+    with pytest.raises(ValueError):
+        String(1, 'asdfasdf')
+
+
+def test_all_dims_before_last():
+    with pytest.raises(TypeError):
+        DataShape(uint32, var, uint32)
+
+
+def test_datashape_parameter_count():
+    with pytest.raises(ValueError):
+        DataShape()
+
+
+def test_named_datashape():
+    assert str(DataShape(uint32, name='myuint')) == 'myuint'
+
+
+def test_subarray_invalid_index():
+    with pytest.raises(IndexError):
+        dshape('1 * 2 * 3 * int32').subarray(42)
+
+
+def test_record_subshape_integer_index():
+    ds = DataShape(Record([('a', 'int32')]))
+    assert ds.subshape[0] == int32
+
+
+def test_slice_subshape_negative_step():
+    ds = 30 * Record([('a', 'int32')])
+    assert ds.subshape[:-1] == 29 * Record([('a', 'int32')])
+
+
+def test_slice_subshape_negative_start():
+    ds = var * Record([('a', 'int32')])
+    assert ds.subshape[-1:] == var * Record([('a', 'int32')])
+
+
+def test_slice_subshape_bad_types():
+    ds = var * Record([('a', 'int32')])
+    with pytest.raises(TypeError):
+        assert ds.subshape[1.0]
+
+
+@pytest.mark.parametrize(['base', 'expected'],
+                         zip([timedelta_, date_, datetime_],
+                             ['timedelta64[us]', 'datetime64[D]',
+                              'datetime64[us]']))
+def test_option_to_numpy_dtype(base, expected):
+    assert Option(base).to_numpy_dtype() == np.dtype(expected)
+
+
+@pytest.mark.xfail(raises=TypeError,
+                   reason=('NumPy has no notion of missing for types other '
+                           'than timedelta, datetime, and date'))
+@pytest.mark.parametrize('base', [int32, float64, Record([('a', uint32)])])
+def test_option_to_numpy_dtype_fails(base):
+    Option(base).to_numpy_dtype()
+
+
+@pytest.mark.xfail(raises=NotImplementedError,
+                   reason='DataShape does not know about void types (yet?)')
+def test_from_numpy_dtype_fails():
+    x = np.zeros(2, np.dtype([('a', 'int32')]))
+    CType.from_numpy_dtype(x[0].dtype)
+
+
+def test_ctype_alignment():
+    assert int32.alignment == 4
+
+
+def test_fixed_dimensions_must_be_positive():
+    with pytest.raises(ValueError):
+        Fixed(-1)
+
+
+def test_fixed_comparison():
+    assert Fixed(1) != 'a'
+
+
+def test_typevar_must_be_upper_case():
+    with pytest.raises(ValueError):
+        TypeVar('t')
+
+
+def test_typevar_repr():
+    assert repr(TypeVar('T')) == 'TypeVar(T)'
+
+
+def test_implements():
+    impl = Implements(TypeVar('T'), floating)
+    assert impl.typevar == TypeVar('T')
+    assert impl.typeset == floating
+    assert repr(impl) == 'T: floating'
+
+
+def test_funcproto_attrs():
+    f = dshape('(int32, ?float64) -> {a: ?string}').measure
+    assert f.restype == DataShape(Record([('a', Option(String()))]))
+    assert f.argtypes == (DataShape(int32), DataShape(Option(float64)))
+
+
+def test_tuple_str():
+    assert str(Tuple([Option(int32), float64])) == '(?int32, float64)'
+
+
+def test_to_numpy_fails():
+    ds = var * int32
+    with pytest.raises(TypeError):
+        to_numpy(ds)
+    with pytest.raises(TypeError):
+        to_numpy(Option(int32))
