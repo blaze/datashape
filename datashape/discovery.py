@@ -180,7 +180,7 @@ def discover(s):
     return string
 
 
-@dispatch((tuple, list, set))
+@dispatch((tuple, list, set, frozenset))
 def discover(seq):
     if not seq:
         return var * string

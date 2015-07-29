@@ -8,7 +8,7 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
 from datashape.coretypes import (int64, float64, complex128, string, bool_,
                                  Tuple, Record, date_, datetime_, time_,
                                  timedelta_, int32, var, Option, real, Null,
-                                 TimeDelta, String, string)
+                                 TimeDelta, String)
 from itertools import starmap
 from datashape import dshape
 from datetime import date, time, datetime, timedelta
@@ -35,6 +35,10 @@ def test_list():
 
 def test_set():
     assert discover(set([1])) == 1 * discover(1)
+
+
+def test_frozenset():
+    assert discover(frozenset([1])) == 1 * discover(1)
 
 
 def test_heterogeneous_ordered_container():
