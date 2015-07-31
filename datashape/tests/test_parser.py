@@ -62,8 +62,8 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
                          ct.DataShape(ct.uintptr))
 
     def test_float(self):
-        # self.assertEqual(parse('float16', self.sym),
-        #                 ct.DataShape(ct.float16))
+        self.assertEqual(parse('float16', self.sym),
+                        ct.DataShape(ct.float16))
         self.assertEqual(parse('float32', self.sym),
                          ct.DataShape(ct.float32))
         self.assertEqual(parse('float64', self.sym),

@@ -56,6 +56,7 @@ no_constructor_types = \
      ('uint32', ct.uint32),
      ('uint64', ct.uint64),
      ('uintptr', ct.uint64 if _is_64bit else ct.uint32),
+     ('float16', ct.float16),
      ('float32', ct.float32),
      ('float64', ct.float64),
      ('complex64', ct.complex64),
