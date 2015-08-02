@@ -124,19 +124,28 @@ class DataShapeParser(object):
         """
         datashape : datashape_nooption
                   | QUESTIONMARK datashape_nooption
+                  | EXCLAMATIONMARK datashape_nooption
 
         Returns a datashape object or None.
         """
-        if self.tok.id == lexer.QUESTIONMARK:
+        tok_id = self.tok.id
+        if tok_id in (lexer.QUESTIONMARK, lexer.EXCLAMATIONMARK):
+            metatypes = {
+                lexer.QUESTIONMARK: 'option',
+                lexer.EXCLAMATIONMARK: 'primary_key'
+            }
             self.advance_tok()
             saved_pos = self.pos
             ds = self.parse_datashape_nooption()
             if ds is not None:
                 # Look in the dtype symbol table for the option type constructor
-                option = self.syntactic_sugar(self.sym.dtype_constr, 'option',
-                                              'Option dtype construction',
-                                              saved_pos - 1)
-                return coretypes.DataShape(option(ds))
+                typecons_name = metatypes[tok_id]
+                cons = self.syntactic_sugar(self.sym.dtype_constr,
+                                            typecons_name,
+                                            (typecons_name +
+                                             ' dtype construction'),
+                                            saved_pos - 1)
+                return coretypes.DataShape(cons(ds))
         else:
             return self.parse_datashape_nooption()
 
