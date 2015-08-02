@@ -501,3 +501,10 @@ def test_to_numpy_fails():
         to_numpy(ds)
     with pytest.raises(TypeError):
         to_numpy(Option(int32))
+
+
+def test_primary_key():
+    pk = PrimaryKey(int32)
+    assert str(pk) == '!int32'
+    assert repr(pk) == 'PrimaryKey(ty=ctype("int32"))'
+    assert pk.ty == int32

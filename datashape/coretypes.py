@@ -649,6 +649,15 @@ class Option(MetaType):
         return '?%s' % self.ty
 
 
+class PrimaryKey(MetaType):
+    """Measure types which are primary keys
+    """
+    __slots__ = 'ty',
+
+    def __str__(self):
+        return '!%s' % self.ty
+
+
 class CType(Unit):
     """
     Symbol for a sized type mapping uniquely to a native type.
