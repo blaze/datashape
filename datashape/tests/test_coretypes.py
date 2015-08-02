@@ -508,3 +508,5 @@ def test_primary_key():
     assert str(pk) == '!int32'
     assert repr(pk) == 'PrimaryKey(ty=ctype("int32"))'
     assert pk.ty == int32
+    assert dshape('!int32') == DataShape(PrimaryKey(int32))
+    assert dshape('primary_key[int32]') == dshape('!int32')
