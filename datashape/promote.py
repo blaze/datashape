@@ -16,7 +16,7 @@ def promote(lhs, rhs):
     >>> x = Option(int32)
     >>> y = int64
     >>> promote(x, y)
-    ?int64
+    Option(ty=ctype("int64"))
     >>> promote(int64, int64)
     ctype("int64")
 
@@ -45,12 +45,12 @@ def optionify(lhs, rhs, dshape):
     >>> from datashape import int32, int64, Option
     >>> x = Option(int32)
     >>> x
-    ?int32
+    Option(ty=ctype("int32"))
     >>> y = int64
     >>> y
     ctype("int64")
     >>> optionify(x, y, int64)
-    ?int64
+    Option(ty=ctype("int64"))
     """
     if hasattr(dshape.measure, 'ty'):
         return dshape

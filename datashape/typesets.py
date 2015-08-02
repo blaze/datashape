@@ -175,7 +175,7 @@ def maxtype(measure):
     ctype("int64")
 
     >>> maxtype(Option(float64))
-    ?float64
+    Option(ty=ctype("float64"))
 
     >>> maxtype(bool_)
     ctype("bool")
