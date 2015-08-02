@@ -848,9 +848,11 @@ class ForeignKey(Function):
     def __init__(self, typ, maps_to):
         if not datashape.isscalar(typ):
             raise TypeError('Referrer must be a scalar type')
-        if not datashape.isrecord(maps_to):
-            raise TypeError('Referent must map to a Record datashape')
-        super(ForeignKey, self).__init__(typ, maps_to)
+        if not datashape.isrecord(maps_to) and not isinstance(maps_to.measure,
+                                                              TypeVar):
+            raise TypeError('Referent must map to a Record datashape or a '
+                            'type variable, e.g., (int32) >> T')
+        super(ForeignKey, self).__init__(typ.measure, maps_to.measure)
 
     @property
     def dict(self):
