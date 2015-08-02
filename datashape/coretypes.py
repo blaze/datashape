@@ -13,6 +13,8 @@ from math import ceil
 
 import numpy as np
 
+import datashape
+
 from .py2help import _inttypes, _strtypes, unicode
 from .internal_utils import IndexCallable, isidentifier
 
@@ -816,9 +818,11 @@ class Implements(Mono):
 
 
 class Function(Mono):
+    """Function signature type
     """
-    Used for function signatures.
-    """
+
+    maps_to_char = '->'
+
     def __init__(self, *parameters):
         self._parameters = parameters
 
@@ -830,12 +834,31 @@ class Function(Mono):
     def argtypes(self):
         return self.parameters[:-1]
 
-    # def __repr__(self):
-    #     return " -> ".join(map(repr, self.parameters))
-
     def __str__(self):
-        return '(%s) -> %s' % (', '.join(map(str, self.parameters[:-1])),
-                               self.parameters[-1])
+        return '(%s) %s %s' % (', '.join(map(str, self.argtypes)),
+                               self.maps_to_char,
+                               self.restype)
+
+
+class ForeignKey(Function):
+    """Type for describing foreign key relationships
+    """
+    maps_to_char = '>>'
+
+    def __init__(self, typ, maps_to):
+        if not datashape.isscalar(typ):
+            raise TypeError('Referrer must be a scalar type')
+        if not datashape.isrecord(maps_to):
+            raise TypeError('Referent must map to a Record datashape')
+        super(ForeignKey, self).__init__(typ, maps_to)
+
+    @property
+    def dict(self):
+        return self.restype.dict
+
+    @property
+    def fields(self):
+        return self.restype.fields
 
 
 def _launder(x):
