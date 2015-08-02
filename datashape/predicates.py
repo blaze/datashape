@@ -3,16 +3,17 @@ import numpy as np
 from .util import collect, dshape
 from .internal_utils import remove
 from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
-                        Unit, bool_, date_, datetime_, TypeVar, to_numpy_dtype)
-from .py2help import _strtypes
+                        Unit, bool_, date_, datetime_, TypeVar, to_numpy_dtype,
+                        ForeignKey)
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
 __all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar',
-        'isrecord', 'iscollection', 'isnumeric', 'isboolean', 'isdatelike',
-        'isreal']
+           'isrecord', 'iscollection', 'isnumeric', 'isboolean', 'isdatelike',
+           'isreal']
 
 dimension_types = Fixed, Var, Ellipsis, int
+
 
 def isscalar(ds):
     """ Is this dshape a single dtype?
@@ -28,9 +29,7 @@ def isscalar(ds):
         ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return isinstance(ds, Unit)
+    return isinstance(getattr(ds, 'ty', ds), Unit)
 
 
 def isrecord(ds):
@@ -95,12 +94,16 @@ def _dimensions(ds):
     2
     >>> _dimensions('var * {name: string, amount: int}')
     2
+    >>> _dimensions('var * {name: (int32) >> {a: int32}}')
+    2
     """
     ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    if isinstance(ds, Option):
+    if hasattr(ds, 'ty'):
         return _dimensions(ds.ty)
+    if isinstance(ds, ForeignKey):
+        return max(map(_dimensions, ds.argtypes))
     if isinstance(ds, Record):
         return 1 + max(map(_dimensions, ds.types))
     if isinstance(ds, Tuple):
