@@ -4,15 +4,21 @@ Parser for the datashape grammar.
 
 from __future__ import absolute_import, division, print_function
 
+from itertools import chain
+
 from . import lexer, error
+
 # TODO: Remove coretypes dependency, make 100% of interaction through
 #       the type symbol table
 from . import coretypes
 
 __all__ = ['parse']
 
+
 class DataShapeParser(object):
+
     """A DataShape parser object."""
+
     def __init__(self, ds_str, sym):
         # The datashape string being parsed
         self.ds_str = ds_str
@@ -118,7 +124,7 @@ class DataShapeParser(object):
             if error_pos is not None:
                 self.pos = error_pos
             self.raise_error(('Symbol table missing "%s" ' +
-                             'entry for %s') % (name, dshapemsg))
+                              'entry for %s') % (name, dshapemsg))
 
     def parse_datashape(self):
         """
@@ -138,7 +144,8 @@ class DataShapeParser(object):
             saved_pos = self.pos
             ds = self.parse_datashape_nooption()
             if ds is not None:
-                # Look in the dtype symbol table for the option type constructor
+                # Look in the dtype symbol table for the option type
+                # constructor
                 typecons_name = metatypes[tok_id]
                 cons = self.syntactic_sugar(self.sym.dtype_constr,
                                             typecons_name,
@@ -256,8 +263,8 @@ class DataShapeParser(object):
             self.advance_tok()
             # Ellipses are treated as the "ellipsis" dim
             dim = self.syntactic_sugar(self.sym.dim, 'ellipsis',
-                                           '... dim',
-                                           saved_pos)
+                                       '... dim',
+                                       saved_pos)
             return dim
         else:
             return None
@@ -349,9 +356,9 @@ class DataShapeParser(object):
             else:
                 break
         kwargs = self.parse_homogeneous_list(self.parse_type_kwarg, lexer.COMMA,
-                                           'Expected another keyword argument, ' +
-                                           'positional arguments cannot follow ' +
-                                           'keyword arguments')
+                                             'Expected another keyword argument, ' +
+                                             'positional arguments cannot follow ' +
+                                             'keyword arguments')
         return (args, dict(kwargs) if kwargs else {})
 
     def parse_type_arg(self):
@@ -526,6 +533,7 @@ class DataShapeParser(object):
     def parse_funcproto_or_tuple_type(self):
         """
         funcproto_or_tuple_type : tuple_type RARROW datashape
+                                | tuple_type RSHIFT datashape
                                 | tuple_type
         tuple_type : LPAREN tuple_item_list RPAREN
                    | LPAREN tuple_item_list COMMA RPAREN
@@ -540,31 +548,39 @@ class DataShapeParser(object):
         saved_pos = self.pos
         self.advance_tok()
         dshapes = self.parse_homogeneous_list(self.parse_datashape, lexer.COMMA,
-                                             'Invalid datashape in tuple',
-                                             trailing_sep=True)
+                                              'Invalid datashape in tuple',
+                                              trailing_sep=True)
         if dshapes is None and self.tok.id == lexer.RPAREN:
             self.raise_error('At least one datashape is required in ' +
                              'a tuple datashape')
         if self.tok.id != lexer.RPAREN:
             self.raise_error('Invalid datashape in tuple')
         self.advance_tok()
-        if self.tok.id != lexer.RARROW:
+        if self.tok.id not in (lexer.RARROW, lexer.RSHIFT):
             # Tuples are treated as the "tuple" dtype
             tconstr = self.syntactic_sugar(self.sym.dtype_constr, 'tuple',
                                            '(...) dtype constructor', saved_pos)
             return tconstr(dshapes)
         else:
             # Get the return datashape after the right arrow
+            tok_id = self.tok.id
+            val = self.tok.val
+            types = {
+                lexer.RARROW: 'funcproto',
+                lexer.RSHIFT: 'foreign_key'
+            }
             self.advance_tok()
             ret_dshape = self.parse_datashape()
             if ret_dshape is None:
                 self.raise_error('Expected function prototype return ' +
                                  'datashape')
             # Function Prototypes are treated as the "funcproto" dtype
-            tconstr = self.syntactic_sugar(self.sym.dtype_constr, 'funcproto',
-                                           '(...) -> ... dtype constructor',
+            tconstr = self.syntactic_sugar(self.sym.dtype_constr,
+                                           types[tok_id],
+                                           ('(...) %s ... dtype constructor' %
+                                            val),
                                            saved_pos)
-            return tconstr(dshapes, ret_dshape)
+            return tconstr(*chain(dshapes, [ret_dshape]))
 
 
 def parse(ds_str, sym):

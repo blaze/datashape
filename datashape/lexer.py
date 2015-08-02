@@ -36,6 +36,7 @@ _tokens = [
     ('RPAREN',     r'\)'),
     ('ELLIPSIS',   r'\.\.\.'),
     ('RARROW',     r'->'),
+    ('RSHIFT',     r'>>'),
     ('QUESTIONMARK', r'\?'),
     ('EXCLAMATIONMARK', r'!'),
     ('INTEGER',    r'0(?![0-9])|[1-9][0-9]*', int),
