@@ -518,7 +518,7 @@ def test_foreign_key_fails_with_non_scalar_type():
 
 
 def test_foreign_key_parse():
-    result = dshape("var * {b: (int32) >> {a: !int64}}")
+    result = dshape("var * {b: (int32) => {a: !int64}}")
     measure = Record([('b',
                        ForeignKey(dshape(int32),
                                   DataShape(Record([('a',

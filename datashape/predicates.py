@@ -94,7 +94,7 @@ def _dimensions(ds):
     2
     >>> _dimensions('var * {name: string, amount: int}')
     2
-    >>> _dimensions('var * {name: (int32) >> {a: int32}}')
+    >>> _dimensions('var * {name: (int32) => {a: int32}}')
     2
     """
     ds = dshape(ds)

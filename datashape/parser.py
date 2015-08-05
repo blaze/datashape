@@ -533,7 +533,7 @@ class DataShapeParser(object):
     def parse_funcproto_or_tuple_type(self):
         """
         funcproto_or_tuple_type : tuple_type RARROW datashape
-                                | tuple_type RSHIFT datashape
+                                | tuple_type FATARROW datashape
                                 | tuple_type
         tuple_type : LPAREN tuple_item_list RPAREN
                    | LPAREN tuple_item_list COMMA RPAREN
@@ -556,7 +556,7 @@ class DataShapeParser(object):
         if self.tok.id != lexer.RPAREN:
             self.raise_error('Invalid datashape in tuple')
         self.advance_tok()
-        if self.tok.id not in (lexer.RARROW, lexer.RSHIFT):
+        if self.tok.id not in (lexer.RARROW, lexer.FATARROW):
             # Tuples are treated as the "tuple" dtype
             tconstr = self.syntactic_sugar(self.sym.dtype_constr, 'tuple',
                                            '(...) dtype constructor', saved_pos)
@@ -567,7 +567,7 @@ class DataShapeParser(object):
             val = self.tok.val
             types = {
                 lexer.RARROW: 'funcproto',
-                lexer.RSHIFT: 'foreign_key'
+                lexer.FATARROW: 'foreign_key'
             }
             self.advance_tok()
             ret_dshape = self.parse_datashape()

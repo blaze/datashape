@@ -843,7 +843,7 @@ class Function(Mono):
 class ForeignKey(Function):
     """Type for describing foreign key relationships
     """
-    maps_to_char = '>>'
+    maps_to_char = '=>'
 
     def __init__(self, typ, maps_to):
         if not datashape.isscalar(typ):
@@ -851,7 +851,7 @@ class ForeignKey(Function):
         if not datashape.isrecord(maps_to) and not isinstance(maps_to.measure,
                                                               TypeVar):
             raise TypeError('Referent must map to a Record datashape or a '
-                            'type variable, e.g., (int32) >> T')
+                            'type variable, e.g., (int32) => T')
         super(ForeignKey, self).__init__(typ.measure, maps_to.measure)
 
     @property
