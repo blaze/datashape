@@ -4,7 +4,7 @@ from .util import collect, dshape
 from .internal_utils import remove
 from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
                         Unit, bool_, date_, datetime_, TypeVar, to_numpy_dtype,
-                        ForeignKey)
+                        ForeignKey, MetaType)
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
@@ -100,7 +100,7 @@ def _dimensions(ds):
     ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    if hasattr(ds, 'ty'):
+    if isinstance(ds, MetaType):
         return _dimensions(ds.ty)
     if isinstance(ds, ForeignKey):
         return max(map(_dimensions, ds.argtypes))
