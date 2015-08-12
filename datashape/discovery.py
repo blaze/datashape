@@ -1,10 +1,13 @@
 from __future__ import print_function, division, absolute_import
 
+from datetime import datetime, date, time, timedelta
 import re
 import sys
+from textwrap import dedent
+from warnings import warn
+
 import numpy as np
 from dateutil.parser import parse as dateparse
-from datetime import datetime, date, time, timedelta
 from .dispatch import dispatch
 from itertools import chain
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
@@ -21,7 +24,7 @@ __all__ = ['discover']
 
 
 @dispatch(object)
-def discover(o, **kwargs):
+def discover(obj, **kwargs):
     """ Discover datashape of object
 
     A datashape encodes the datatypes and the shape/length of an object.
@@ -48,10 +51,19 @@ def discover(o, **kwargs):
     See http://datashape.pydata.org/grammar.html#some-simple-examples
     for more examples
     """
-    if hasattr(o, 'shape') and hasattr(o, 'dtype'):
-        return from_numpy(o.shape, o.dtype)
-    raise NotImplementedError("Don't know how to discover type %r" %
-                              type(o).__name__)
+    type_name = type(obj).__name__
+    if hasattr(obj, 'shape') and hasattr(obj, 'dtype'):
+        warn(
+            dedent(
+                """\
+                array-like discovery is deperecated.
+                Please write an explicit discover function for type '%s'.
+                """ % type_name,
+            ),
+            DeprecationWarning,
+        )
+        return from_numpy(obj.shape, obj.dtype)
+    raise NotImplementedError("Don't know how to discover type %r" % type_name)
 
 
 @dispatch(_inttypes)

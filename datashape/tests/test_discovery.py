@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import sys
+from warnings import catch_warnings, simplefilter
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
                                  unite_merge_dimensions, do_one,
@@ -292,7 +293,12 @@ def test_discover_array_like():
             self.shape = shape
             self.dtype = dtype
 
-    assert discover(MyArray((4, 3), 'f4')) == dshape('4 * 3 * float32')
+    with catch_warnings(record=True) as wl:
+        simplefilter('always')
+        assert discover(MyArray((4, 3), 'f4')) == dshape('4 * 3 * float32')
+    assert len(wl) == 1
+    assert issubclass(wl[0].category, DeprecationWarning)
+    assert 'MyArray' in str(wl[0].message)
 
 
 @pytest.mark.xfail(sys.version_info[0] == 2,
