@@ -405,3 +405,19 @@ def descendents(d, x):
         children -= desc
         desc.update(children)
     return desc
+
+
+Mock = None
+try:
+    from unittest.mock import Mock
+except ImportError:
+    try:
+        from mock import Mock
+    except ImportError:
+        pass
+
+if Mock is not None:
+    @dispatch(Mock)
+    def discover(m):
+        raise NotImplementedError("Don't know how to discover mock objects")
+del Mock
