@@ -25,6 +25,9 @@ def _struct(names, dshapes):
     """Simple temporary type constructor for struct"""
     return ct.Record(list(zip(names, dshapes)))
 
+def _funcproto(args, ret):
+    """Simple temporary type constructor for funcproto"""
+    return ct.Function(*(args + [ret]))
 
 def _typevar_dim(name):
     """Simple temporary type constructor for typevar as a dim"""
@@ -73,10 +76,9 @@ constructor_types = \
      ('string', ct.String),
      ('struct', _struct),
      ('tuple', ct.Tuple),
-     ('funcproto', ct.Function),
+     ('funcproto', _funcproto),
      ('typevar', _typevar_dtype),
      ('option', ct.Option),
-     ('map', ct.Map),
      ('time', ct.Time),
      ('datetime', ct.DateTime),
      ('timedelta', ct.TimeDelta),
