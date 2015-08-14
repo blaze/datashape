@@ -7,7 +7,7 @@ import datetime
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time, Map)
+                                 Ellipsis, null, Time, Map, PrimaryKey)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
@@ -508,3 +508,11 @@ def test_map_parse():
     result = dshape("var * {b: map[int32, {a: int64}]}")
     recmeasure = Map(dshape(int32), DataShape(Record([('a', int64)])))
     assert result == DataShape(var, Record([('b', recmeasure)]))
+
+
+def test_parse_primary_key():
+    assert dshape("!int32") == DataShape(PrimaryKey(int32))
+
+
+def test_primary_key():
+    assert PrimaryKey(int32).ty == int32
