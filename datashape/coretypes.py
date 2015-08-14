@@ -651,15 +651,6 @@ class Option(MetaType):
         return '?%s' % self.ty
 
 
-class PrimaryKey(MetaType):
-    """Measure types which are primary keys
-    """
-    __slots__ = 'ty',
-
-    def __str__(self):
-        return '!%s' % self.ty
-
-
 class CType(Unit):
     """
     Symbol for a sized type mapping uniquely to a native type.
@@ -788,12 +779,9 @@ class TypeVar(Unit):
 
     def __init__(self, symbol):
         if not symbol[0].isupper():
-            raise ValueError(('TypeVar symbol %r does not ' +
+            raise ValueError(('TypeVar symbol %r does not '
                               'begin with a capital') % symbol)
         self.symbol = symbol
-
-    def __repr__(self):
-        return "TypeVar(%s)" % self
 
     def __str__(self):
         return str(self.symbol)
@@ -802,8 +790,6 @@ class TypeVar(Unit):
 class Function(Mono):
     """Function signature type
     """
-
-    maps_to_char = '->'
 
     def __init__(self, *parameters):
         self._parameters = parameters
@@ -817,32 +803,21 @@ class Function(Mono):
         return self.parameters[:-1]
 
     def __str__(self):
-        return '(%s) %s %s' % (', '.join(map(str, self.argtypes)),
-                               self.maps_to_char,
+        return '(%s) -> %s' % (', '.join(map(str, self.argtypes)),
                                self.restype)
 
 
-class ForeignKey(Function):
-    """Type for describing foreign key relationships
-    """
-    maps_to_char = '=>'
+class Map(Mono):
+    __slots__ = 'key', 'value'
 
-    def __init__(self, typ, maps_to):
-        if not datashape.isscalar(typ):
-            raise TypeError('Referrer must be a scalar type')
-        if not datashape.isrecord(maps_to) and not isinstance(maps_to.measure,
-                                                              TypeVar):
-            raise TypeError('Referent must map to a Record datashape or a '
-                            'type variable, e.g., (int32) => T')
-        super(ForeignKey, self).__init__(typ.measure, maps_to.measure)
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
 
-    @property
-    def dict(self):
-        return self.restype.dict
-
-    @property
-    def fields(self):
-        return self.restype.fields
+    def __str__(self):
+        return '%s[%s, %s]' % (type(self).__name__.lower(),
+                               self.key,
+                               self.value)
 
 
 def _launder(x):

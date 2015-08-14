@@ -4,7 +4,7 @@ from .util import collect, dshape
 from .internal_utils import remove
 from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
                         Unit, bool_, date_, datetime_, TypeVar, to_numpy_dtype,
-                        ForeignKey, MetaType)
+                        Map, MetaType)
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
@@ -94,7 +94,7 @@ def _dimensions(ds):
     2
     >>> _dimensions('var * {name: string, amount: int}')
     2
-    >>> _dimensions('var * {name: (int32) => {a: int32}}')
+    >>> _dimensions('var * {name: map[int32, {a: int32}]}')
     2
     """
     ds = dshape(ds)
@@ -102,8 +102,8 @@ def _dimensions(ds):
         ds = ds[0]
     if isinstance(ds, MetaType):
         return _dimensions(ds.ty)
-    if isinstance(ds, ForeignKey):
-        return max(map(_dimensions, ds.argtypes))
+    if isinstance(ds, Map):
+        return max(map(_dimensions, ds.key))
     if isinstance(ds, Record):
         return 1 + max(map(_dimensions, ds.types))
     if isinstance(ds, Tuple):

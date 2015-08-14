@@ -7,7 +7,7 @@ import datetime
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time, ForeignKey, PrimaryKey)
+                                 Ellipsis, null, Time, Map)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
@@ -475,7 +475,7 @@ def test_typevar_must_be_upper_case():
 
 
 def test_typevar_repr():
-    assert repr(TypeVar('T')) == 'TypeVar(T)'
+    assert repr(TypeVar('T')) == "TypeVar('T')"
 
 
 def test_funcproto_attrs():
@@ -496,39 +496,15 @@ def test_to_numpy_fails():
         to_numpy(Option(int32))
 
 
-def test_foreign_key():
-    fk = ForeignKey(int32, Record([('a', PrimaryKey(int32))]))
-    assert fk.argtypes == (int32,)
-    assert fk.restype == Record([('a', PrimaryKey(int32))])
-    assert fk.dict == {'a': PrimaryKey(int32)}
-    assert fk.fields == (('a', PrimaryKey(int32)),)
+def test_map():
+    fk = Map(int32, Record([('a', int32)]))
+    assert fk.key == int32
+    assert fk.value == Record([('a', int32)])
+    assert fk.value.dict == {'a': int32}
+    assert fk.value.fields == (('a', int32),)
 
 
-@pytest.mark.xfail(raises=TypeError,
-                   reason="Only scalar types are allowed in fkeys for now")
-def test_foreign_key_fails_with_non_scalar_type():
-    ForeignKey(var * int32, Record([('a', int32)]))
-
-
-def test_foreign_key_parse():
-    result = dshape("var * {b: (int32) => {a: !int64}}")
-    measure = Record([('b',
-                       ForeignKey(dshape(int32),
-                                  DataShape(Record([('a',
-                                                     PrimaryKey(int64))]))))])
-    expected = DataShape(var, measure)
-    assert result == expected
-
-
-def test_foreign_fails_on_non_record_restype():
-    with pytest.raises(TypeError):
-        ForeignKey(float64, int32)
-
-
-def test_primary_key():
-    pk = PrimaryKey(int32)
-    assert str(pk) == '!int32'
-    assert repr(pk) == 'PrimaryKey(ty=ctype("int32"))'
-    assert pk.ty == int32
-    assert dshape('!int32') == DataShape(PrimaryKey(int32))
-    assert dshape('primary_key[int32]') == dshape('!int32')
+def test_map_parse():
+    result = dshape("var * {b: map[int32, {a: int64}]}")
+    recmeasure = Map(dshape(int32), DataShape(Record([('a', int64)])))
+    assert result == DataShape(var, Record([('b', recmeasure)]))
