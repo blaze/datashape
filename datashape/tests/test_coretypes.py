@@ -10,7 +10,7 @@ from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Ellipsis, null, Time)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
-                       float64, Implements, floating, Tuple, to_numpy)
+                       float64, Tuple, to_numpy)
 from datashape.py2help import unicode
 
 
@@ -476,13 +476,6 @@ def test_typevar_must_be_upper_case():
 
 def test_typevar_repr():
     assert repr(TypeVar('T')) == 'TypeVar(T)'
-
-
-def test_implements():
-    impl = Implements(TypeVar('T'), floating)
-    assert impl.typevar == TypeVar('T')
-    assert impl.typeset == floating
-    assert repr(impl) == 'T: floating'
 
 
 def test_funcproto_attrs():

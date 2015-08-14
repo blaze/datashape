@@ -781,24 +781,6 @@ class TypeVar(Unit):
         return str(self.symbol)
 
 
-class Implements(Mono):
-    """
-    Type representing a constraint on the subtype term (which must be a
-    TypeVar), namely that it must belong to a given type set.
-    """
-
-    @property
-    def typevar(self):
-        return self.parameters[0]
-
-    @property
-    def typeset(self):
-        return self.parameters[1]
-
-    def __repr__(self):
-        return '%s: %s' % (self.typevar, self.typeset.name)
-
-
 class Function(Mono):
     """
     Used for function signatures.

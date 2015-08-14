@@ -65,9 +65,3 @@ def _validate(ds, params):
             raise TypeError("Can only use a single wildcard")
         elif isinstance(ds.parameters[-1], T.Ellipsis):
             raise TypeError("Measure may not be an Ellipsis (...)")
-
-        # Check constraints
-        for x in ds.parameters[:-1]:
-            if isinstance(x, T.Implements):
-                # TODO: What about further constraints on the dimensions?
-                raise TypeError("Only the measure can have constraints")
