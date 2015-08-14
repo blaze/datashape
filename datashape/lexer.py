@@ -21,11 +21,12 @@ def _str_val(s):
 
 # A list of the token names, corresponding regex, and value extraction function
 _tokens = [
-    ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*', lambda x: x),
-    ('NAME_UPPER', r'[A-Z][a-zA-Z0-9_]*', lambda x: x),
-    ('NAME_OTHER', r'_[a-zA-Z0-9_]*', lambda x: x),
+    ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*', lambda x : x),
+    ('NAME_UPPER', r'[A-Z][a-zA-Z0-9_]*', lambda x : x),
+    ('NAME_OTHER', r'_[a-zA-Z0-9_]*', lambda x : x),
     ('ASTERISK',   r'\*'),
     ('COMMA',      r','),
+    ('EQUAL',      r'='),
     ('COLON',      r':'),
     ('LBRACKET',   r'\['),
     ('RBRACKET',   r'\]'),
@@ -35,10 +36,7 @@ _tokens = [
     ('RPAREN',     r'\)'),
     ('ELLIPSIS',   r'\.\.\.'),
     ('RARROW',     r'->'),
-    ('FATARROW',     r'=>'),
-    ('EQUAL',      r'='),
     ('QUESTIONMARK', r'\?'),
-    ('EXCLAMATIONMARK', r'!'),
     ('INTEGER',    r'0(?![0-9])|[1-9][0-9]*', int),
     ('STRING', (r"""(?:"(?:[^"\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\["bfnrt]))*")|""" +
                 r"""(?:'(?:[^'\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\['bfnrt]))*')"""),
