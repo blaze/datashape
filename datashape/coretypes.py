@@ -811,8 +811,8 @@ class Map(Mono):
     __slots__ = 'key', 'value'
 
     def __init__(self, key, value):
-        self.key = key
-        self.value = value
+        self.key = _launder(key)
+        self.value = _launder(value)
 
     def __str__(self):
         return '%s[%s, %s]' % (type(self).__name__.lower(),
