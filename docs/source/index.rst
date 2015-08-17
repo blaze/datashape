@@ -9,11 +9,12 @@ Welcome to DataShape's documentation!
 Contents:
 
 .. toctree::
-  
-  overview.rst
-  grammar.rst
-  types.rst
-  pattern_matching.rst
+
+   overview.rst
+   grammar.rst
+   types.rst
+   pattern_matching.rst
+   releases.rst
 
 
 Indices and tables
