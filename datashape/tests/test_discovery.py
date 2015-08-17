@@ -14,11 +14,6 @@ from itertools import starmap
 from datashape import dshape
 from datetime import date, time, datetime, timedelta
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock
-
 
 def test_simple():
     assert discover(3) == int64
@@ -329,6 +324,11 @@ def test_lowest_common_dshape_varlen_strings():
 
 
 def test_discover_mock():
+    try:
+        from unittest.mock import Mock
+    except ImportError:
+        from mock import Mock
+
     # This used to segfault because we were sending mocks into numpy
     with pytest.raises(NotImplementedError):
         discover(Mock())
