@@ -35,9 +35,22 @@ if PY2:
     unicode = __builtin__.unicode
     basestring = __builtin__.basestring
     _strtypes = (str, unicode)
+    range_ = xrange
+    from itertools import izip_longest as zip_longest
 else:
     from functools import reduce
     _inttypes = (int,)
     unicode = str
     basestring = str
     _strtypes = (str,)
+    range_ = range
+    from itertools import zip_longest
+
+try:
+    import pytest
+
+    xfail = pytest.mark.xfail
+    skipif = pytest.mark.skipif
+    raises = pytest.raises
+except ImportError:
+    pass

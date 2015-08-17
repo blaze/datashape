@@ -13,7 +13,7 @@ from math import ceil
 
 import numpy as np
 
-from .py2help import _inttypes, _strtypes, unicode
+from .py2help import _inttypes, _strtypes, unicode, zip_longest
 from .internal_utils import IndexCallable, isidentifier
 
 
@@ -276,6 +276,25 @@ class TimeDelta(Unit):
 
     def to_numpy_dtype(self):
         return np.dtype('timedelta64[%s]' % self.unit)
+
+
+class Range(Unit):
+    cls = MEASURE
+    __slots__ = 'type_',
+
+    def __init__(self, type_):
+        self.type_ = type_
+
+    def __str__(self):
+        return 'range[{type_}]'.format(
+            type_=self.type_
+        )
+
+    def __repr__(self):
+        return '{cls}(type_={type_})'.format(
+            cls=type(self).__name__,
+            type_=repr(self.type_),
+        )
 
 
 class Units(Unit):

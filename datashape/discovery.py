@@ -10,9 +10,9 @@ from itertools import chain
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
-                        Unit, timedelta_, TimeDelta, object_, String)
+                        Unit, timedelta_, TimeDelta, object_, String, Range)
 from .predicates import isdimension, isrecord
-from .py2help import _strtypes, _inttypes
+from .py2help import _strtypes, _inttypes, range_, PY2
 from .internal_utils import _toposort, groupby
 from .util import subclasses
 
@@ -405,3 +405,32 @@ def descendents(d, x):
         children -= desc
         desc.update(children)
     return desc
+
+
+def _tp_eq(a, b):
+    return a == b or b is null
+
+
+@dispatch((range_, slice))
+def discover(r):
+    if isinstance(r, range_) and PY2:
+        raise NotImplementedError(
+            'xrange objects opaque and cannot be discovered'
+        )
+
+    types = map(discover, (r.start, r.stop, r.step))
+    for t in types:
+        if t is not null:
+            f = t
+            break
+    else:
+        # Cannot discover empty range.
+        raise NotImplementedError(
+            "cannot discover an empty '%s'" % type(r).__name__,
+        )
+
+    # Make sure all the types are the same or null.
+    if not all(map(lambda t: f == t or t, types)):
+        raise ValueError('start, stop, and step must all be same type or None')
+
+    return Range(f)
