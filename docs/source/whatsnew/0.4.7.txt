@@ -1,0 +1,36 @@
+Release 0.4.7
+-------------
+
+:Release: 0.4.7
+:Date: TBD
+
+New Features
+------------
+
+* ``discover`` now works on ``frozenset`` objects (:issue:`160`).
+
+New Types
+---------
+
+None
+
+API Changes
+-----------
+
+* Removed the ``Implements`` type. This will eventually be superseded by kind
+  types (:issue:`166`).
+* Auto inference of things with the ``shape`` and ``dtype`` attributes will is
+  deprecated and will be removed in 0.5.0 (:issue:`165`).
+
+Bug Fixes
+---------
+
+* Allow ``float16`` in the parser (:issue:`163`).
+* ``Mock`` objects were causing a segfault (:issue:`165`).
+
+Miscellaneous
+-------------
+
+* Lots of dead code removed (:issue:`156`).
+* Updated versioneer to have a proper PyPI compatible version string
+  (:issue:`157`).
