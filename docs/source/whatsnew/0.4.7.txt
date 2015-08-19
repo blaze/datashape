@@ -27,6 +27,9 @@ Bug Fixes
 
 * Allow ``float16`` in the parser (:issue:`163`).
 * ``Mock`` objects were causing a segfault (:issue:`165`).
+* Fix an issue where calling :func:`~datashape.predicates.isnumeric` on an
+  instance of :class:`~datashape.coretypes.Time` would raise a ``TypeError``
+  (:issue:`167`).
 
 Miscellaneous
 -------------
