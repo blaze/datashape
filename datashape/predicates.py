@@ -3,8 +3,9 @@ import numpy as np
 from .util import collect, dshape
 from .internal_utils import remove
 from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
-                        Unit, bool_, date_, datetime_, TypeVar, to_numpy_dtype,
+                        Unit, date_, datetime_, TypeVar, to_numpy_dtype,
                         Map, MetaType)
+from .typesets import floating, boolean
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
 
@@ -181,13 +182,24 @@ def isnumeric(ds):
     >>> isnumeric('var * {amount: ?int32}')
     False
     """
+    ds = launder(ds)
+
+    try:
+        npdtype = to_numpy_dtype(ds)
+    except TypeError:
+        return False
+    else:
+        return isinstance(ds, Unit) and np.issubdtype(npdtype, np.number)
+
+
+def launder(ds):
     if isinstance(ds, str):
         ds = dshape(ds)
     if isinstance(ds, DataShape):
         ds = ds.measure
     if isinstance(ds, Option):
         ds = ds.ty
-    return isinstance(ds, Unit) and np.issubdtype(to_numpy_dtype(ds), np.number)
+    return ds
 
 
 def isreal(ds):
@@ -200,13 +212,8 @@ def isreal(ds):
     >>> isreal('string')
     False
     """
-    if isinstance(ds, str):
-        ds = dshape(ds)
-    if isinstance(ds, DataShape):
-        ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return isinstance(ds, Unit) and 'float' in str(ds)
+    ds = launder(ds)
+    return isinstance(ds, Unit) and ds in floating
 
 
 def isboolean(ds):
@@ -219,13 +226,7 @@ def isboolean(ds):
     >>> isboolean('int')
     False
     """
-    if isinstance(ds, str):
-        ds = dshape(ds)
-    if isinstance(ds, DataShape):
-        ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return ds == bool_
+    return launder(ds) in boolean
 
 
 def isdatelike(ds):
@@ -238,10 +239,5 @@ def isdatelike(ds):
     >>> isdatelike('?datetime')
     True
     """
-    if isinstance(ds, str):
-        ds = dshape(ds)
-    if isinstance(ds, DataShape):
-        ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return ds in (date_, datetime_)
+    ds = launder(ds)
+    return ds == date_ or ds == datetime_
