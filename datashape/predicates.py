@@ -2,9 +2,9 @@ import numpy as np
 
 from .util import collect, dshape
 from .internal_utils import remove
-from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
-                        Unit, date_, datetime_, TypeVar, to_numpy_dtype,
-                        Map, MetaType)
+from .coretypes import (DataShape, Fixed, Var, Ellipsis, Record, Tuple, Unit,
+                        date_, datetime_, TypeVar, to_numpy_dtype, Map,
+                        MetaType)
 from .typesets import floating, boolean
 
 # https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
@@ -47,9 +47,7 @@ def isrecord(ds):
         ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return isinstance(ds, Record)
+    return isinstance(getattr(ds, 'ty', ds), Record)
 
 
 def isdimension(ds):
@@ -197,9 +195,7 @@ def launder(ds):
         ds = dshape(ds)
     if isinstance(ds, DataShape):
         ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return ds
+    return getattr(ds, 'ty', ds)
 
 
 def isreal(ds):
