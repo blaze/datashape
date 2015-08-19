@@ -13,8 +13,6 @@ from math import ceil
 
 import numpy as np
 
-import datashape
-
 from .py2help import _inttypes, _strtypes, unicode
 from .internal_utils import IndexCallable, isidentifier
 
@@ -143,13 +141,15 @@ class Mono(object):
         else:
             self._parameters = state
 
+    def to_numpy_dtype(self):
+        raise TypeError('DataShape %s is not NumPy-compatible' % self)
+
 
 class Unit(Mono):
     """
     Unit type that does not need to be reconstructed.
     """
-    def to_numpy_dtype(self):
-        raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
+    pass
 
 
 class Ellipsis(Mono):
