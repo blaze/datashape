@@ -6,7 +6,7 @@ from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
                         Unit, date_, datetime_, TypeVar, to_numpy_dtype)
 from .typesets import floating, boolean
 
-# https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
+# https://github.com/blaze/datashape/blob/master/docs/source/types.rst
 
 __all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar',
            'isrecord', 'iscollection', 'isnumeric', 'isboolean', 'isdatelike',
