@@ -41,3 +41,11 @@ else:
     unicode = str
     basestring = str
     _strtypes = (str,)
+
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    class OrderedDict(object):
+        def __new__(cls, *args, **kwargs):
+            raise TypeError('OrderedDict not supported before python 2.7')
