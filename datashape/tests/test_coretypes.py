@@ -1,13 +1,13 @@
+import datetime
 import pickle
 
 import numpy as np
 import pytest
 
-import datetime
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time)
+                                 Ellipsis, null, Time, Decimal)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
@@ -65,6 +65,12 @@ class TestToNumpyDtype(object):
         assert to_numpy_dtype(dshape("2 * timedelta[unit='s']")) == \
             np.dtype('m8[s]')
 
+    def test_decimal(self):
+        assert to_numpy_dtype(dshape('decimal[18,0]')) == np.int64
+        assert to_numpy_dtype(dshape('decimal[7,2]')) == np.float64
+        assert to_numpy_dtype(dshape('decimal[4]')) == np.int16
+        with pytest.raises(TypeError):
+            to_numpy_dtype(dshape('decimal[21]'))
 
 def test_timedelta_repr():
     assert eval(repr(dshape('timedelta'))) == dshape('timedelta')
@@ -322,7 +328,9 @@ def test_duplicate_field_names_fails():
                           'var * {a: int32, b: ?string}',
                           '10 * {a: ?int32, b: var * {c: string[30]}}',
                           '{"weird name": 3 * var * 2 * ?{a: int8, b: ?uint8}}',
-                          'var * {"func-y": (A) -> var * {a: 10 * float64}}'])
+                          'var * {"func-y": (A) -> var * {a: 10 * float64}}',
+                          'decimal[18]',
+                          'var * {amount: ?decimal[9,2]}'])
 def test_repr_of_eval_is_dshape(ds):
     assert eval(repr(dshape(ds))) == dshape(ds)
 
@@ -494,3 +502,14 @@ def test_to_numpy_fails():
         to_numpy(ds)
     with pytest.raises(TypeError):
         to_numpy(Option(int32))
+
+
+def test_decimal_attributes():
+    d1 = Decimal(18)
+    assert d1.precision == 18 and d1.scale == 0
+    d2 = Decimal(4,0)
+    assert d2.precision == 4 and d2.scale == 0
+    d3 = Decimal(11,2)
+    assert d3.precision == 11 and d3.scale == 2
+    with pytest.raises(TypeError):
+        d4 = Decimal()
