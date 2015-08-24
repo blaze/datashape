@@ -446,6 +446,31 @@ class Decimal(Unit):
     def __repr__(self):
         return str(self)
 
+    def to_numpy_dtype(self):
+        """
+        Note that floating-point (scale > 0) precision will be lost converting
+        to NumPy floats.
+
+        >>> Decimal(18).to_numpy_dtype()
+        dtype('int64')
+        >>> Decimal(7,4).to_numpy_dtype()
+        dtype('float64')
+        """
+
+        if self.scale == 0:
+            if self.precision <= 2:
+                return np.dtype(np.int8)
+            elif self.precision <= 4:
+                return np.dtype(np.int16)
+            elif self.precision <= 9:
+                return np.dtype(np.int32)
+            elif self.precision <= 18:
+                return np.dtype(np.int64)
+            else:
+                raise TypeError('Integer Decimal precision > 18 is not NumPy-compatible')
+        else:
+            return np.dtype(np.float64)
+
 
 class DataShape(Mono):
     """
