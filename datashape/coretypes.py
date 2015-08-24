@@ -402,6 +402,51 @@ class String(Unit):
         return np.dtype('O', metadata={'vlen': unicode})
 
 
+class Decimal(Unit):
+    """Decimal type corresponding to IEEE 754-2008 decimal floating point types
+    and SQL Decimal/Numeric types.
+
+    The first parameter passed specifies the number of digits of precision that
+    the Decimal contains. If an additional parameter is given, it represents
+    the scale, or number of digits of precision that are after the decimal
+    point.
+
+    The Decimal type makes no requirement of how it is to be stored in memory,
+    therefore, the number of bytes needed to store a Decimal for a given
+    precision will vary based on the platform where it is used. For example,
+    the IEEE 754-2008 standard states that a decimal32 can only contain up to
+    seven decimal digits of precision, therefore a Decimal with nine digits of
+    precision would require a decimal64, however, the Teradata documentation
+    allows for up to nine digits in a four byte Decimal, therefore Teradata
+    would effectively store a Decimal(9) as a decimal32.
+
+    >>> Decimal(18)
+    decimal[18,0]
+    >>> Decimal(7,4)
+    decimal[7,4]
+    """
+
+    cls = MEASURE
+    __slots__ = 'precision', 'scale'
+
+    def __init__(self, precision, *args):
+        if len(args) == 0:
+            scale = 0
+        elif len(args) == 1:
+            scale = args[0]
+        else:
+            raise TypeError('Too many arguments passed to Decimal')
+
+        self.precision = precision
+        self.scale = scale
+
+    def __str__(self):
+        return 'decimal[{0},{1}]'.format(self.precision, self.scale)
+
+    def __repr__(self):
+        return str(self)
+
+
 class DataShape(Mono):
     """
     Composite container for datashape elements.

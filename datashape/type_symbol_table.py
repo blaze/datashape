@@ -82,7 +82,8 @@ constructor_types = \
      ('time', ct.Time),
      ('datetime', ct.DateTime),
      ('timedelta', ct.TimeDelta),
-     ('units', ct.Units)]
+     ('units', ct.Units),
+     ('decimal', ct.Decimal)]
 
 # dim types with no type constructor
 dim_no_constructor = \
