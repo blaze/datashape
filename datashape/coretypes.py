@@ -7,14 +7,13 @@ This defines the DataShape type system, with unified
 shape and data type.
 """
 
-from collections import OrderedDict
 import ctypes
 import operator
 from math import ceil
 
 import numpy as np
 
-from .py2help import _inttypes, _strtypes, unicode
+from .py2help import _inttypes, _strtypes, unicode, OrderedDict
 from .internal_utils import IndexCallable, isidentifier
 
 
