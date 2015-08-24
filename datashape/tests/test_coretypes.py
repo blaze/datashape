@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import pickle
 
 import numpy as np
@@ -286,6 +287,11 @@ def test_record_string():
 def test_record_with_unicode_name_as_numpy_dtype():
     r = Record([(unicode('a'), 'int32')])
     assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])
+
+
+def test_record_from_OrderedDict():
+    r = Record(OrderedDict([('a', 'int32'), ('b', 'float64')]))
+    assert r.to_numpy_dtype() == np.dtype([('a', 'i4'), ('b', 'f8')])
 
 
 def test_tuple_datashape_to_numpy_dtype():

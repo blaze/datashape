@@ -7,6 +7,7 @@ This defines the DataShape type system, with unified
 shape and data type.
 """
 
+from collections import OrderedDict
 import ctypes
 import operator
 from math import ceil
@@ -877,14 +878,14 @@ class Record(CollectionPrinter, Mono):
         fields : list/OrderedDict of (name, type) entries
             The fields which make up the record.
         """
-        # This is passed in with a OrderedDict so field order is
-        # preserved. Using RecordDecl there is some magic to also
-        # ensure that the fields align in the order they are
-        # declared.
+        if isinstance(fields, OrderedDict):
+            fields = fields.items()
         fields = tuple((_launder_key(k), _launder(v)) for k, v in fields)
         names = [k for k, _ in fields]
         if len(set(names)) != len(names):
-            raise ValueError("duplicate field names found in %s" % names)
+            for name in set(names):
+                names.remove(name)
+            raise ValueError("duplicate field names found: %s" % names)
         self._parameters = (tuple(map(tuple, fields)),)
 
     @property
