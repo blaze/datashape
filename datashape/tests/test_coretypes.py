@@ -1,4 +1,5 @@
 import pickle
+import sys
 
 import numpy as np
 import pytest
@@ -11,7 +12,7 @@ from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
-from datashape.py2help import unicode
+from datashape.py2help import unicode, OrderedDict
 
 
 @pytest.fixture
@@ -286,6 +287,15 @@ def test_record_string():
 def test_record_with_unicode_name_as_numpy_dtype():
     r = Record([(unicode('a'), 'int32')])
     assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])
+
+
+@pytest.mark.xfail(
+    sys.version_info < (2, 7),
+    reason='OrderedDict not supported before 2.7',
+)
+def test_record_from_OrderedDict():
+    r = Record(OrderedDict([('a', 'int32'), ('b', 'float64')]))
+    assert r.to_numpy_dtype() == np.dtype([('a', 'i4'), ('b', 'f8')])
 
 
 def test_tuple_datashape_to_numpy_dtype():
