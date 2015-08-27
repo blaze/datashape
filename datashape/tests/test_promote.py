@@ -15,6 +15,13 @@ def test_option():
     assert z == Option(float64)
 
 
+def test_no_promote_option():
+    x = int64
+    y = Option(float64)
+    z = promote(x, y, promote_option=False)
+    assert z == float64
+
+
 def test_option_in_parent():
     x = int64
     y = Option(float32)
