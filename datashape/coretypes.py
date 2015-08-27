@@ -415,9 +415,9 @@ class Decimal(Unit):
     precision will vary based on the platform where it is used.
 
     >>> Decimal(18)
-    decimal[18,0]
+    Decimal(18, 0)
     >>> Decimal(7,4)
-    decimal[7,4]
+    Decimal(7, 4)
     """
 
     cls = MEASURE
