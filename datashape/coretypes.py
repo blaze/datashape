@@ -424,7 +424,7 @@ class Decimal(Unit):
     __slots__ = 'precision', 'scale'
 
     def __init__(self, precision, *args):
-        if len(args) == 0:
+        if not args:
             scale = 0
         elif len(args) == 1:
             scale = args[0]
@@ -435,10 +435,7 @@ class Decimal(Unit):
         self.scale = scale
 
     def __str__(self):
-        return 'decimal[{0},{1}]'.format(self.precision, self.scale)
-
-    def __repr__(self):
-        return str(self)
+        return 'decimal[{0}, {1}]'.format(self.precision, self.scale)
 
     def to_numpy_dtype(self):
         """
