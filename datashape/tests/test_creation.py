@@ -6,7 +6,7 @@ import unittest
 import pytest
 
 import datashape
-from datashape import dshape, error, DataShape, Record
+from datashape import dshape, error, DataShape, Record, register_encoding
 
 
 class TestDataShapeCreation(unittest.TestCase):
@@ -70,14 +70,14 @@ class TestDataShapeCreation(unittest.TestCase):
 
     def test_string_atom(self):
         self.assertEqual(dshape('string'), dshape("string['U8']"))
-        self.assertEqual(dshape("string['ascii']")[0].encoding, 'A')
-        self.assertEqual(dshape("string['A']")[0].encoding, 'A')
-        self.assertEqual(dshape("string['utf-8']")[0].encoding, 'U8')
-        self.assertEqual(dshape("string['U8']")[0].encoding, 'U8')
-        self.assertEqual(dshape("string['utf-16']")[0].encoding, 'U16')
-        self.assertEqual(dshape("string['U16']")[0].encoding, 'U16')
-        self.assertEqual(dshape("string['utf-32']")[0].encoding, 'U32')
-        self.assertEqual(dshape("string['U32']")[0].encoding, 'U32')
+        self.assertEqual(dshape("string['ascii']")[0].encoding, 'ascii')
+        self.assertEqual(dshape("string['A']")[0].encoding, 'ascii')
+        self.assertEqual(dshape("string['utf-8']")[0].encoding, 'utf-8')
+        self.assertEqual(dshape("string['U8']")[0].encoding, 'utf-8')
+        self.assertEqual(dshape("string['utf-16']")[0].encoding, 'utf-16')
+        self.assertEqual(dshape("string['U16']")[0].encoding, 'utf-16')
+        self.assertEqual(dshape("string['utf-32']")[0].encoding, 'utf-32')
+        self.assertEqual(dshape("string['U32']")[0].encoding, 'utf-32')
 
     def test_time(self):
         self.assertEqual(dshape('time')[0].tz, None)
