@@ -2,6 +2,7 @@ import pytest
 
 import datashape
 from datashape import dshape, has_var_dim, has_ellipsis
+from datashape import register_encoding
 
 
 def test_cat_dshapes():
@@ -70,3 +71,14 @@ def test_has_ellipsis(ds):
                           (dshape("M * int32"),)])
 def test_not_has_ellipsis(ds):
     assert not has_ellipsis(ds)
+
+
+def test_register_codec():
+    with pytest.raises(ValueError):
+        assert dshape("string['utf8mb4']").measure.encoding == 'utf8mb4'
+
+    register_encoding('utf8mb4')
+    assert dshape("string['utf8mb4']").measure.encoding == 'utf8mb4'
+
+    with pytest.raises(ValueError):
+        register_encoding('utf8mb4')
