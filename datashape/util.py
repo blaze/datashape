@@ -2,8 +2,6 @@
 from __future__ import print_function, division, absolute_import
 
 import operator
-import ctypes
-import sys
 
 from . import py2help
 from . import parser
