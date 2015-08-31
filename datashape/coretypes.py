@@ -423,14 +423,7 @@ class Decimal(Unit):
     cls = MEASURE
     __slots__ = 'precision', 'scale'
 
-    def __init__(self, precision, *args):
-        if not args:
-            scale = 0
-        elif len(args) == 1:
-            scale = args[0]
-        else:
-            raise TypeError('Too many arguments passed to Decimal')
-
+    def __init__(self, precision, scale=0):
         self.precision = precision
         self.scale = scale
 
