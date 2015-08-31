@@ -23,6 +23,7 @@ requirements:
 test:
   requires:
     - pytest
+    - mock
   commands:
     - py.test -vx --doctest-modules --pyargs datashape
 
