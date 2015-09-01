@@ -1,5 +1,5 @@
 import os
-from distutils.core import setup
+from setuptools import setup
 
 import versioneer
 
@@ -27,6 +27,7 @@ setup(
     packages=['datashape', 'datashape.tests'],
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
+    zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
