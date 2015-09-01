@@ -13,6 +13,9 @@ source:
 requirements:
   build:
     - python
+    - numpy >=1.7
+    - multipledispatch >=0.4.7
+    - python-dateutil
 
   run:
     - python
