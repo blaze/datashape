@@ -141,13 +141,15 @@ class Mono(object):
         else:
             self._parameters = state
 
+    def to_numpy_dtype(self):
+        raise TypeError('DataShape %s is not NumPy-compatible' % self)
+
 
 class Unit(Mono):
     """
     Unit type that does not need to be reconstructed.
     """
-    def to_numpy_dtype(self):
-        raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
+    pass
 
 
 class Ellipsis(Mono):
@@ -613,11 +615,7 @@ class DataShape(Mono):
 numpy_provides_missing = frozenset((Date, DateTime, TimeDelta))
 
 
-class Option(Mono):
-    """
-    Measure types which may or may not hold data. Makes no
-    indication of how this is implemented in memory.
-    """
+class MetaType(Mono):
     __slots__ = 'ty',
 
     def __init__(self, ds):
@@ -631,15 +629,33 @@ class Option(Mono):
     def itemsize(self):
         return self.ty.itemsize
 
-    def __str__(self):
-        return '?%s' % str(self.ty)
-
-    __repr__ = __str__
+    def __repr__(self):
+        return '%s(%s)' % (type(self).__name__,
+                           ', '.join('%s=%r' % (slot, getattr(self, slot))
+                                     for slot in self.__slots__))
 
     def to_numpy_dtype(self):
         if type(self.ty) in numpy_provides_missing:
             return self.ty.to_numpy_dtype()
         raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
+
+
+class Option(MetaType):
+    """
+    Measure types which may or may not hold data. Makes no
+    indication of how this is implemented in memory.
+    """
+    __slots__ = 'ty',
+
+    def __str__(self):
+        return '?%s' % self.ty
+
+
+class PrimaryKey(MetaType):
+    __slots__ = 'ty',
+
+    def __str__(self):
+        return '!%s' % self.ty
 
 
 class CType(Unit):
@@ -770,21 +786,18 @@ class TypeVar(Unit):
 
     def __init__(self, symbol):
         if not symbol[0].isupper():
-            raise ValueError(('TypeVar symbol %r does not ' +
+            raise ValueError(('TypeVar symbol %r does not '
                               'begin with a capital') % symbol)
         self.symbol = symbol
-
-    def __repr__(self):
-        return "TypeVar(%s)" % self
 
     def __str__(self):
         return str(self.symbol)
 
 
 class Function(Mono):
+    """Function signature type
     """
-    Used for function signatures.
-    """
+
     def __init__(self, *parameters):
         self._parameters = parameters
 
@@ -796,12 +809,22 @@ class Function(Mono):
     def argtypes(self):
         return self.parameters[:-1]
 
-    # def __repr__(self):
-    #     return " -> ".join(map(repr, self.parameters))
+    def __str__(self):
+        return '(%s) -> %s' % (', '.join(map(str, self.argtypes)),
+                               self.restype)
+
+
+class Map(Mono):
+    __slots__ = 'key', 'value'
+
+    def __init__(self, key, value):
+        self.key = _launder(key)
+        self.value = _launder(value)
 
     def __str__(self):
-        return '(%s) -> %s' % (', '.join(map(str, self.parameters[:-1])),
-                               self.parameters[-1])
+        return '%s[%s, %s]' % (type(self).__name__.lower(),
+                               self.key,
+                               self.value)
 
 
 def _launder(x):

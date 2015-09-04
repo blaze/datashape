@@ -101,7 +101,6 @@ class TestDataShapeLexer(unittest.TestCase):
     def test_failing_tokens(self):
         self.check_failing_token('~')
         self.check_failing_token('`')
-        self.check_failing_token('!')
         self.check_failing_token('@')
         self.check_failing_token('$')
         self.check_failing_token('%')

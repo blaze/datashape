@@ -3,14 +3,14 @@ A symbol table object to hold types for the parser.
 """
 
 from __future__ import absolute_import, division, print_function
+import ctypes
+from . import coretypes as ct
 
 __all__ = ['TypeSymbolTable', 'sym']
 
-import ctypes
-
-from . import coretypes as ct
 
 _is_64bit = (ctypes.sizeof(ctypes.c_void_p) == 8)
+
 
 def _complex(tp):
     """Simple temporary type constructor for complex"""
@@ -19,25 +19,31 @@ def _complex(tp):
     elif tp == ct.DataShape(ct.float64):
         return ct.complex_float64
     else:
-        raise TypeError('Cannot contruct a complex type with real component %s' % tp)
+        raise TypeError(
+            'Cannot contruct a complex type with real component %s' % tp)
+
 
 def _struct(names, dshapes):
     """Simple temporary type constructor for struct"""
     return ct.Record(list(zip(names, dshapes)))
 
+
 def _funcproto(args, ret):
     """Simple temporary type constructor for funcproto"""
     return ct.Function(*(args + [ret]))
+
 
 def _typevar_dim(name):
     """Simple temporary type constructor for typevar as a dim"""
     # Note: Presently no difference between dim and dtype typevar
     return ct.TypeVar(name)
 
+
 def _typevar_dtype(name):
     """Simple temporary type constructor for typevar as a dtype"""
     # Note: Presently no difference between dim and dtype typevar
     return ct.TypeVar(name)
+
 
 def _ellipsis(name):
     return ct.Ellipsis(ct.TypeVar(name))
@@ -79,6 +85,8 @@ constructor_types = \
      ('funcproto', _funcproto),
      ('typevar', _typevar_dtype),
      ('option', ct.Option),
+     ('primary_key', ct.PrimaryKey),
+     ('map', ct.Map),
      ('time', ct.Time),
      ('datetime', ct.DateTime),
      ('timedelta', ct.TimeDelta),
@@ -95,7 +103,9 @@ dim_constructor = \
      ('typevar', _typevar_dim),
      ('ellipsis', _ellipsis)]
 
+
 class TypeSymbolTable(object):
+
     """
     This is a class which holds symbols for types and type constructors,
     and is used by the datashape parser to build types during its parsing.
