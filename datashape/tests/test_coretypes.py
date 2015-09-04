@@ -531,7 +531,15 @@ def test_primary_key():
 
 
 def test_multiple_primary_keys():
-    assert (dshape("var * {a: !int32, b: !int64}") ==
+    assert (dshape('var * {a: !int32, b: !int64}') ==
             DataShape(var,
                       Record([('a', PrimaryKey(int32)),
                               ('b', PrimaryKey(int64))])))
+
+
+def test_primary_key_of_map():
+    result = dshape('var * {part: !map[int32, U], supp: !map[int64, T]}')
+    assert isinstance(result.measure['part'], PrimaryKey)
+    assert isinstance(result.measure['part'].ty, Map)
+    assert isinstance(result.measure['supp'], PrimaryKey)
+    assert isinstance(result.measure['supp'].ty, Map)
