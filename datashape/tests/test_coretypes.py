@@ -8,7 +8,7 @@ import datetime
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time, Map, PrimaryKey)
+                                 Ellipsis, null, Time, Map)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
@@ -520,26 +520,3 @@ def test_map_parse():
     result = dshape("var * {b: map[int32, {a: int64}]}")
     recmeasure = Map(dshape(int32), DataShape(Record([('a', int64)])))
     assert result == DataShape(var, Record([('b', recmeasure)]))
-
-
-def test_parse_primary_key():
-    assert dshape("!int32") == DataShape(PrimaryKey(int32))
-
-
-def test_primary_key():
-    assert PrimaryKey(int32).ty == int32
-
-
-def test_multiple_primary_keys():
-    assert (dshape('var * {a: !int32, b: !int64}') ==
-            DataShape(var,
-                      Record([('a', PrimaryKey(int32)),
-                              ('b', PrimaryKey(int64))])))
-
-
-def test_primary_key_of_map():
-    result = dshape('var * {part: !map[int32, U], supp: !map[int64, T]}')
-    assert isinstance(result.measure['part'], PrimaryKey)
-    assert isinstance(result.measure['part'].ty, Map)
-    assert isinstance(result.measure['supp'], PrimaryKey)
-    assert isinstance(result.measure['supp'].ty, Map)

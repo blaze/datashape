@@ -21,8 +21,6 @@ Experimental Types
 
    Experimental types are subject to change.
 
-* Added a :class:`~datashape.coretypes.PrimaryKey` type for representing
-  primary keys (:issue:`164`).
 * Added a :class:`~datashape.coretypes.Map` type for representing key-value
   pairs (:issue:`164`).
 

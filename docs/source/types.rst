@@ -306,18 +306,6 @@ Pointer
 
 Constructs a type whose value is a pointer to values of the target type.
 
-Primary Keys
-------------
-
-::
-
-   primary_key[int64]
-
-Represents a primary key type. This is useful when discovering the types of
-columns in relational databases. Primary keys can also be written as::
-
-   !int64
-
 Maps
 ----
 
