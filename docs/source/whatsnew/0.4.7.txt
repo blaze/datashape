@@ -14,6 +14,19 @@ New Types
 
 None
 
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+* Added a :class:`~datashape.coretypes.PrimaryKey` type for representing
+  primary keys (:issue:`164`).
+* Added a :class:`~datashape.coretypes.Map` type for representing key-value
+  pairs (:issue:`164`).
+
+
 API Changes
 -----------
 
@@ -27,19 +40,6 @@ API Changes
   ``promote(int64, Option(int32), primite_option=True)`` is ``Option(int64)``
   however ``promote(int64, Option(int64), promote_option=False)`` is ``int64``
   (:issue:`172`).
-
-Experimental Types
-------------------
-
-.. warning::
-
-   Experimental types are subject to change.
-
-* Added a :class:`~datashape.coretypes.PrimaryKey` type for representing
-  primary keys (:issue:`164`).
-* Added a :class:`~datashape.coretypes.Map` type for representing key-value
-  pairs (:issue:`164`).
-
 
 Bug Fixes
 ---------
