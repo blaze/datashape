@@ -326,7 +326,7 @@ key relationships in relational databases, but is meant to be useful outside of
 that context as well. For example the type of a column of Python dictionaries
 whose keys are strings and values are 64-bit integers would be written as::
 
-   map[string, int64]
+   var * map[string, int64]
 
 Date, Time, and DateTime
 ------------------------
