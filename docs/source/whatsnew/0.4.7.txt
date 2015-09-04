@@ -28,15 +28,6 @@ API Changes
   however ``promote(int64, Option(int64), promote_option=False)`` is ``int64``
   (:issue:`172`).
 
-Experimental Features
----------------------
-
-.. warning::
-
-   Experimental features are subject to change.
-
-None
-
 Experimental Types
 ------------------
 
