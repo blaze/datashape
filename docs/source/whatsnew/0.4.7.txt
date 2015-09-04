@@ -33,14 +33,16 @@ Experimental Features
 
 .. warning::
 
-   Experimental features and types are subject to change and/or removal. Please
-   take care when using these in production systems.
-
+   Experimental features are subject to change.
 
 None
 
 Experimental Types
 ------------------
+
+.. warning::
+
+   Experimental types are subject to change.
 
 * Added a :class:`~datashape.coretypes.PrimaryKey` type for representing
   primary keys (:issue:`164`).
