@@ -1,20 +1,22 @@
-.. DataShape documentation master file, created by
-   sphinx-quickstart on Thu Dec 12 15:38:28 2013.
+.. datashape documentation master file, created by
+   sphinx-quickstart on Fri Sep  4 08:31:10 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to DataShape's documentation!
+Welcome to datashape's documentation!
 =====================================
 
 Contents:
 
 .. toctree::
+   :maxdepth: 2
 
-   overview.rst
-   grammar.rst
-   types.rst
-   pattern_matching.rst
-   releases.rst
+   overview
+   types
+   pattern_matching
+   grammar
+   releases
+
 
 
 Indices and tables
