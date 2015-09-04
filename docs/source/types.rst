@@ -300,9 +300,33 @@ for example ``?3 * float32`` is syntactic sugar for ``option[3 * float32]``.
 Pointer
 -------
 
-``pointer[target=2 * 3 * int32]``
+::
+
+   pointer[target=2 * 3 * int32]
 
 Constructs a type whose value is a pointer to values of the target type.
+
+Primary Keys
+------------
+
+::
+
+   primary_key[int64]
+
+Represents a primary key type. This is useful when discovering the types of
+columns in relational databases. Primary keys can also be written as::
+
+   !int64
+
+Maps
+----
+
+Represents the type of key-value pairs. This is used for discovering foreign
+key relationships in relational databases, but is meant to be useful outside of
+that context as well. For example the type of a column of Python dictionaries
+whose keys are strings and values are 64-bit integers would be written as::
+
+   map[string, int64]
 
 Date, Time, and DateTime
 ------------------------
