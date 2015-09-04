@@ -615,7 +615,11 @@ class DataShape(Mono):
 numpy_provides_missing = frozenset((Date, DateTime, TimeDelta))
 
 
-class MetaType(Mono):
+class Option(Mono):
+    """
+    Measure types which may or may not hold data. Makes no
+    indication of how this is implemented in memory.
+    """
     __slots__ = 'ty',
 
     def __init__(self, ds):
@@ -629,6 +633,9 @@ class MetaType(Mono):
     def itemsize(self):
         return self.ty.itemsize
 
+    def __str__(self):
+        return '?%s' % self.ty
+
     def __repr__(self):
         return '%s(%s)' % (type(self).__name__,
                            ', '.join('%s=%r' % (slot, getattr(self, slot))
@@ -638,24 +645,6 @@ class MetaType(Mono):
         if type(self.ty) in numpy_provides_missing:
             return self.ty.to_numpy_dtype()
         raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
-
-
-class Option(MetaType):
-    """
-    Measure types which may or may not hold data. Makes no
-    indication of how this is implemented in memory.
-    """
-    __slots__ = 'ty',
-
-    def __str__(self):
-        return '?%s' % self.ty
-
-
-class PrimaryKey(MetaType):
-    __slots__ = 'ty',
-
-    def __str__(self):
-        return '!%s' % self.ty
 
 
 class CType(Unit):

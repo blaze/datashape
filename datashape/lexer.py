@@ -37,7 +37,6 @@ _tokens = [
     ('ELLIPSIS',   r'\.\.\.'),
     ('RARROW',     r'->'),
     ('QUESTIONMARK', r'\?'),
-    ('EXCLAMATIONMARK', '!'),
     ('INTEGER',    r'0(?![0-9])|[1-9][0-9]*', int),
     ('STRING', (r"""(?:"(?:[^"\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\["bfnrt]))*")|""" +
                 r"""(?:'(?:[^'\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\['bfnrt]))*')"""),

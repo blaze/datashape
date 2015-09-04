@@ -85,7 +85,6 @@ constructor_types = \
      ('funcproto', _funcproto),
      ('typevar', _typevar_dtype),
      ('option', ct.Option),
-     ('primary_key', ct.PrimaryKey),
      ('map', ct.Map),
      ('time', ct.Time),
      ('datetime', ct.DateTime),

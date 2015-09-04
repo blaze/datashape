@@ -4,7 +4,7 @@ from .util import collect, dshape
 from .internal_utils import remove
 from .coretypes import (DataShape, Fixed, Var, Ellipsis, Record, Tuple, Unit,
                         date_, datetime_, TypeVar, to_numpy_dtype, Map,
-                        MetaType)
+                        Option)
 from .typesets import floating, boolean
 
 # https://github.com/blaze/datashape/blob/master/docs/source/types.rst
@@ -99,7 +99,7 @@ def _dimensions(ds):
     ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    if isinstance(ds, MetaType):
+    if isinstance(ds, Option):
         return _dimensions(ds.ty)
     if isinstance(ds, Map):
         return max(map(_dimensions, ds.key))

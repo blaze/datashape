@@ -129,8 +129,7 @@ class DataShapeParser(object):
         Returns a datashape object or None.
         """
         tok = self.tok
-        constructors = {lexer.QUESTIONMARK: 'option',
-                        lexer.EXCLAMATIONMARK: 'primary_key'}
+        constructors = {lexer.QUESTIONMARK: 'option'}
         if tok.id in constructors:
             self.advance_tok()
             saved_pos = self.pos
