@@ -528,3 +528,10 @@ def test_parse_primary_key():
 
 def test_primary_key():
     assert PrimaryKey(int32).ty == int32
+
+
+def test_multiple_primary_keys():
+    assert (dshape("var * {a: !int32, b: !int64}") ==
+            DataShape(var,
+                      Record([('a', PrimaryKey(int32)),
+                              ('b', PrimaryKey(int64))])))
