@@ -28,6 +28,26 @@ API Changes
   however ``promote(int64, Option(int64), promote_option=False)`` is ``int64``
   (:issue:`172`).
 
+Experimental Features
+---------------------
+
+.. warning::
+
+   Experimental features and types are subject to change and/or removal. Please
+   take care when using these in production systems.
+
+
+None
+
+Experimental Types
+------------------
+
+* Added a :class:`~datashape.coretypes.PrimaryKey` type for representing
+  primary keys (:issue:`164`).
+* Added a :class`~datashape.coretypes.Map` type for representing key-values
+  pairs (:issue:`164`).
+
+
 Bug Fixes
 ---------
 
