@@ -15,6 +15,17 @@ New Types
 
 None
 
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+* Added a :class:`~datashape.coretypes.Map` type for representing key-value
+  pairs (:issue:`164`).
+
+
 API Changes
 -----------
 
@@ -22,6 +33,12 @@ API Changes
   types (:issue:`166`).
 * Auto inference of things with the ``shape`` and ``dtype`` attributes will is
   deprecated and will be removed in 0.5.0 (:issue:`165`).
+* :func:`~datashape.promote.promote` now accepts a new boolean argument
+  ``promote_option`` that says if ``Option(a), a`` should promote up to an
+  option type. This defaults to ``True``. For example:
+  ``promote(int64, Option(int32), primite_option=True)`` is ``Option(int64)``
+  however ``promote(int64, Option(int64), promote_option=False)`` is ``int64``
+  (:issue:`172`).
 
 Bug Fixes
 ---------

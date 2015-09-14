@@ -8,7 +8,7 @@ import pytest
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time, Decimal)
+                                 Ellipsis, null, Time, Map, Decimal)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
@@ -493,7 +493,7 @@ def test_typevar_must_be_upper_case():
 
 
 def test_typevar_repr():
-    assert repr(TypeVar('T')) == 'TypeVar(T)'
+    assert repr(TypeVar('T')) == "TypeVar('T')"
 
 
 def test_funcproto_attrs():
@@ -512,6 +512,22 @@ def test_to_numpy_fails():
         to_numpy(ds)
     with pytest.raises(TypeError):
         to_numpy(Option(int32))
+
+
+def test_map():
+    fk = Map(int32, Record([('a', int32)]))
+    assert fk.key == int32
+    assert fk.value == Record([('a', int32)])
+    assert fk.value.dict == {'a': int32}
+    assert fk.value.fields == (('a', int32),)
+    with pytest.raises(TypeError):
+        fk.to_numpy_dtype()
+
+
+def test_map_parse():
+    result = dshape("var * {b: map[int32, {a: int64}]}")
+    recmeasure = Map(dshape(int32), DataShape(Record([('a', int64)])))
+    assert result == DataShape(var, Record([('b', recmeasure)]))
 
 
 def test_decimal_attributes():
