@@ -43,6 +43,12 @@ else:
     _strtypes = (str,)
 
 
+def with_metaclass(metaclass, *bases):
+    """Helper for using metaclasses in a py2/3 compatible way.
+    """
+    return metaclass('_', bases, {})
+
+
 try:
     from collections import OrderedDict
 except ImportError:

@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import
 
+from itertools import chain
 import operator
 import ctypes
 import sys
 
-from . import py2help
-from . import parser
-from . import type_symbol_table
-from .validation import validate
-from . import coretypes
-from itertools import chain
+from .. import py2help
+from .. import parser
+from .. import type_symbol_table
+from ..validation import validate
+from .. import coretypes
 
 
 __all__ = 'dshape', 'dshapes', 'has_var_dim', 'has_ellipsis', 'cat_dshapes'
