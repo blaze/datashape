@@ -8,6 +8,7 @@ New Features
 ------------
 
 * ``discover`` now works on ``frozenset`` objects (:issue:`160`).
+* Add ``Decimal`` as a valid type. (:issue:`118`).
 
 New Types
 ---------
