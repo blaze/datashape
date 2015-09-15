@@ -35,6 +35,37 @@ def _fmt_path(path):
 
 @dispatch(DataShape, DataShape)
 def assert_dshape_equal(a, b, check_dim=True, path=None, **kwargs):
+    """Assert that two dshapes are equal, providing an informative error
+    message when they are not equal.
+
+    Parameters
+    ----------
+    a, b : dshape
+        The dshapes to check for equality.
+    check_dim : bool, optional
+        Check shapes for equality with respect to their dimensions.
+        default: True
+    check_tz : bool, optional
+        Checks times and datetimes for equality with respect to timezones.
+        default: True
+    check_timedelta_unit : bool, optional
+        Checks timedeltas for equality with respect to their unit (us, ns, ...).
+        default: True
+    check_str_encoding : bool, optional
+        Checks strings for equality with respect to their encoding.
+        default: True
+    check_str_fixlen : bool, optional
+        Checks string for equality with respect to their fixlen.
+        default: True
+    check_record_order : bool, optional
+        Checks records for equality with respect to the order of the fields.
+        default: True
+
+    Raises
+    ------
+    AssertionError
+        Raised when the two dshapes are not equal.
+    """
     ashape = a.shape
     bshape = b.shape
 
@@ -88,7 +119,7 @@ def _check_slots(a, b, path=None, **kwargs):
     Raises
     ------
     AssertionError
-        When the slots of ``a`` and ``b`` are not equal.
+        Raised when the slots of ``a`` and ``b`` are not equal.
     """
     if type(a) != type(b):
         return _base_case(a, b, path=path, **kwargs)
