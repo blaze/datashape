@@ -8,7 +8,6 @@ New Features
 ------------
 
 * ``discover`` now works on ``frozenset`` objects (:issue:`160`).
-* Add ``Decimal`` as a valid type. (:issue:`118`).
 
 New Types
 ---------
@@ -24,6 +23,7 @@ Experimental Types
 
 * Added a :class:`~datashape.coretypes.Map` type for representing key-value
   pairs (:issue:`164`).
+* Add ``Decimal`` as a valid type. (:issue:`118`).
 
 
 API Changes
