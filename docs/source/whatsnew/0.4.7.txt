@@ -35,7 +35,7 @@ API Changes
 * :func:`~datashape.promote.promote` now accepts a new boolean argument
   ``promote_option`` that says if ``Option(a), a`` should promote up to an
   option type. This defaults to ``True``. For example:
-  ``promote(int64, Option(int32), primite_option=True)`` is ``Option(int64)``
+  ``promote(int64, Option(int32), promote_option=True)`` is ``Option(int64)``
   however ``promote(int64, Option(int64), promote_option=False)`` is ``int64``
   (:issue:`172`).
 
