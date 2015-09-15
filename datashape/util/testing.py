@@ -93,32 +93,25 @@ def _check_slots(a, b, path=None, **kwargs):
     if type(a) != type(b):
         return _base_case(a, b, path=path, **kwargs)
 
-    if a.__slots__ != b.__slots__:
-        raise AssertionError(
-            'slots mismatch: %r != %r\n%s' % (
-                a.__slots__, b.__slots__, _fmt_path(path),
-            ),
-        )
+    assert a.__slots__ == b.__slots__, 'slots mismatch: %r != %r\n%s' % (
+        a.__slots__, b.__slots__, _fmt_path(path),
+    )
     if path is None:
         path = ()
     for slot in a.__slots__:
-        if getattr(a, slot) != getattr(b, slot):
-            path += '.' + slot,
-            raise AssertionError(
-                "%s %ss do not match: %r != %r\n%s" % (
-                    type(a).__name__.lower(),
-                    slot,
-                    getattr(a, slot),
-                    getattr(b, slot),
-                    _fmt_path(path),
-                ),
+        assert getattr(a, slot) == getattr(b, slot), \
+            "%s %ss do not match: %r != %r\n%s" % (
+                type(a).__name__.lower(),
+                slot,
+                getattr(a, slot),
+                getattr(b, slot),
+                _fmt_path(path + ('.' + slot,)),
             )
 
 
 @assert_dshape_equal.register(object, object)
 def _base_case(a, b, path=None, **kwargs):
-    if a != b:
-        raise AssertionError('%s != %s\n%s' % (a, b, _fmt_path(path)))
+    assert a == b, '%s != %s\n%s' % (a, b, _fmt_path(path))
 
 
 @dispatch((DateTime, Time), (DateTime, Time))
@@ -140,13 +133,9 @@ def assert_dshape_equal(a, b, path=None, **kwargs):
     if path is None:
         path = ()
 
-    if a.unit != b.unit:
-        path += '.unit',
-        raise AssertionError(
-            '%s units do not match: %r != %s\n%s' % (
-                type(a).__name__.lower(), a.unit, b.unit, _fmt_path(path),
-            ),
-        )
+    assert a.unit == b.unit, '%s units do not match: %r != %s\n%s' % (
+        type(a).__name__.lower(), a.unit, b.unit, _fmt_path(path + ('.unit',)),
+    )
 
     path.append('.tp')
     assert_dshape_equal(a.tp, b.tp, **kwargs)
@@ -161,20 +150,17 @@ def assert_dshape_equal(a,
                         **kwargs):
     if path is None:
         path = ()
-    if check_str_encoding and a.encoding != b.encoding:
-        path += '.encoding',
-        raise AssertionError(
+    if check_str_encoding:
+        assert a.encoding == b.encoding, \
             'string encodings do not match: %r != %r\n%s' % (
-                a.encoding, b.encoding, _fmt_path(path),
-            ),
-        )
-    if check_str_fixlen and a.fixlen != b.fixlen:
-        path += '.fixlen',
-        raise AssertionError(
+                a.encoding, b.encoding, _fmt_path(path + ('.encoding',)),
+            )
+
+    if check_str_fixlen:
+        assert a.fixlen == b.fixlen, \
             'string fixlens do not match: %d != %d\n%s' % (
-                a.fixlen, b.fixlen, _fmt_path(path),
-            ),
-        )
+                a.fixlen, b.fixlen, _fmt_path(path + ('.fixlen',)),
+            )
 
 
 @dispatch(Option, Option)
@@ -190,11 +176,9 @@ def assert_dshape_equal(a, b, check_record_order=True, path=None, **kwargs):
     afields = a.fields
     bfields = b.fields
 
-    if len(afields) != len(bfields):
-        raise AssertionError(
-            'records have mismatched field counts: %d != %d\n%r != %r\n%s' % (
-                len(afields), len(bfields), a, b, _fmt_path(path),
-            ),
+    assert len(afields) == len(bfields), \
+        'records have mismatched field counts: %d != %d\n%r != %r\n%s' % (
+            len(afields), len(bfields), a, b, _fmt_path(path),
         )
 
     if not check_record_order:
@@ -206,10 +190,9 @@ def assert_dshape_equal(a, b, check_record_order=True, path=None, **kwargs):
     for n, ((aname, afield), (bname, bfield)) in enumerate(
             zip(afields, bfields)):
 
-        if aname != bname:
-            raise AssertionError(
-                'record field name at position %d does not match: %r != %r\n%s'
-                % (n, aname, bname, _fmt_path(path)),
+        assert aname == bname, \
+            'record field name at position %d does not match: %r != %r\n%s' % (
+                n, aname, bname, _fmt_path(path),
             )
 
         assert_dshape_equal(
@@ -222,12 +205,11 @@ def assert_dshape_equal(a, b, check_record_order=True, path=None, **kwargs):
 
 @dispatch(Tuple, Tuple)
 def assert_dshape_equal(a, b, path=None, **kwargs):
-    if len(a.dshapes) != len(b.dshapes):
-        raise AssertionError(
-            'tuples have mismatched field counts: %d !+ %d\n%r != %r\n%s' % (
-                len(a.dshapes), len(b.dshapes), a, b, _fmt_path(path),
-            ),
+    assert len(a.dshapes) == len(b.dshapes), \
+        'tuples have mismatched field counts: %d !+ %d\n%r != %r\n%s' % (
+            len(a.dshapes), len(b.dshapes), a, b, _fmt_path(path),
         )
+
     if path is None:
         path = ()
     path += '.dshapes',
