@@ -106,21 +106,6 @@ class Slotted(with_metaclass(ABCMeta)):
 
 @assert_dshape_equal.register(Slotted, Slotted)
 def _check_slots(a, b, path=None, **kwargs):
-    """Genric checker that iterates over the ``__slots__`` and asserts they
-    are equal. This is a non-recursive function.
-
-    Parameters
-    ----------
-    a, b : Slotted
-        The shapes to check.
-    path : iteratable of str, optional
-        The path to the current ``a`` and ``b`` values.
-
-    Raises
-    ------
-    AssertionError
-        Raised when the slots of ``a`` and ``b`` are not equal.
-    """
     if type(a) != type(b):
         return _base_case(a, b, path=path, **kwargs)
 
