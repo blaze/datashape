@@ -19,7 +19,7 @@ class TestDataShapeStr(unittest.TestCase):
         self.assertEqual(str(datashape.float64), 'float64')
         self.assertEqual(str(datashape.string), 'string')
         self.assertEqual(str(datashape.String(3)), 'string[3]')
-        self.assertEqual(str(datashape.String('A')), "string['A']")
+        self.assertEqual(str(datashape.String('A')), "string['ascii']")
 
     def test_structure_str(self):
         self.assertEqual(str(dshape('{x:int32, y:int64}')),
@@ -43,7 +43,7 @@ class TestDataShapeStr(unittest.TestCase):
         self.assertEqual(repr(datashape.string),    'ctype("string")')
         self.assertEqual(repr(datashape.String(3)), 'ctype("string[3]")')
         self.assertEqual(repr(datashape.String('A')),
-                         """ctype("string['A']")""")
+                         """ctype("string['ascii']")""")
 
     def test_structure_repr(self):
         self.assertEqual(repr(dshape('{x:int32, y:int64}')),

@@ -8,6 +8,7 @@ from .user import *
 from .type_symbol_table import *
 from .discovery import discover
 from .util import *
+from .internal_utils import register_encoding
 from .promote import promote, optionify
 from .error import DataShapeSyntaxError
 

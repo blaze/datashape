@@ -129,7 +129,7 @@ class TestFromNumPyDtype(object):
 
     def test_string(self):
         assert (from_numpy((2,), np.dtype('U7')) ==
-                dshape('2 * string[7, "U32"]'))
+                dshape('2 * string[7, "utf32"]'))
 
     def test_string_from_CType_classmethod(self):
         assert CType.from_numpy_dtype(np.dtype('S7')) == String(7, 'A')

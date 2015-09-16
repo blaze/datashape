@@ -8,6 +8,7 @@ from __future__ import print_function, division, absolute_import
 
 import keyword
 import re
+import codecs
 
 
 class IndexCallable(object):
@@ -121,3 +122,44 @@ def groupby(func, seq):
 def isidentifier(s):
     return (keyword.iskeyword(s) or
             re.match(r'^[_a-zA-Z][_a-zA-Z0-9]*$', s) is not None)
+
+
+_canonical_string_encodings = {}
+
+
+def register_encoding(encoding, canonical_name=None):
+    """Register an encoding with datashape.
+
+    Parameters
+    ----------
+    encoding : str
+        The name of the encoding
+    canonical_name : str, optional
+        The canonical name of the encoding. Defaults to `name`.
+    """
+    try:
+        canonical_name = codecs.lookup(encoding).name
+    except LookupError:
+        pass
+    else:
+        raise ValueError('encoding %r already registered and maps to %r' %
+                         (encoding, canonical_name))
+    if encoding in _canonical_string_encodings:
+        raise ValueError('encoding %r already registered and maps to %r' %
+                         (encoding, _canonical_string_encodings[encoding]))
+    return _canonical_string_encodings.setdefault(encoding,
+                                                  canonical_name or encoding)
+
+
+def canonical_name(encoding):
+    try:
+        return codecs.lookup(encoding).name
+    except LookupError:
+        if encoding not in _canonical_string_encodings:
+            raise ValueError('Invalid encoding %r. You can register the '
+                             'encoding with datashape.register_encoding(%r)' %
+                             (encoding, encoding))
+        return _canonical_string_encodings[encoding]
+
+
+register_encoding('A', 'ascii')

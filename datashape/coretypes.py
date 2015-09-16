@@ -9,12 +9,13 @@ shape and data type.
 
 import ctypes
 import operator
+
 from math import ceil
 
 import numpy as np
 
 from .py2help import _inttypes, _strtypes, unicode, OrderedDict
-from .internal_utils import IndexCallable, isidentifier
+from .internal_utils import IndexCallable, isidentifier, canonical_name
 
 
 # Classes of unit types.
@@ -313,31 +314,13 @@ class Bytes(Unit):
         return 'bytes'
 
 
-_canonical_string_encodings = {
-    u'A' : u'A',
-    u'ascii' : u'A',
-    u'U8' : u'U8',
-    u'utf-8' : u'U8',
-    u'utf_8' : u'U8',
-    u'utf8' : u'U8',
-    u'U16' : u'U16',
-    u'utf-16' : u'U16',
-    u'utf_16' : u'U16',
-    u'utf16' : u'U16',
-    u'U32' : u'U32',
-    u'utf-32' : u'U32',
-    u'utf_32' : u'U32',
-    u'utf32' : u'U32'
-}
-
-
 class String(Unit):
     """ String container
 
     >>> String()
     ctype("string")
     >>> String(10, 'ascii')
-    ctype("string[10, 'A']")
+    ctype("string[10, 'ascii']")
     """
     cls = MEASURE
     __slots__ = 'fixlen', 'encoding'
@@ -353,30 +336,24 @@ class String(Unit):
         if len(args) == 2:
             fixlen, encoding = args
 
-        encoding = encoding or 'U8'
+        encoding = encoding or u'utf8'
         if isinstance(encoding, str):
             encoding = unicode(encoding)
-        try:
-            encoding = _canonical_string_encodings[encoding]
-        except KeyError:
-            raise ValueError('Unsupported string encoding %s' %
-                             repr(encoding))
 
-        self.encoding = encoding
+        self.encoding = canonical_name(encoding)
         self.fixlen = fixlen
 
-        # Put it in a canonical form
-
     def __str__(self):
-        if self.fixlen is None and self.encoding == 'U8':
+        utf8 = canonical_name('utf8')
+        if self.fixlen is None and self.encoding == utf8:
             return 'string'
-        elif self.fixlen is not None and self.encoding == 'U8':
+        elif self.fixlen is not None and self.encoding == utf8:
             return 'string[%i]' % self.fixlen
-        elif self.fixlen is None and self.encoding != 'U8':
-            return 'string[%s]' % repr(self.encoding).strip('u')
+        elif self.fixlen is None and self.encoding != utf8:
+            return 'string[%s]' % repr(self.encoding).lstrip('u')
         else:
             return 'string[%i, %s]' % (self.fixlen,
-                                       repr(self.encoding).strip('u'))
+                                       repr(self.encoding).lstrip('u'))
 
     def __repr__(self):
         s = str(self)
@@ -393,10 +370,8 @@ class String(Unit):
         dtype('S30')
         """
         if self.fixlen:
-            if self.encoding == 'A':
-                return np.dtype('S%d' % self.fixlen)
-            else:
-                return np.dtype('U%d' % self.fixlen)
+            prefix = 'S' if self.encoding == 'ascii' else 'U'
+            return np.dtype('%s%d' % (prefix, self.fixlen))
 
         from .py2help import unicode
         # Create a dtype with metadata indicating it's
@@ -728,7 +703,7 @@ class CType(Unit):
         >>> CType.from_numpy_dtype(dtype('M8'))
         DateTime(None)
         >>> CType.from_numpy_dtype(dtype('U30'))
-        ctype("string[30, 'U32']")
+        ctype("string[30, 'utf-32']")
         """
         try:
             return Type.lookup_type(dt.name)
@@ -1182,7 +1157,7 @@ def from_numpy(shape, dt):
     dshape("5 * 5 * int32")
 
     >>> from_numpy((10,), dtype('S10'))
-    dshape("10 * string[10, 'A']")
+    dshape("10 * string[10, 'ascii']")
     """
     dtype = np.dtype(dt)
 
