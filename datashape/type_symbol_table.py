@@ -49,59 +49,65 @@ def _ellipsis(name):
     return ct.Ellipsis(ct.TypeVar(name))
 
 # data types with no type constructor
-no_constructor_types = \
-    [('bool', ct.bool_),
-     ('int8', ct.int8),
-     ('int16', ct.int16),
-     ('int32', ct.int32),
-     ('int64', ct.int64),
-     ('intptr', ct.int64 if _is_64bit else ct.int32),
-     ('int', ct.int32),
-     ('uint8', ct.uint8),
-     ('uint16', ct.uint16),
-     ('uint32', ct.uint32),
-     ('uint64', ct.uint64),
-     ('uintptr', ct.uint64 if _is_64bit else ct.uint32),
-     ('float16', ct.float16),
-     ('float32', ct.float32),
-     ('float64', ct.float64),
-     ('complex64', ct.complex64),
-     ('complex128', ct.complex128),
-     ('real', ct.float64),
-     ('complex', ct.complex_float64),
-     ('string', ct.string),
-     ('json', ct.json),
-     ('date', ct.date_),
-     ('time', ct.time_),
-     ('datetime', ct.datetime_),
-     ('timedelta', ct.timedelta_)]
+no_constructor_types = [
+    ('bool', ct.bool_),
+    ('int8', ct.int8),
+    ('int16', ct.int16),
+    ('int32', ct.int32),
+    ('int64', ct.int64),
+    ('intptr', ct.int64 if _is_64bit else ct.int32),
+    ('int', ct.int32),
+    ('uint8', ct.uint8),
+    ('uint16', ct.uint16),
+    ('uint32', ct.uint32),
+    ('uint64', ct.uint64),
+    ('uintptr', ct.uint64 if _is_64bit else ct.uint32),
+    ('float16', ct.float16),
+    ('float32', ct.float32),
+    ('float64', ct.float64),
+    ('complex64', ct.complex64),
+    ('complex128', ct.complex128),
+    ('real', ct.float64),
+    ('complex', ct.complex_float64),
+    ('string', ct.string),
+    ('json', ct.json),
+    ('date', ct.date_),
+    ('time', ct.time_),
+    ('datetime', ct.datetime_),
+    ('timedelta', ct.timedelta_),
+    ('null', ct.null),
+    ('void', ct.void),
+]
 
 # data types with a type constructor
-constructor_types = \
-    [('complex', _complex),
-     ('string', ct.String),
-     ('struct', _struct),
-     ('tuple', ct.Tuple),
-     ('funcproto', _funcproto),
-     ('typevar', _typevar_dtype),
-     ('option', ct.Option),
-     ('map', ct.Map),
-     ('time', ct.Time),
-     ('datetime', ct.DateTime),
-     ('timedelta', ct.TimeDelta),
-     ('units', ct.Units),
-     ('decimal', ct.Decimal)]
+constructor_types = [
+    ('complex', _complex),
+    ('string', ct.String),
+    ('struct', _struct),
+    ('tuple', ct.Tuple),
+    ('funcproto', _funcproto),
+    ('typevar', _typevar_dtype),
+    ('option', ct.Option),
+    ('map', ct.Map),
+    ('time', ct.Time),
+    ('datetime', ct.DateTime),
+    ('timedelta', ct.TimeDelta),
+    ('units', ct.Units),
+    ('decimal', ct.Decimal),
+]
 
 # dim types with no type constructor
-dim_no_constructor = \
-    [('var', ct.Var()),
-     ('ellipsis', ct.Ellipsis())]
+dim_no_constructor = [
+    ('var', ct.Var()),
+    ('ellipsis', ct.Ellipsis()),
+]
 
 # dim types with a type constructor
-dim_constructor = \
-    [('fixed', ct.Fixed),
-     ('typevar', _typevar_dim),
-     ('ellipsis', _ellipsis)]
+dim_constructor = [
+    ('fixed', ct.Fixed),
+    ('typevar', _typevar_dim),
+    ('ellipsis', _ellipsis),
+]
 
 
 class TypeSymbolTable(object):

@@ -1,0 +1,39 @@
+Release |version|
+-----------------
+
+:Release: |version|
+:Date: TBD
+
+New Features
+------------
+
+None
+
+New Types
+---------
+
+None
+
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+None
+
+API Changes
+-----------
+
+None
+
+Bug Fixes
+---------
+
+* Makes the parser recognize ``null`` and ``void`` (:issue:`183`).
+
+Miscellaneous
+-------------
+
+None
