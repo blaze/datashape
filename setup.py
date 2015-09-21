@@ -24,7 +24,7 @@ setup(
     license='BSD',
     keywords='data language',
     url='http://datashape.readthedocs.org/en/latest/',
-    packages=['datashape', 'datashape.tests'],
+    packages=['datashape', 'datashape.util', 'datashape.tests'],
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
     zip_safe=False,
