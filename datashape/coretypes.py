@@ -16,7 +16,7 @@ import datashape
 
 import numpy as np
 
-from .py2help import _inttypes, _strtypes, unicode, OrderedDict
+from .py2help import _inttypes, _strtypes, unicode, OrderedDict, with_metaclass
 from .internal_utils import IndexCallable, isidentifier
 
 
@@ -937,8 +937,37 @@ class CollectionPrinter(object):
         return 'dshape(%s)' % strs
 
 
-class Record(CollectionPrinter, Mono):
+class RecordMeta(type):
+    @staticmethod
+    def _unpack_slice(s, idx):
+        if not isinstance(s, slice):
+            raise TypeError(
+                'invalid field specification at position %d.\n'
+                'fields must be formatted like: {name}::{type}' % idx,
+            )
 
+        name, type_ = packed = s.start, s.step
+        if name is None:
+            raise TypeError('missing field name at position %d' % idx)
+        if type_ is None and s.stop is None:
+            raise TypeError(
+                "missing type for field '%s' at position %d" % (name, idx))
+        if s.stop is not None:
+            raise TypeError(
+                "unexpected slice stop for field '%s' at position %d.\n"
+                "hint: you might be missing a second ':'" % (name, idx),
+            )
+
+        return packed
+
+    def __getitem__(self, types):
+        if not isinstance(types, tuple):
+            types = types,
+
+        return self(map(self._unpack_slice, types, range(len(types))))
+
+
+class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
     """
     A composite data structure of ordered fields mapped to types.
 
@@ -1007,6 +1036,9 @@ class Record(CollectionPrinter, Mono):
 
     def __str__(self):
         return pprint(self)
+
+
+R = Record  # Alias for record literals
 
 
 def _format_categories(cats, n=10):

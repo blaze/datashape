@@ -1,15 +1,36 @@
 import datetime
+from operator import getitem
 import pickle
 import sys
 
 import numpy as np
 import pytest
 
-from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
-                                 Fixed, Option, _units, _unit_aliases, Date,
-                                 DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time, Map, Decimal,
-                                 Categorical)
+from datashape.coretypes import (
+    CType,
+    Categorical,
+    DataShape,
+    Date,
+    DateTime,
+    Decimal,
+    Ellipsis,
+    Fixed,
+    Map,
+    Option,
+    R,
+    Record,
+    String,
+    Time,
+    TimeDelta,
+    Type,
+    TypeVar,
+    _unit_aliases,
+    _units,
+    int32,
+    int64,
+    null,
+    real,
+)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
@@ -580,3 +601,24 @@ def test_decimal_attributes():
     assert d3.precision == 11 and d3.scale == 2
     with pytest.raises(TypeError):
         d4 = Decimal()
+
+
+def test_record_literal():
+    assert R is Record
+    assert R['a'::'int32'] == R([('a', 'int32')])
+    assert R['a'::'int32', 'b'::'int64'] == R([('a', 'int32'), ('b', 'int64')])
+
+    invalids = (
+        # Non slice objects
+        None,
+        0,
+        'a',
+        # Invalid slices
+        np.s_[:],
+        np.s_['a':],
+        np.s_[:'a'],
+        np.s_['a':'int32'],  # single ':'
+        np.s_[::'int32'],
+    )
+    for invalid in invalids:
+        assert pytest.raises(TypeError, getitem, R, invalid)
