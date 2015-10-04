@@ -135,13 +135,13 @@ bools = {'False': False,
 
 
 def timeparse(x, formats=('%H:%M:%S', '%H:%M:%S.%f')):
-    e = None
+    msg = ''
     for format in formats:
         try:
             return datetime.strptime(x, format).time()
         except ValueError as e:  # raises if it doesn't match the format
-            pass
-    raise e
+            msg = str(e)
+    raise ValueError(msg)
 
 
 def deltaparse(x):
@@ -167,6 +167,10 @@ def deltaparse(x):
 string_coercions = int, float, bools.__getitem__, deltaparse, timeparse
 
 
+def is_zero_time(t):
+    return not (t.hour or t.minute or t.second or t.microsecond)
+
+
 @dispatch(_strtypes)
 def discover(s):
     if not s:
@@ -175,7 +179,7 @@ def discover(s):
     for f in string_coercions:
         try:
             return discover(f(s))
-        except:
+        except (ValueError, KeyError):
             pass
 
     # don't let dateutil parse things like sunday, monday etc into dates
@@ -187,7 +191,7 @@ def discover(s):
     except ValueError:
         pass
     else:
-        return date_ if not d.time() else datetime_
+        return date_ if is_zero_time(d.time()) else datetime_
 
     return string
 
