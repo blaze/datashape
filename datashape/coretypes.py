@@ -64,7 +64,7 @@ class Mono(object):
     @property
     def parameters(self):
         if hasattr(self, '__slots__'):
-            return tuple([getattr(self, slot) for slot in self.__slots__])
+            return tuple(getattr(self, slot) for slot in self.__slots__)
         else:
             return self._parameters
 
@@ -78,7 +78,11 @@ class Mono(object):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.info())
+        try:
+            h = self._hash
+        except AttributeError:
+            h = self._hash = hash(self.info())
+        return h
 
     @property
     def shape(self):

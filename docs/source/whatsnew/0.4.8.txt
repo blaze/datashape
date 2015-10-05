@@ -32,6 +32,8 @@ Bug Fixes
 ---------
 
 * Makes the parser recognize ``null`` and ``void`` (:issue:`183`).
+* Cache the datashape hash value to avoid potentially expensive recomputation
+  during memoization (:issue:`184`).
 
 Miscellaneous
 -------------
