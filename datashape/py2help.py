@@ -45,6 +45,30 @@ else:
 
 def with_metaclass(metaclass, *bases):
     """Helper for using metaclasses in a py2/3 compatible way.
+
+    Parameters
+    ----------
+    metaclass : type
+        The metaclass to apply.
+    bases : iterable of type
+        The types to subclass.
+
+    Notes
+    -----
+    The translations for python 2 and 3 look like:
+
+    ::
+        # Compat
+        class C(with_metaclass(M, A, B)):
+            pass
+
+        # Pyton 2
+        class C(A, B):
+            __metaclass__ = M
+
+        # Python 3
+        class C(A, B, metaclass=M):
+            pass
     """
     return metaclass('_', bases, {})
 

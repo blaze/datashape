@@ -608,17 +608,19 @@ def test_record_literal():
     assert R['a'::'int32'] == R([('a', 'int32')])
     assert R['a'::'int32', 'b'::'int64'] == R([('a', 'int32'), ('b', 'int64')])
 
-    invalids = (
-        # Non slice objects
-        None,
-        0,
-        'a',
-        # Invalid slices
-        np.s_[:],
-        np.s_['a':],
-        np.s_[:'a'],
-        np.s_['a':'int32'],  # single ':'
-        np.s_[::'int32'],
-    )
-    for invalid in invalids:
-        assert pytest.raises(TypeError, getitem, R, invalid)
+
+@pytest.mark.parametrize('invalid', (
+    # Non slice objects
+    None,
+    0,
+    'a',
+    # Invalid slices
+    np.s_[:],
+    np.s_['a':],
+    np.s_[:'a'],
+    np.s_['a':'int32'],  # single ':'
+    np.s_[::'int32'],
+    np.s_[0::'int32'],
+))
+def test_invalid_record_literal(invalid):
+    assert pytest.raises(TypeError, getitem, R, invalid)

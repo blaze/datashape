@@ -16,7 +16,14 @@ import datashape
 
 import numpy as np
 
-from .py2help import _inttypes, _strtypes, unicode, OrderedDict, with_metaclass
+from .py2help import (
+    OrderedDict,
+    _inttypes,
+    _strtypes,
+    basestring,
+    unicode,
+    with_metaclass,
+)
 from .internal_utils import IndexCallable, isidentifier
 
 
@@ -949,6 +956,12 @@ class RecordMeta(type):
         name, type_ = packed = s.start, s.step
         if name is None:
             raise TypeError('missing field name at position %d' % idx)
+        if not isinstance(name, basestring):
+            raise TypeError(
+                "field name at position %d ('%s') was not a string" % (
+                    idx, name,
+                ),
+            )
         if type_ is None and s.stop is None:
             raise TypeError(
                 "missing type for field '%s' at position %d" % (name, idx))
