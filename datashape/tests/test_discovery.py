@@ -78,8 +78,11 @@ def test_datetime():
         assert discover(dt) == datetime_
 
 
-def test_date():
+def test_string_date():
     assert discover('2014-01-01') == date_
+
+
+def test_python_date():
     assert discover(date(2014, 1, 1)) == date_
 
 
