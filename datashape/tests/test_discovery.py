@@ -337,5 +337,5 @@ def test_discover_mock():
         discover(Mock())
 
 
-def test_string_with_inf():
+def test_string_with_overflow():
     assert discover('INF US Equity') == string
