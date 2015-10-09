@@ -52,6 +52,8 @@ Bug Fixes
 * Makes the parser recognize ``null`` and ``void`` (:issue:`183`).
 * Cache the datashape hash value to avoid potentially expensive recomputation
   during memoization (:issue:`184`).
+* Fix discovery of strings that start with things that look like numbers
+  (:issue:`190`).
 
 Miscellaneous
 -------------
