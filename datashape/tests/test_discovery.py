@@ -335,3 +335,7 @@ def test_discover_mock():
     # This used to segfault because we were sending mocks into numpy
     with pytest.raises(NotImplementedError):
         discover(Mock())
+
+
+def test_string_with_inf():
+    assert discover('INF US Equity') == string
