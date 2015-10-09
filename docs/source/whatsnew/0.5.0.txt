@@ -26,6 +26,7 @@ None
 API Changes
 -----------
 
+* ``datashape`` no longer supports Python 2.6 (:issue:`189`).
 * The default ``repr`` of ``Mono`` subclass now prints out the slot
   names as keyword arguments next to their values (:issue:`188`).
   For example

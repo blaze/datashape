@@ -12,13 +12,13 @@ source:
 
 requirements:
   build:
-    - python
+    - python >=2.7
     - numpy >=1.7
     - multipledispatch >=0.4.7
     - python-dateutil
 
   run:
-    - python
+    - python >=2.7
     - numpy >=1.7
     - multipledispatch >=0.4.7
     - python-dateutil
