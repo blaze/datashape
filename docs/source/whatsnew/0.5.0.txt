@@ -27,6 +27,24 @@ API Changes
 -----------
 
 * ``datashape`` no longer supports Python 2.6 (:issue:`189`).
+* The default ``repr`` of ``Mono`` subclass now prints out the slot
+  names as keyword arguments next to their values (:issue:`188`).
+  For example
+
+  Instead of
+
+  .. code-block:: python
+
+     >>> from datashape import Decimal
+     >>> Decimal(precision=11, scale=2)
+     Decimal(11, 2)
+
+  we have
+
+  .. code-block:: python
+
+     >>> Decimal(precision=11, scale=2)
+     Decimal(precision=11, scale=2)
 
 Bug Fixes
 ---------
