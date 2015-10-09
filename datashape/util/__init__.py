@@ -3,8 +3,6 @@ from __future__ import print_function, division, absolute_import
 
 from itertools import chain
 import operator
-import ctypes
-import sys
 
 from .. import py2help
 from .. import parser
@@ -97,7 +95,7 @@ def collect(pred, expr):
     >>> predicate = lambda term: isinstance(term, Unit)
     >>> dshape = dshape('var * {value: int64, loc: 2 * int32}')
     >>> sorted(set(collect(predicate, dshape)), key=str)
-    [Fixed(2), ctype("int32"), ctype("int64"), Var()]
+    [Fixed(val=2), ctype("int32"), ctype("int64"), Var()]
     >>> from datashape import var, int64
     >>> sorted(set(collect(predicate, [var, int64])), key=str)
     [ctype("int64"), Var()]

@@ -493,7 +493,7 @@ def test_typevar_must_be_upper_case():
 
 
 def test_typevar_repr():
-    assert repr(TypeVar('T')) == "TypeVar('T')"
+    assert repr(TypeVar('T')) == "TypeVar(symbol='T')"
 
 
 def test_funcproto_attrs():
