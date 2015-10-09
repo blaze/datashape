@@ -188,7 +188,7 @@ def discover(s):
 
     try:
         d = dateparse(s)
-    except ValueError:
+    except (ValueError, OverflowError):  # OverflowError for stuff like 'INF...'
         pass
     else:
         return date_ if is_zero_time(d.time()) else datetime_
