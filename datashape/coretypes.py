@@ -434,9 +434,11 @@ class Decimal(Unit):
     Examples
     --------
     >>> Decimal(18)
-    Decimal(18, 0)
-    >>> Decimal(7,4)
-    Decimal(7, 4)
+    Decimal(precision=18, scale=0)
+    >>> Decimal(7, 4)
+    Decimal(precision=7, scale=4)
+    >>> Decimal(precision=11, scale=2)
+    Decimal(precision=11, scale=2)
     """
 
     cls = MEASURE
@@ -747,7 +749,7 @@ class CType(Unit):
         >>> CType.from_numpy_dtype(dtype('i8'))
         ctype("int64")
         >>> CType.from_numpy_dtype(dtype('M8'))
-        DateTime(None)
+        DateTime(tz=None)
         >>> CType.from_numpy_dtype(dtype('U30'))
         ctype("string[30, 'U32']")
         """
