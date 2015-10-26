@@ -17,7 +17,7 @@ import datashape
 
 import numpy as np
 
-from .py2help import _inttypes, _strtypes, unicode
+from .py2help import _inttypes, _strtypes, unicode, OrderedDict
 from .internal_utils import IndexCallable, isidentifier
 
 
@@ -51,6 +51,7 @@ class Type(type):
 
 
 class Mono(object):
+
     """
     Monotype are unqualified 0 parameters.
 
@@ -68,7 +69,7 @@ class Mono(object):
     @property
     def parameters(self):
         if hasattr(self, '__slots__'):
-            return tuple([getattr(self, slot) for slot in self.__slots__])
+            return tuple(getattr(self, slot) for slot in self.__slots__)
         else:
             return self._parameters
 
@@ -82,7 +83,11 @@ class Mono(object):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.info())
+        try:
+            h = self._hash
+        except AttributeError:
+            h = self._hash = hash(self.info())
+        return h
 
     @property
     def shape(self):
@@ -92,12 +97,12 @@ class Mono(object):
         return 1
 
     def __getitem__(self, key):
-        lst = [self]
-        return lst[key]
+        return [self][key]
 
     def __repr__(self):
         return '%s(%s)' % (type(self).__name__,
-                           ", ".join(map(repr, self.parameters)))
+                           ', '.join('%s=%r' % (slot, getattr(self, slot))
+                                     for slot in self.__slots__))
 
     # Monotypes are their own measure
     @property
@@ -111,7 +116,7 @@ class Mono(object):
         """
         if leading >= 1:
             raise IndexError(('Not enough dimensions in data shape '
-                            'to remove %d leading dimensions.') % leading)
+                              'to remove %d leading dimensions.') % leading)
         else:
             return self
 
@@ -145,16 +150,22 @@ class Mono(object):
         else:
             self._parameters = state
 
+    def to_numpy_dtype(self):
+        raise TypeError('DataShape %s is not NumPy-compatible' % self)
+
 
 class Unit(Mono):
+
     """
     Unit type that does not need to be reconstructed.
     """
-    def to_numpy_dtype(self):
-        raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
+
+    def __str__(self):
+        return type(self).__name__.lower()
 
 
 class Ellipsis(Mono):
+
     """Ellipsis (...). Used to indicate a variable number of dimensions.
 
     E.g.:
@@ -176,24 +187,23 @@ class Ellipsis(Mono):
 
 
 class Null(Unit):
+
     """The null datashape."""
-    def __str__(self):
-        return 'null'
+    pass
 
 
 class Date(Unit):
+
     """ Date type """
     cls = MEASURE
     __slots__ = ()
-
-    def __str__(self):
-        return 'date'
 
     def to_numpy_dtype(self):
         return np.dtype('datetime64[D]')
 
 
 class Time(Unit):
+
     """ Time type """
     cls = MEASURE
     __slots__ = 'tz',
@@ -205,13 +215,15 @@ class Time(Unit):
         self.tz = tz
 
     def __str__(self):
+        basename = super(Time, self).__str__()
         if self.tz is None:
-            return 'time'
+            return basename
         else:
-            return 'time[tz=%r]' % str(self.tz)
+            return '%s[tz=%r]' % (basename, str(self.tz))
 
 
 class DateTime(Unit):
+
     """ DateTime type """
     cls = MEASURE
     __slots__ = 'tz',
@@ -224,10 +236,11 @@ class DateTime(Unit):
         self.tz = tz
 
     def __str__(self):
+        basename = super(DateTime, self).__str__()
         if self.tz is None:
-            return 'datetime'
+            return basename
         else:
-            return 'datetime[tz=%r]' % str(self.tz)
+            return '%s[tz=%r]' % (basename, str(self.tz))
 
     def to_numpy_dtype(self):
         return np.dtype('datetime64[us]')
@@ -236,9 +249,17 @@ class DateTime(Unit):
 _units = set(['ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y'])
 
 
-_unit_aliases = {'year': 'Y', 'week': 'W', 'day': 'D', 'date': 'D', 'hour':
-                 'h', 'second': 's', 'millisecond': 'ms', 'microsecond':
-                 'us', 'nanosecond': 'ns'}
+_unit_aliases = {
+    'year': 'Y',
+    'week': 'W',
+    'day': 'D',
+    'date': 'D',
+    'hour': 'h',
+    'second': 's',
+    'millisecond': 'ms',
+    'microsecond': 'us',
+    'nanosecond': 'ns'
+}
 
 
 def normalize_time_unit(s):
@@ -275,9 +296,6 @@ class TimeDelta(Unit):
     def __str__(self):
         return 'timedelta[unit=%r]' % self.unit
 
-    def __repr__(self):
-        return '%s(unit=%r)' % (type(self).__name__, self.unit)
-
     def to_numpy_dtype(self):
         return np.dtype('timedelta64[%s]' % self.unit)
 
@@ -307,33 +325,32 @@ class Units(Unit):
 
 
 class Bytes(Unit):
+
     """ Bytes type """
     cls = MEASURE
     __slots__ = ()
 
-    def __str__(self):
-        return 'bytes'
-
 
 _canonical_string_encodings = {
-    u'A' : u'A',
-    u'ascii' : u'A',
-    u'U8' : u'U8',
-    u'utf-8' : u'U8',
-    u'utf_8' : u'U8',
-    u'utf8' : u'U8',
-    u'U16' : u'U16',
-    u'utf-16' : u'U16',
-    u'utf_16' : u'U16',
-    u'utf16' : u'U16',
-    u'U32' : u'U32',
-    u'utf-32' : u'U32',
-    u'utf_32' : u'U32',
-    u'utf32' : u'U32'
+    u'A': u'A',
+    u'ascii': u'A',
+    u'U8': u'U8',
+    u'utf-8': u'U8',
+    u'utf_8': u'U8',
+    u'utf8': u'U8',
+    u'U16': u'U16',
+    u'utf-16': u'U16',
+    u'utf_16': u'U16',
+    u'utf16': u'U16',
+    u'U32': u'U32',
+    u'utf-32': u'U32',
+    u'utf_32': u'U32',
+    u'utf32': u'U32'
 }
 
 
 class String(Unit):
+
     """ String container
 
     >>> String()
@@ -386,7 +403,6 @@ class String(Unit):
 
     def to_numpy_dtype(self):
         """
-
         >>> String().to_numpy_dtype()
         dtype('O')
         >>> String(30).to_numpy_dtype()
@@ -406,7 +422,73 @@ class String(Unit):
         return np.dtype('O', metadata={'vlen': unicode})
 
 
+class Decimal(Unit):
+
+    """Decimal type corresponding to SQL Decimal/Numeric types.
+
+    The first parameter passed specifies the number of digits of precision that
+    the Decimal contains. If an additional parameter is given, it represents
+    the scale, or number of digits of precision that are after the decimal
+    point.
+
+    The Decimal type makes no requirement of how it is to be stored in memory,
+    therefore, the number of bytes needed to store a Decimal for a given
+    precision will vary based on the platform where it is used.
+
+    Examples
+    --------
+    >>> Decimal(18)
+    Decimal(precision=18, scale=0)
+    >>> Decimal(7, 4)
+    Decimal(precision=7, scale=4)
+    >>> Decimal(precision=11, scale=2)
+    Decimal(precision=11, scale=2)
+    """
+
+    cls = MEASURE
+    __slots__ = 'precision', 'scale'
+
+    def __init__(self, precision, scale=0):
+        self.precision = precision
+        self.scale = scale
+
+    def __str__(self):
+        return 'decimal[precision={precision}, scale={scale}]'.format(
+            precision=self.precision, scale=self.scale
+        )
+
+    def to_numpy_dtype(self):
+        """Convert a decimal datashape to a NumPy dtype.
+
+        Note that floating-point (scale > 0) precision will be lost converting
+        to NumPy floats.
+
+        Examples
+        --------
+        >>> Decimal(18).to_numpy_dtype()
+        dtype('int64')
+        >>> Decimal(7,4).to_numpy_dtype()
+        dtype('float64')
+        """
+
+        if self.scale == 0:
+            if self.precision <= 2:
+                return np.dtype(np.int8)
+            elif self.precision <= 4:
+                return np.dtype(np.int16)
+            elif self.precision <= 9:
+                return np.dtype(np.int32)
+            elif self.precision <= 18:
+                return np.dtype(np.int64)
+            else:
+                raise TypeError(
+                    'Integer Decimal precision > 18 is not NumPy-compatible')
+        else:
+            return np.dtype(np.float64)
+
+
 class DataShape(Mono):
+
     """
     Composite container for datashape elements.
 
@@ -450,12 +532,12 @@ class DataShape(Mono):
             self._parameters = tuple(map(_launder, parameters))
             if getattr(self._parameters[-1], 'cls', MEASURE) != MEASURE:
                 raise TypeError(('Only a measure can appear on the'
-                                ' last position of a datashape, not %s') %
+                                 ' last position of a datashape, not %s') %
                                 repr(self._parameters[-1]))
             for dim in self._parameters[:-1]:
                 if getattr(dim, 'cls', DIMENSION) != DIMENSION:
                     raise TypeError(('Only dimensions can appear before the'
-                                    ' last position of a datashape, not %s') %
+                                     ' last position of a datashape, not %s') %
                                     repr(dim))
         else:
             raise ValueError('the data shape should be constructed from 2 or'
@@ -618,6 +700,7 @@ numpy_provides_missing = frozenset((Date, DateTime, TimeDelta))
 
 
 class Option(Mono):
+
     """
     Measure types which may or may not hold data. Makes no
     indication of how this is implemented in memory.
@@ -636,9 +719,7 @@ class Option(Mono):
         return self.ty.itemsize
 
     def __str__(self):
-        return '?%s' % str(self.ty)
-
-    __repr__ = __str__
+        return '?%s' % self.ty
 
     def to_numpy_dtype(self):
         if type(self.ty) in numpy_provides_missing:
@@ -647,6 +728,7 @@ class Option(Mono):
 
 
 class CType(Unit):
+
     """
     Symbol for a sized type mapping uniquely to a native type.
     """
@@ -671,7 +753,7 @@ class CType(Unit):
         >>> CType.from_numpy_dtype(dtype('i8'))
         ctype("int64")
         >>> CType.from_numpy_dtype(dtype('M8'))
-        DateTime(None)
+        DateTime(tz=None)
         >>> CType.from_numpy_dtype(dtype('U30'))
         ctype("string[30, 'U32']")
         """
@@ -706,11 +788,12 @@ class CType(Unit):
         """
         To Numpy dtype.
         """
-        # Fixup the complex type to how numpy does it
-        s = self.name
-        s = {'complex[float32]': 'complex64',
-             'complex[float64]': 'complex128'}.get(s, s)
-        return np.dtype(s)
+        # TODO: Fixup the complex type to how numpy does it
+        name = self.name
+        return np.dtype({
+            'complex[float32]': 'complex64',
+            'complex[float64]': 'complex128'
+        }.get(name, name))
 
     def __str__(self):
         return self.name
@@ -721,6 +804,7 @@ class CType(Unit):
 
 
 class Fixed(Unit):
+
     """
     Fixed dimension.
     """
@@ -743,12 +827,8 @@ class Fixed(Unit):
         return self.val
 
     def __eq__(self, other):
-        if type(other) is Fixed:
-            return self.val == other.val
-        elif isinstance(other, _inttypes):
-            return self.val == other
-        else:
-            return False
+        return (type(other) is Fixed and self.val == other.val or
+                isinstance(other, _inttypes) and self.val == other)
 
     __hash__ = Mono.__hash__
 
@@ -757,15 +837,14 @@ class Fixed(Unit):
 
 
 class Var(Unit):
+
     """ Variable dimension """
     cls = DIMENSION
     __slots__ = ()
 
-    def __str__(self):
-        return 'var'
-
 
 class TypeVar(Unit):
+
     """
     A free variable in the signature. Not user facing.
     """
@@ -774,39 +853,18 @@ class TypeVar(Unit):
 
     def __init__(self, symbol):
         if not symbol[0].isupper():
-            raise ValueError(('TypeVar symbol %r does not ' +
+            raise ValueError(('TypeVar symbol %r does not '
                               'begin with a capital') % symbol)
         self.symbol = symbol
-
-    def __repr__(self):
-        return "TypeVar(%s)" % self
 
     def __str__(self):
         return str(self.symbol)
 
 
-class Implements(Mono):
-    """
-    Type representing a constraint on the subtype term (which must be a
-    TypeVar), namely that it must belong to a given type set.
-    """
-
-    @property
-    def typevar(self):
-        return self.parameters[0]
-
-    @property
-    def typeset(self):
-        return self.parameters[1]
-
-    def __repr__(self):
-        return '%s: %s' % (self.typevar, self.typeset.name)
-
-
 class Function(Mono):
+    """Function signature type
     """
-    Used for function signatures.
-    """
+
     def __init__(self, *parameters):
         self._parameters = parameters
 
@@ -818,12 +876,23 @@ class Function(Mono):
     def argtypes(self):
         return self.parameters[:-1]
 
-    # def __repr__(self):
-    #     return " -> ".join(map(repr, self.parameters))
+    def __str__(self):
+        return '(%s) -> %s' % (
+            ', '.join(map(str, self.argtypes)), self.restype
+        )
+
+
+class Map(Mono):
+    __slots__ = 'key', 'value'
+
+    def __init__(self, key, value):
+        self.key = _launder(key)
+        self.value = _launder(value)
 
     def __str__(self):
-        return '(%s) -> %s' % (', '.join(map(str, self.parameters[:-1])),
-                               self.parameters[-1])
+        return '%s[%s, %s]' % (type(self).__name__.lower(),
+                               self.key,
+                               self.value)
 
 
 def _launder(x):
@@ -831,13 +900,13 @@ def _launder(x):
 
     >>> from datashape import dshape
     >>> _launder(5)         # convert ints to Fixed
-    Fixed(5)
+    Fixed(val=5)
     >>> _launder('int32')   # parse strings
     ctype("int32")
     >>> _launder(dshape('int32'))
     ctype("int32")
     >>> _launder(Fixed(5))  # No-op on valid parameters
-    Fixed(5)
+    Fixed(val=5)
     """
     if isinstance(x, _inttypes):
         x = Fixed(x)
@@ -862,6 +931,7 @@ def _launder_key(k):
 
 
 class CollectionPrinter(object):
+
     def __repr__(self):
         s = str(self)
         strs = ('"""%s"""' if '\n' in s else '"%s"') % s
@@ -869,6 +939,7 @@ class CollectionPrinter(object):
 
 
 class Record(CollectionPrinter, Mono):
+
     """
     A composite data structure of ordered fields mapped to types.
 
@@ -899,14 +970,14 @@ class Record(CollectionPrinter, Mono):
         fields : list/OrderedDict of (name, type) entries
             The fields which make up the record.
         """
-        # This is passed in with a OrderedDict so field order is
-        # preserved. Using RecordDecl there is some magic to also
-        # ensure that the fields align in the order they are
-        # declared.
+        if isinstance(fields, OrderedDict):
+            fields = fields.items()
         fields = tuple((_launder_key(k), _launder(v)) for k, v in fields)
         names = [k for k, _ in fields]
         if len(set(names)) != len(names):
-            raise ValueError("duplicate field names found in %s" % names)
+            for name in set(names):
+                names.remove(name)
+            raise ValueError("duplicate field names found: %s" % names)
         self._parameters = (tuple(map(tuple, fields)),)
 
     @property
@@ -972,6 +1043,7 @@ class Categorical(Mono):
 
 
 class Tuple(CollectionPrinter, Mono):
+
     """
     A product type.
     """
@@ -1001,6 +1073,7 @@ class Tuple(CollectionPrinter, Mono):
 
 
 class JSON(Mono):
+
     """ JSON measure """
     cls = MEASURE
     __slots__ = ()

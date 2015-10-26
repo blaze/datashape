@@ -1,7 +1,7 @@
 import pytest
 
 from datashape import dshape
-from datashape.predicates import isfixed, _dimensions
+from datashape.predicates import isfixed, _dimensions, isnumeric
 from datashape.predicates import _dimensions
 from datashape.coretypes import TypeVar, int32
 
@@ -24,3 +24,7 @@ def test_tuple():
 def test_dimensions_fails():
     with pytest.raises(TypeError):
         _dimensions(dshape('(T, U) -> U'))
+
+
+def test_time():
+    assert not isnumeric('time')

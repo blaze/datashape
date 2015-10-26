@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import sys
+from warnings import catch_warnings, simplefilter
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
                                  unite_merge_dimensions, do_one,
@@ -8,7 +9,7 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
 from datashape.coretypes import (int64, float64, complex128, string, bool_,
                                  Tuple, Record, date_, datetime_, time_,
                                  timedelta_, int32, var, Option, real, Null,
-                                 TimeDelta, String, string)
+                                 TimeDelta, String)
 from itertools import starmap
 from datashape import dshape
 from datetime import date, time, datetime, timedelta
@@ -35,6 +36,10 @@ def test_list():
 
 def test_set():
     assert discover(set([1])) == 1 * discover(1)
+
+
+def test_frozenset():
+    assert discover(frozenset([1])) == 1 * discover(1)
 
 
 def test_heterogeneous_ordered_container():
@@ -73,8 +78,11 @@ def test_datetime():
         assert discover(dt) == datetime_
 
 
-def test_date():
+def test_string_date():
     assert discover('2014-01-01') == date_
+
+
+def test_python_date():
     assert discover(date(2014, 1, 1)) == date_
 
 
@@ -283,7 +291,12 @@ def test_discover_array_like():
             self.shape = shape
             self.dtype = dtype
 
-    assert discover(MyArray((4, 3), 'f4')) == dshape('4 * 3 * float32')
+    with catch_warnings(record=True) as wl:
+        simplefilter('always')
+        assert discover(MyArray((4, 3), 'f4')) == dshape('4 * 3 * float32')
+    assert len(wl) == 1
+    assert issubclass(wl[0].category, DeprecationWarning)
+    assert 'MyArray' in str(wl[0].message)
 
 
 @pytest.mark.xfail(sys.version_info[0] == 2,
@@ -311,3 +324,18 @@ def test_discover_empty_sequence(seq):
 def test_lowest_common_dshape_varlen_strings():
     assert lowest_common_dshape([String(10), String(11)]) == String(11)
     assert lowest_common_dshape([String(11), string]) == string
+
+
+def test_discover_mock():
+    try:
+        from unittest.mock import Mock
+    except ImportError:
+        from mock import Mock
+
+    # This used to segfault because we were sending mocks into numpy
+    with pytest.raises(NotImplementedError):
+        discover(Mock())
+
+
+def test_string_with_overflow():
+    assert discover('INF US Equity') == string

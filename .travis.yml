@@ -3,18 +3,20 @@ language: python
 sudo: false
 
 python:
-  - "2.6"
   - "2.7"
-  - "3.3"
   - "3.4"
+  - "3.5"
 
 # command to install dependencies
 install:
-  - pip install -r requirements.txt --use-mirrors
+  - pip install -U pip
+  - pip install -r requirements.txt
   - pip install pytest
+  - pip install mock
 
 # command to run tests, e.g. python setup.py test
-script: py.test -x --doctest-modules --verbose --pyargs datashape
+script:
+  - py.test -v -x --doctest-modules --pyargs datashape -rsX --tb=short
 
 notifications:
   email: false

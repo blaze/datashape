@@ -41,3 +41,17 @@ else:
     unicode = str
     basestring = str
     _strtypes = (str,)
+
+
+def with_metaclass(metaclass, *bases):
+    """Helper for using metaclasses in a py2/3 compatible way.
+    """
+    return metaclass('_', bases, {})
+
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    class OrderedDict(object):
+        def __new__(cls, *args, **kwargs):
+            raise TypeError('OrderedDict not supported before python 2.7')

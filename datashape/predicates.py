@@ -2,17 +2,19 @@ import numpy as np
 
 from .util import collect, dshape
 from .internal_utils import remove
-from .coretypes import (DataShape, Option, Fixed, Var, Ellipsis, Record, Tuple,
-                        Unit, bool_, date_, datetime_, TypeVar, to_numpy_dtype)
-from .py2help import _strtypes
+from .coretypes import (DataShape, Fixed, Var, Ellipsis, Record, Tuple, Unit,
+                        date_, datetime_, TypeVar, to_numpy_dtype, Map,
+                        Option)
+from .typesets import floating, boolean
 
-# https://github.com/ContinuumIO/datashape/blob/master/docs/source/types.rst
+# https://github.com/blaze/datashape/blob/master/docs/source/types.rst
 
 __all__ = ['isdimension', 'ishomogeneous', 'istabular', 'isfixed', 'isscalar',
-        'isrecord', 'iscollection', 'isnumeric', 'isboolean', 'isdatelike',
-        'isreal']
+           'isrecord', 'iscollection', 'isnumeric', 'isboolean', 'isdatelike',
+           'isreal']
 
 dimension_types = Fixed, Var, Ellipsis, int
+
 
 def isscalar(ds):
     """ Is this dshape a single dtype?
@@ -28,9 +30,7 @@ def isscalar(ds):
         ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return isinstance(ds, Unit)
+    return isinstance(getattr(ds, 'ty', ds), Unit)
 
 
 def isrecord(ds):
@@ -47,9 +47,7 @@ def isrecord(ds):
         ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return isinstance(ds, Record)
+    return isinstance(getattr(ds, 'ty', ds), Record)
 
 
 def isdimension(ds):
@@ -95,12 +93,16 @@ def _dimensions(ds):
     2
     >>> _dimensions('var * {name: string, amount: int}')
     2
+    >>> _dimensions('var * {name: map[int32, {a: int32}]}')
+    2
     """
     ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
     if isinstance(ds, Option):
         return _dimensions(ds.ty)
+    if isinstance(ds, Map):
+        return max(map(_dimensions, ds.key))
     if isinstance(ds, Record):
         return 1 + max(map(_dimensions, ds.types))
     if isinstance(ds, Tuple):
@@ -178,13 +180,22 @@ def isnumeric(ds):
     >>> isnumeric('var * {amount: ?int32}')
     False
     """
+    ds = launder(ds)
+
+    try:
+        npdtype = to_numpy_dtype(ds)
+    except TypeError:
+        return False
+    else:
+        return isinstance(ds, Unit) and np.issubdtype(npdtype, np.number)
+
+
+def launder(ds):
     if isinstance(ds, str):
         ds = dshape(ds)
     if isinstance(ds, DataShape):
         ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return isinstance(ds, Unit) and np.issubdtype(to_numpy_dtype(ds), np.number)
+    return getattr(ds, 'ty', ds)
 
 
 def isreal(ds):
@@ -197,13 +208,8 @@ def isreal(ds):
     >>> isreal('string')
     False
     """
-    if isinstance(ds, str):
-        ds = dshape(ds)
-    if isinstance(ds, DataShape):
-        ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return isinstance(ds, Unit) and 'float' in str(ds)
+    ds = launder(ds)
+    return isinstance(ds, Unit) and ds in floating
 
 
 def isboolean(ds):
@@ -216,13 +222,7 @@ def isboolean(ds):
     >>> isboolean('int')
     False
     """
-    if isinstance(ds, str):
-        ds = dshape(ds)
-    if isinstance(ds, DataShape):
-        ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return ds == bool_
+    return launder(ds) in boolean
 
 
 def isdatelike(ds):
@@ -235,10 +235,5 @@ def isdatelike(ds):
     >>> isdatelike('?datetime')
     True
     """
-    if isinstance(ds, str):
-        ds = dshape(ds)
-    if isinstance(ds, DataShape):
-        ds = ds.measure
-    if isinstance(ds, Option):
-        ds = ds.ty
-    return ds in (date_, datetime_)
+    ds = launder(ds)
+    return ds == date_ or ds == datetime_

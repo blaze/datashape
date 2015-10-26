@@ -1,17 +1,19 @@
+import datetime
 import pickle
+import sys
 
 import numpy as np
 import pytest
 
-import datetime
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time, Categorical)
+                                 Ellipsis, null, Time, Map, Decimal,
+                                 Categorical)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
-                       float64, Implements, floating, Tuple, to_numpy)
-from datashape.py2help import unicode
+                       float64, Tuple, to_numpy)
+from datashape.py2help import unicode, OrderedDict
 
 
 @pytest.fixture
@@ -65,6 +67,12 @@ class TestToNumpyDtype(object):
         assert to_numpy_dtype(dshape("2 * timedelta[unit='s']")) == \
             np.dtype('m8[s]')
 
+    def test_decimal(self):
+        assert to_numpy_dtype(dshape('decimal[18,0]')) == np.int64
+        assert to_numpy_dtype(dshape('decimal[7,2]')) == np.float64
+        assert to_numpy_dtype(dshape('decimal[4]')) == np.int16
+        with pytest.raises(TypeError):
+            to_numpy_dtype(dshape('decimal[21]'))
 
 def test_timedelta_repr():
     assert eval(repr(dshape('timedelta'))) == dshape('timedelta')
@@ -288,6 +296,15 @@ def test_record_with_unicode_name_as_numpy_dtype():
     assert r.to_numpy_dtype() == np.dtype([('a', 'i4')])
 
 
+@pytest.mark.xfail(
+    sys.version_info < (2, 7),
+    reason='OrderedDict not supported before 2.7',
+)
+def test_record_from_OrderedDict():
+    r = Record(OrderedDict([('a', 'int32'), ('b', 'float64')]))
+    assert r.to_numpy_dtype() == np.dtype([('a', 'i4'), ('b', 'f8')])
+
+
 def test_tuple_datashape_to_numpy_dtype():
     ds = dshape('5 * (int32, float32)')
     assert to_numpy_dtype(ds) == [('f0', 'i4'), ('f1', 'f4')]
@@ -342,7 +359,9 @@ def test_duplicate_field_names_fails():
                           'var * {a: int32, b: ?string}',
                           '10 * {a: ?int32, b: var * {c: string[30]}}',
                           '{"weird name": 3 * var * 2 * ?{a: int8, b: ?uint8}}',
-                          'var * {"func-y": (A) -> var * {a: 10 * float64}}'])
+                          'var * {"func-y": (A) -> var * {a: 10 * float64}}',
+                          'decimal[18]',
+                          'var * {amount: ?decimal[9,2]}'])
 def test_repr_of_eval_is_dshape(ds):
     assert eval(repr(dshape(ds))) == dshape(ds)
 
@@ -495,14 +514,7 @@ def test_typevar_must_be_upper_case():
 
 
 def test_typevar_repr():
-    assert repr(TypeVar('T')) == 'TypeVar(T)'
-
-
-def test_implements():
-    impl = Implements(TypeVar('T'), floating)
-    assert impl.typevar == TypeVar('T')
-    assert impl.typeset == floating
-    assert repr(impl) == 'T: floating'
+    assert repr(TypeVar('T')) == "TypeVar(symbol='T')"
 
 
 def test_funcproto_attrs():
@@ -521,3 +533,30 @@ def test_to_numpy_fails():
         to_numpy(ds)
     with pytest.raises(TypeError):
         to_numpy(Option(int32))
+
+
+def test_map():
+    fk = Map(int32, Record([('a', int32)]))
+    assert fk.key == int32
+    assert fk.value == Record([('a', int32)])
+    assert fk.value.dict == {'a': int32}
+    assert fk.value.fields == (('a', int32),)
+    with pytest.raises(TypeError):
+        fk.to_numpy_dtype()
+
+
+def test_map_parse():
+    result = dshape("var * {b: map[int32, {a: int64}]}")
+    recmeasure = Map(dshape(int32), DataShape(Record([('a', int64)])))
+    assert result == DataShape(var, Record([('b', recmeasure)]))
+
+
+def test_decimal_attributes():
+    d1 = Decimal(18)
+    assert d1.precision == 18 and d1.scale == 0
+    d2 = Decimal(4,0)
+    assert d2.precision == 4 and d2.scale == 0
+    d3 = Decimal(11,2)
+    assert d3.precision == 11 and d3.scale == 2
+    with pytest.raises(TypeError):
+        d4 = Decimal()

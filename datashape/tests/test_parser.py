@@ -62,8 +62,8 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
                          ct.DataShape(ct.uintptr))
 
     def test_float(self):
-        # self.assertEqual(parse('float16', self.sym),
-        #                 ct.DataShape(ct.float16))
+        self.assertEqual(parse('float16', self.sym),
+                         ct.DataShape(ct.float16))
         self.assertEqual(parse('float32', self.sym),
                          ct.DataShape(ct.float32))
         self.assertEqual(parse('float64', self.sym),
@@ -75,6 +75,12 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
         # 'real' is an alias for 'float64'
         self.assertEqual(parse('real', self.sym),
                          parse('float64', self.sym))
+
+    def test_null(self):
+        self.assertEqual(parse('null', self.sym), ct.DataShape(ct.null))
+
+    def test_void(self):
+        self.assertEqual(parse('void', self.sym), ct.DataShape(ct.void))
 
     def test_complex(self):
         self.assertEqual(parse('complex[float32]', self.sym),

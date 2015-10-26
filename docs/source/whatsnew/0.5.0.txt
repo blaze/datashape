@@ -1,0 +1,62 @@
+Release |version|
+-----------------
+
+:Release: |version|
+:Date: TBD
+
+New Features
+------------
+
+None
+
+New Types
+---------
+
+None
+
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+None
+
+API Changes
+-----------
+
+* ``datashape`` no longer supports Python 2.6 (:issue:`189`).
+* ``datashape`` no longer support Python 3.3 (:issue:`191`).
+* The default ``repr`` of ``Mono`` subclass now prints out the slot
+  names as keyword arguments next to their values (:issue:`188`).
+  For example
+
+  Instead of
+
+  .. code-block:: python
+
+     >>> from datashape import Decimal
+     >>> Decimal(precision=11, scale=2)
+     Decimal(11, 2)
+
+  we have
+
+  .. code-block:: python
+
+     >>> Decimal(precision=11, scale=2)
+     Decimal(precision=11, scale=2)
+
+Bug Fixes
+---------
+
+* Makes the parser recognize ``null`` and ``void`` (:issue:`183`).
+* Cache the datashape hash value to avoid potentially expensive recomputation
+  during memoization (:issue:`184`).
+* Fix discovery of strings that start with things that look like numbers
+  (:issue:`190`).
+
+Miscellaneous
+-------------
+
+None

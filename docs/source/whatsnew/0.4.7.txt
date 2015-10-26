@@ -1,0 +1,57 @@
+Release |version|
+-----------------
+
+:Release: |version|
+:Date: September 15, 2015
+
+New Features
+------------
+
+* ``discover`` now works on ``frozenset`` objects (:issue:`160`).
+
+New Types
+---------
+
+None
+
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+* Added a :class:`~datashape.coretypes.Map` type for representing key-value
+  pairs (:issue:`164`).
+* Add ``Decimal`` as a valid type. (:issue:`118`).
+
+
+API Changes
+-----------
+
+* Removed the ``Implements`` type. This will eventually be superseded by kind
+  types (:issue:`166`).
+* Auto inference of things with the ``shape`` and ``dtype`` attributes will is
+  deprecated and will be removed in 0.5.0 (:issue:`165`).
+* :func:`~datashape.promote.promote` now accepts a new boolean argument
+  ``promote_option`` that says if ``Option(a), a`` should promote up to an
+  option type. This defaults to ``True``. For example:
+  ``promote(int64, Option(int32), promote_option=True)`` is ``Option(int64)``
+  however ``promote(int64, Option(int64), promote_option=False)`` is ``int64``
+  (:issue:`172`).
+
+Bug Fixes
+---------
+
+* Allow ``float16`` in the parser (:issue:`163`).
+* ``Mock`` objects were causing a segfault (:issue:`165`).
+* Fix an issue where calling :func:`~datashape.predicates.isnumeric` on an
+  instance of :class:`~datashape.coretypes.Time` would raise a ``TypeError``
+  (:issue:`167`).
+
+Miscellaneous
+-------------
+
+* Lots of dead code removed (:issue:`156`).
+* Updated versioneer to have a proper PyPI compatible version string
+  (:issue:`157`).
