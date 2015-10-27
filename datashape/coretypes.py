@@ -1008,22 +1008,6 @@ class Record(CollectionPrinter, Mono):
     def __str__(self):
         return pprint(self)
 
-category_predicates = [
-    (lambda x: 0 < x <= 1 << 8, np.uint8),
-    (lambda x: 1 << 8 < x <= 1 << 16, np.uint16),
-    (lambda x: 1 << 16 < x <= 1 << 32, np.uint32),
-    (lambda x: 1 << 32 < x <= 1 << 64, np.uint64)
-]
-
-
-def dtype_for_length(n):
-    if n <= 0:
-        raise ValueError('number of categories must be greater than 0')
-    for f, dtype in category_predicates:
-        if f(n):
-            return dtype
-    raise ValueError('Number of categories is greater than 2 ** 64')
-
 
 def _format_categories(cats, n=10):
     return '[%s%s]' % (
