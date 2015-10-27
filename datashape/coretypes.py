@@ -1036,27 +1036,28 @@ class Categorical(Mono):
     """Unordered categorical type.
     """
 
-    __slots__ = 'categories', 'type'
+    __slots__ = 'categories', 'type', 'ordered'
     cls = MEASURE
 
-    def __init__(self, categories, type=None):
+    def __init__(self, categories, type=None, ordered=False):
         self.categories = tuple(categories)
-        self.type = type or DataShape(
-            datashape.discover(self.categories).measure
-        )
+        self.type = (type or datashape.discover(self.categories)).measure
+        self.ordered = ordered
 
     def __str__(self):
-        return '%s[%s, type=%s]' % (
+        return '%s[%s, type=%s, ordered=%s]' % (
             type(self).__name__.lower(),
             _format_categories(self.categories),
-            self.type
+            self.type,
+            self.ordered
         )
 
     def __repr__(self):
-        return '%s(categories=%s, type=%r)' % (
+        return '%s(categories=%s, type=%r, ordered=%s)' % (
             type(self).__name__,
             _format_categories(self.categories),
-            self.type
+            self.type,
+            self.ordered
         )
 
 
