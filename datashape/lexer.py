@@ -21,6 +21,7 @@ def _str_val(s):
 
 # A list of the token names, corresponding regex, and value extraction function
 _tokens = [
+    ('BOOLEAN',    r'True|False', ast.literal_eval),
     ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*', lambda x : x),
     ('NAME_UPPER', r'[A-Z][a-zA-Z0-9_]*', lambda x : x),
     ('NAME_OTHER', r'_[a-zA-Z0-9_]*', lambda x : x),
@@ -37,7 +38,7 @@ _tokens = [
     ('ELLIPSIS',   r'\.\.\.'),
     ('RARROW',     r'->'),
     ('QUESTIONMARK', r'\?'),
-    ('INTEGER',    r'0(?![0-9])|[1-9][0-9]*', int),
+    ('INTEGER',    r'0(?![0-9])|-?[1-9][0-9]*', int),
     ('STRING', (r"""(?:"(?:[^"\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\["bfnrt]))*")|""" +
                 r"""(?:'(?:[^'\n\r\\]|(?:\\u[0-9a-fA-F]{4})|(?:\\['bfnrt]))*')"""),
                 _str_val),

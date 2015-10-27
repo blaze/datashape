@@ -8,7 +8,8 @@ import pytest
 from datashape.coretypes import (Record, real, String, CType, DataShape, int32,
                                  Fixed, Option, _units, _unit_aliases, Date,
                                  DateTime, TimeDelta, Type, int64, TypeVar,
-                                 Ellipsis, null, Time, Map, Decimal)
+                                 Ellipsis, null, Time, Map, Decimal,
+                                 Categorical)
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
                        float64, Tuple, to_numpy)
@@ -72,6 +73,7 @@ class TestToNumpyDtype(object):
         assert to_numpy_dtype(dshape('decimal[4]')) == np.int16
         with pytest.raises(TypeError):
             to_numpy_dtype(dshape('decimal[21]'))
+
 
 def test_timedelta_repr():
     assert eval(repr(dshape('timedelta'))) == dshape('timedelta')
@@ -322,6 +324,45 @@ def test_option_datetime_to_numpy():
 def test_option_timedelta_to_numpy(unit):
     assert (Option(TimeDelta(unit=unit)).to_numpy_dtype() ==
             np.dtype('timedelta64[%s]' % unit))
+
+
+def unique(x):
+    seen = set()
+    for el in x:
+        if el not in seen:
+            yield el
+            seen.add(el)
+
+
+@pytest.mark.parametrize('data', [list('aaaabbbccc'), [-1, 2, 3, 4, 4, 3, 5]])
+def test_categorical(data):
+    c = Categorical(tuple(unique(data)))
+    assert list(unique(c.categories)) == list(unique(data))
+    assert str(c) == 'categorical[[%s], type=%s, ordered=False]' % (
+        ', '.join(map(repr, c.categories)), c.type
+    )
+    assert repr(c) == 'Categorical(categories=[%s], type=%r, ordered=False)' % (
+        ', '.join(map(repr, c.categories)), c.type
+    )
+    assert (
+        dshape("categorical[[%s], type=%s, ordered=False]" % (
+            ', '.join(map(repr, c.categories)), c.type
+        )) == DataShape(c)
+    )
+    assert (
+        dshape("categorical[[%s], type=%s, ordered=False]" % (
+            ', '.join(map(repr, c.categories)), c.type
+        )) == DataShape(c)
+    )
+
+
+def test_long_categorical_repr():
+    cats = list('abcdefghijklmnopqrstuvwxyz')
+    c = Categorical(cats, ordered=True)
+    assert str(c) == 'categorical[[%s, ...], type=%s, ordered=True]' % (
+        ', '.join(map(repr, cats[:10])),
+        c.type
+    )
 
 
 def test_duplicate_field_names_fails():

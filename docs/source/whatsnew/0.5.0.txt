@@ -12,7 +12,7 @@ None
 New Types
 ---------
 
-None
+* datashape now supports a ``categorical`` type (:issue:`150`).
 
 Experimental Types
 ------------------

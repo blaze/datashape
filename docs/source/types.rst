@@ -237,10 +237,16 @@ A fixed-size blob of bytes. This is not zero-terminated as in the
 Categorical
 -----------
 
-``categorical[type=string, values=['low', 'medium', 'high']]``
+``categorical[['low', 'medium', 'high'], type=string, ordered=True]``
 
-Constructs a type which stores values compactly as small integers
-that are indexes into the list of values provided.
+Constructs a type whose values are constrained to a particular set.
+The ``type`` parameter is optional and is inferred by the first argument.
+The ``ordered`` parameter is a boolean indicating whether the values in the
+set are ordered, so certain functions like min and max work.
+
+.. note::
+
+   The categorical type *assumes* that the input categories are unique.
 
 JSON
 ----

@@ -94,6 +94,7 @@ constructor_types = [
     ('timedelta', ct.TimeDelta),
     ('units', ct.Units),
     ('decimal', ct.Decimal),
+    ('categorical', ct.Categorical),
 ]
 
 # dim types with no type constructor
