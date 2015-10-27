@@ -355,6 +355,7 @@ class DataShapeParser(object):
         type_arg : datashape
                  | INTEGER
                  | STRING
+                 | BOOLEAN
                  | list_type_arg
         list_type_arg : LBRACKET RBRACKET
                       | LBRACKET datashape_list RBRACKET
@@ -366,7 +367,7 @@ class DataShapeParser(object):
         ds = self.parse_datashape()
         if ds is not None:
             return ds
-        if self.tok.id in [lexer.INTEGER, lexer.STRING]:
+        if self.tok.id in [lexer.INTEGER, lexer.STRING, lexer.BOOLEAN]:
             val = self.tok.val
             self.advance_tok()
             return val
@@ -377,6 +378,8 @@ class DataShapeParser(object):
                 val = self.parse_integer_list()
             if val is None:
                 val = self.parse_string_list()
+            if val is None:
+                val = self.parse_boolean_list()
             if self.tok.id == lexer.RBRACKET:
                 self.advance_tok()
                 return [] if val is None else val
@@ -443,6 +446,29 @@ class DataShapeParser(object):
         """
         return self.parse_homogeneous_list(self.parse_integer, lexer.COMMA,
                                            'Expected another integer, ' +
+                                           'type constructor parameter ' +
+                                           'lists must have uniform type')
+
+    def parse_boolean(self):
+        """
+        boolean : BOOLEAN
+        """
+        if self.tok.id == lexer.BOOLEAN:
+            val = self.tok.val
+            self.advance_tok()
+            return val
+        else:
+            return None
+
+    def parse_boolean_list(self):
+        """
+        boolean_list : boolean COMMA boolean_list
+                     | boolean
+
+        Returns a list of booleans, or None.
+        """
+        return self.parse_homogeneous_list(self.parse_boolean, lexer.COMMA,
+                                           'Expected another boolean, ' +
                                            'type constructor parameter ' +
                                            'lists must have uniform type')
 

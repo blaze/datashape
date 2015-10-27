@@ -21,6 +21,7 @@ def _str_val(s):
 
 # A list of the token names, corresponding regex, and value extraction function
 _tokens = [
+    ('BOOLEAN',    r'True|False', ast.literal_eval),
     ('NAME_LOWER', r'[a-z][a-zA-Z0-9_]*', lambda x : x),
     ('NAME_UPPER', r'[A-Z][a-zA-Z0-9_]*', lambda x : x),
     ('NAME_OTHER', r'_[a-zA-Z0-9_]*', lambda x : x),
