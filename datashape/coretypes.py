@@ -10,7 +10,6 @@ shape and data type.
 import ctypes
 import operator
 
-from pprint import pformat
 from math import ceil
 
 import datashape
@@ -1038,8 +1037,9 @@ class Categorical(Mono):
         self.type = type or datashape.discover(self.categories).measure
 
     def __repr__(self):
-        return '%s[%s]' % (type(self).__name__.lower(),
-                           pformat(self.categories))
+        return '%s[%s%s]' % (type(self).__name__.lower(),
+                             repr(self.categories[:10]),
+                             ', ...' if len(self.categories) > 10 else '')
 
 
 class Tuple(CollectionPrinter, Mono):

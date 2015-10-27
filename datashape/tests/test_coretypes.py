@@ -345,6 +345,12 @@ def test_categorical(data):
             DataShape(c))
 
 
+def test_long_categorical_repr():
+    cats = list('abcdefghijklmnopqrstuvwxyz')
+    c = Categorical(cats)
+    assert repr(c) == 'categorical[(%s), ...]' % ', '.join(map(repr, cats[:10]))
+
+
 def test_duplicate_field_names_fails():
     fields = [('a', 'int32'), ('b', 'string'), ('a', 'float32')]
     with pytest.raises(ValueError):
