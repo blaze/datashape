@@ -1025,21 +1025,39 @@ def dtype_for_length(n):
     raise ValueError('Number of categories is greater than 2 ** 64')
 
 
+def _format_categories(cats, n=10):
+    return '[%s%s]' % (
+        ', '.join(map(repr, cats[:n])),
+        ', ...' if len(cats) > n else ''
+    )
+
+
 class Categorical(Mono):
     """Unordered categorical type.
     """
 
-    __slots__ = 'type', 'categories'
+    __slots__ = 'categories', 'type'
     cls = MEASURE
 
     def __init__(self, categories, type=None):
         self.categories = tuple(categories)
-        self.type = type or datashape.discover(self.categories).measure
+        self.type = type or DataShape(
+            datashape.discover(self.categories).measure
+        )
+
+    def __str__(self):
+        return '%s[%s, type=%s]' % (
+            type(self).__name__.lower(),
+            _format_categories(self.categories),
+            self.type
+        )
 
     def __repr__(self):
-        return '%s[%s%s]' % (type(self).__name__.lower(),
-                             repr(self.categories[:10]),
-                             ', ...' if len(self.categories) > 10 else '')
+        return '%s(categories=%s, type=%r)' % (
+            type(self).__name__,
+            _format_categories(self.categories),
+            self.type
+        )
 
 
 class Tuple(CollectionPrinter, Mono):
