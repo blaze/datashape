@@ -244,6 +244,10 @@ The ``type`` parameter is optional and is inferred by the first argument.
 The ``ordered`` parameter is a boolean indicating whether the values in the
 set are ordered, so certain functions like min and max work.
 
+.. note::
+
+   The categorical type *assumes* that the input categories are unique.
+
 JSON
 ----
 
