@@ -338,19 +338,19 @@ def unique(x):
 def test_categorical(data):
     c = Categorical(tuple(unique(data)))
     assert list(unique(c.categories)) == list(unique(data))
-    assert str(c) == 'categorical[[%s], type=%s]' % (
+    assert str(c) == 'categorical[[%s], type=%s, ordered=False]' % (
         ', '.join(map(repr, c.categories)), c.type
     )
-    assert repr(c) == 'Categorical(categories=[%s], type=%r)' % (
+    assert repr(c) == 'Categorical(categories=[%s], type=%r, ordered=False)' % (
         ', '.join(map(repr, c.categories)), c.type
     )
     assert (
-        dshape("categorical[[%s], type=%s]" % (
+        dshape("categorical[[%s], type=%s, ordered=False]" % (
             ', '.join(map(repr, c.categories)), c.type
         )) == DataShape(c)
     )
     assert (
-        dshape("categorical[[%s], type=%s]" % (
+        dshape("categorical[[%s], type=%s, ordered=False]" % (
             ', '.join(map(repr, c.categories)), c.type
         )) == DataShape(c)
     )
@@ -358,8 +358,8 @@ def test_categorical(data):
 
 def test_long_categorical_repr():
     cats = list('abcdefghijklmnopqrstuvwxyz')
-    c = Categorical(cats)
-    assert str(c) == 'categorical[[%s, ...], type=%s]' % (
+    c = Categorical(cats, ordered=True)
+    assert str(c) == 'categorical[[%s, ...], type=%s, ordered=True]' % (
         ', '.join(map(repr, cats[:10])),
         c.type
     )
