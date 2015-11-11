@@ -59,6 +59,7 @@ Bug Fixes
   during memoization (:issue:`184`).
 * Fix discovery of strings that start with things that look like numbers
   (:issue:`190`).
+* Makes the parser recognize ``object`` (:issue:`193`).
 
 Miscellaneous
 -------------

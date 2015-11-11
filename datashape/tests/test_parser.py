@@ -82,6 +82,9 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
     def test_void(self):
         self.assertEqual(parse('void', self.sym), ct.DataShape(ct.void))
 
+    def test_object(self):
+        self.assertEqual(parse('object', self.sym), ct.DataShape(ct.object_))
+
     def test_complex(self):
         self.assertEqual(parse('complex[float32]', self.sym),
                          ct.DataShape(ct.complex_float32))
