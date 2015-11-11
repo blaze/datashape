@@ -935,7 +935,7 @@ class CollectionPrinter(object):
         return 'dshape(%s)' % strs
 
 
-class RecordMeta(type):
+class RecordMeta(Type):
     @staticmethod
     def _unpack_slice(s, idx):
         if not isinstance(s, slice):
