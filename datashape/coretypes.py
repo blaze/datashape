@@ -950,10 +950,10 @@ class RecordMeta(type):
         if not isinstance(s, slice):
             raise TypeError(
                 'invalid field specification at position %d.\n'
-                'fields must be formatted like: {name}::{type}' % idx,
+                'fields must be formatted like: {name}:{type}' % idx,
             )
 
-        name, type_ = packed = s.start, s.step
+        name, type_ = packed = s.start, s.stop
         if name is None:
             raise TypeError('missing field name at position %d' % idx)
         if not isinstance(name, basestring):
@@ -962,13 +962,13 @@ class RecordMeta(type):
                     idx, name,
                 ),
             )
-        if type_ is None and s.stop is None:
+        if type_ is None and s.step is None:
             raise TypeError(
                 "missing type for field '%s' at position %d" % (name, idx))
-        if s.stop is not None:
+        if s.step is not None:
             raise TypeError(
-                "unexpected slice stop for field '%s' at position %d.\n"
-                "hint: you might be missing a second ':'" % (name, idx),
+                "unexpected slice step for field '%s' at position %d.\n"
+                "hint: you might have a second ':'" % (name, idx),
             )
 
         return packed

@@ -605,8 +605,8 @@ def test_decimal_attributes():
 
 def test_record_literal():
     assert R is Record
-    assert R['a'::'int32'] == R([('a', 'int32')])
-    assert R['a'::'int32', 'b'::'int64'] == R([('a', 'int32'), ('b', 'int64')])
+    assert R['a':'int32'] == R([('a', 'int32')])
+    assert R['a':'int32', 'b':'int64'] == R([('a', 'int32'), ('b', 'int64')])
 
 
 @pytest.mark.parametrize('invalid', (
@@ -618,9 +618,9 @@ def test_record_literal():
     np.s_[:],
     np.s_['a':],
     np.s_[:'a'],
-    np.s_['a':'int32'],  # single ':'
-    np.s_[::'int32'],
-    np.s_[0::'int32'],
+    np.s_['a'::'int32'],  # double ':'
+    np.s_[:'int32'],
+    np.s_[0:'int32'],
 ))
 def test_invalid_record_literal(invalid):
     assert pytest.raises(TypeError, getitem, R, invalid)

@@ -22,7 +22,7 @@ Experimental Types
    Experimental types are subject to change.
 
 * Records can now be constructed with the new syntax:
-  ``R['field0'::type0, 'field1'::type1, ...]``
+  ``R['field0':type0, 'field1':type1, ...]``
   where each slice object represents a field in the record.
   ``R`` acts as an alias for ``Record`` to make it more pleasant to
   construct these literal types (:issue:`186`).
