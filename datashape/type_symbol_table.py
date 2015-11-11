@@ -77,6 +77,7 @@ no_constructor_types = [
     ('timedelta', ct.timedelta_),
     ('null', ct.null),
     ('void', ct.void),
+    ('object', ct.object_),
 ]
 
 # data types with a type constructor
