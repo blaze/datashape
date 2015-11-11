@@ -36,7 +36,7 @@ class Type(type):
     _registry = {}
 
     def __new__(meta, name, bases, dct):
-        cls = type(name, bases, dct)
+        cls = super(Type, meta).__new__(meta, name, bases, dct)
         # Don't register abstract classes
         if not dct.get('abstract'):
             Type._registry[name] = cls
@@ -56,7 +56,7 @@ class Type(type):
         return cls._registry[name]
 
 
-class Mono(object):
+class Mono(with_metaclass(Type, object)):
 
     """
     Monotype are unqualified 0 parameters.
@@ -67,14 +67,17 @@ class Mono(object):
     """
 
     composite = False
-    __metaclass__ = Type
 
     def __init__(self, *params):
         self._parameters = params
 
     @property
+    def _slotted(self):
+        return hasattr(self, '__slots__')
+
+    @property
     def parameters(self):
-        if hasattr(self, '__slots__'):
+        if self._slotted:
             return tuple(getattr(self, slot) for slot in self.__slots__)
         else:
             return self._parameters
@@ -106,9 +109,16 @@ class Mono(object):
         return [self][key]
 
     def __repr__(self):
-        return '%s(%s)' % (type(self).__name__,
-                           ', '.join('%s=%r' % (slot, getattr(self, slot))
-                                     for slot in self.__slots__))
+        return '%s(%s)' % (
+            type(self).__name__,
+            ', '.join(
+                (
+                    '%s=%r' % (slot, getattr(self, slot))
+                    for slot in self.__slots__
+                ) if self._slotted else
+                map(repr, self.parameters),
+            ),
+        )
 
     # Monotypes are their own measure
     @property
@@ -150,7 +160,7 @@ class Mono(object):
         return self.parameters
 
     def __setstate__(self, state):
-        if hasattr(self, '__slots__'):
+        if self._slotted:
             for slot, val in zip(self.__slots__, state):
                 setattr(self, slot, val)
         else:
@@ -524,8 +534,6 @@ class DataShape(Mono):
     --------
     datashape.dshape
     """
-
-    __metaclass__ = Type
     composite = False
 
     def __init__(self, *parameters, **kwds):
@@ -552,7 +560,7 @@ class DataShape(Mono):
         self.name = kwds.get('name')
 
         if self.name:
-            self.__metaclass__._registry[self.name] = self
+            type(type(self))._registry[self.name] = self
 
     def __len__(self):
         return len(self.parameters)
@@ -870,10 +878,6 @@ class TypeVar(Unit):
 class Function(Mono):
     """Function signature type
     """
-
-    def __init__(self, *parameters):
-        self._parameters = parameters
-
     @property
     def restype(self):
         return self.parameters[-1]

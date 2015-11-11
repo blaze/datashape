@@ -62,6 +62,8 @@ Bug Fixes
 * Fix discovery of strings that start with things that look like numbers
   (:issue:`190`).
 * Makes the parser recognize ``object`` (:issue:`193`).
+* Fix the reprs for :class:`~datashape.coretypes.Function` objects
+  (:issue:`194`).
 
 Miscellaneous
 -------------
