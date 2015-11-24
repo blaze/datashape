@@ -8,6 +8,7 @@ import unittest
 import pytest
 
 import datashape
+from datashape.util.testing import assert_dshape_equal
 from datashape.parser import parse
 from datashape import coretypes as ct
 from datashape import DataShapeSyntaxError
@@ -600,10 +601,22 @@ def test_funcproto(sym):
     assert (parse('(float32,) -> float64', sym) ==
             ct.DataShape(ct.Function(ct.DataShape(ct.float32),
                                      ct.DataShape(ct.float64))))
-    assert (parse('(int16, int32,) -> bool', sym) ==
-            ct.DataShape(ct.Function(ct.DataShape(ct.int16),
-                                     ct.DataShape(ct.int32),
-                                     ct.DataShape(ct.bool_))))
+    assert_dshape_equal(
+        parse('(int16, int32,) -> bool', sym),
+        ct.DataShape(ct.Function(
+            ct.DataShape(ct.int16),
+            ct.DataShape(ct.int32),
+            ct.DataShape(ct.bool_)
+        ))
+    )
+
+    # Empty argument signature.
+    assert_dshape_equal(
+        parse('() -> bool', sym),
+        ct.DataShape(ct.Function(
+            ct.DataShape(ct.bool_),
+        ))
+    )
 
 
 def test_funcproto_no_return_type(sym):
@@ -611,9 +624,11 @@ def test_funcproto_no_return_type(sym):
         parse('(int64, int32) ->', sym)
 
 
-def test_empty_tuple_fails(sym):
-    with pytest.raises(DataShapeSyntaxError):
-        parse('()', sym)
+def test_empty_tuple(sym):
+    t = parse('()', sym)
+    assert isinstance(t, ct.DataShape)
+    assert isinstance(t.measure, ct.Tuple)
+    assert t.measure.dshapes == ()
 
 
 def test_no_right_paren_tuple(sym):

@@ -11,6 +11,7 @@ from . import coretypes
 
 __all__ = ['parse']
 
+
 class DataShapeParser(object):
     """A DataShape parser object."""
     def __init__(self, ds_str, sym):
@@ -561,12 +562,12 @@ class DataShapeParser(object):
             return None
         saved_pos = self.pos
         self.advance_tok()
-        dshapes = self.parse_homogeneous_list(self.parse_datashape, lexer.COMMA,
-                                             'Invalid datashape in tuple',
-                                             trailing_sep=True)
-        if dshapes is None and self.tok.id == lexer.RPAREN:
-            self.raise_error('At least one datashape is required in ' +
-                             'a tuple datashape')
+        dshapes = self.parse_homogeneous_list(
+            self.parse_datashape,
+            lexer.COMMA,
+            'Invalid datashape in tuple',
+            trailing_sep=True,
+        ) or ()
         if self.tok.id != lexer.RPAREN:
             self.raise_error('Invalid datashape in tuple')
         self.advance_tok()
