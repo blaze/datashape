@@ -50,6 +50,8 @@ API Changes
 
      >>> Decimal(precision=11, scale=2)
      Decimal(precision=11, scale=2)
+* Fields are now always constructed with ``str`` in Record datashapes
+  (:issue:`197`).
 
 Bug Fixes
 ---------
