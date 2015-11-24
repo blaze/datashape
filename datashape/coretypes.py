@@ -923,19 +923,6 @@ def _launder(x):
     return x
 
 
-def _launder_key(k):
-    """
-
-    >>> _launder_key('Hello')
-    'Hello'
-    >>> _launder_key(0)
-    '0'
-    """
-    if isinstance(k, _strtypes):
-        return k
-    return str(k)
-
-
 class CollectionPrinter(object):
 
     def __repr__(self):
@@ -1013,7 +1000,7 @@ class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
         """
         if isinstance(fields, OrderedDict):
             fields = fields.items()
-        fields = tuple((_launder_key(k), _launder(v)) for k, v in fields)
+        fields = tuple((str(k), _launder(v)) for k, v in fields)
         names = [k for k, _ in fields]
         if len(set(names)) != len(names):
             for name in set(names):
