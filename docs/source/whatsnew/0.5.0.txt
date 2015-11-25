@@ -64,6 +64,8 @@ Bug Fixes
 * Makes the parser recognize ``object`` (:issue:`193`).
 * Make string field names in Record types have the same string type
   (:issue:`200`).
+* Fix the reprs for :class:`~datashape.coretypes.Function` objects
+  (:issue:`194`).
 
 Miscellaneous
 -------------
