@@ -10,8 +10,6 @@ shape and data type.
 import ctypes
 import operator
 
-from operator import itemgetter
-
 from math import ceil
 
 import datashape
