@@ -634,10 +634,18 @@ def test_invalid_record_literal(invalid):
     assert pytest.raises(TypeError, getitem, R, invalid)
 
 
-def test_unicode_record_names():
-    names = ['foo', b'\xc4\x87'.decode('utf8')]
+@pytest.mark.parametrize(
+    ['names', 'typ'],
+    [
+        (['foo', b'\xc4\x87'.decode('utf8')], unicode),
+        (['foo', 'bar'], str),
+        (list(u'ab'), unicode)
+    ]
+)
+def test_unicode_record_names(names, typ):
     types = [int64, float64]
-    fields = list(zip(names, types))
-    record = Record(fields)
+    record = Record(list(zip(names, types)))
+    string_type, = set(map(type, record.names))
     assert record.names == names
     assert record.types == types
+    assert all(isinstance(s, string_type) for s in record.names)
