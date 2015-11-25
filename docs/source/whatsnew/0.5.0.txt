@@ -62,6 +62,8 @@ Bug Fixes
 * Fix discovery of strings that start with things that look like numbers
   (:issue:`190`).
 * Makes the parser recognize ``object`` (:issue:`193`).
+* Make string field names in Record types have the same string type
+  (:issue:`200`).
 
 Miscellaneous
 -------------
