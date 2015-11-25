@@ -635,7 +635,7 @@ def test_invalid_record_literal(invalid):
 
 
 def test_unicode_record_names():
-    names = ['foo', '\xc4\x87'.decode('utf8')]
+    names = ['foo', b'\xc4\x87'.decode('utf8')]
     types = [int64, float64]
     fields = list(zip(names, types))
     record = Record(fields)
