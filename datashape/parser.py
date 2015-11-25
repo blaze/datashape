@@ -11,6 +11,7 @@ from . import coretypes
 
 __all__ = ['parse']
 
+
 class DataShapeParser(object):
     """A DataShape parser object."""
     def __init__(self, ds_str, sym):
@@ -123,6 +124,7 @@ class DataShapeParser(object):
     def parse_datashape(self):
         """
         datashape : datashape_nooption
+                  | QUESTIONMARK datashape
                   | QUESTIONMARK datashape_nooption
                   | EXCLAMATIONMARK datashape_nooption
 
@@ -133,14 +135,19 @@ class DataShapeParser(object):
         if tok.id in constructors:
             self.advance_tok()
             saved_pos = self.pos
-            ds = self.parse_datashape_nooption()
+            option = self.syntactic_sugar(
+                self.sym.dtype_constr,
+                constructors[tok.id],
+                '%s dtype construction' % constructors[tok.id],
+                saved_pos - 1,
+            )
+            if self.tok.id in constructors:
+                ds = self.parse_datashape()
+            else:
+                ds = self.parse_datashape_nooption()
             if ds is not None:
-                # Look in the dtype symbol table for the option type constructor
-                option = self.syntactic_sugar(self.sym.dtype_constr,
-                                              constructors[tok.id],
-                                              '%s dtype construction' %
-                                              constructors[tok.id],
-                                              saved_pos - 1)
+                # Look in the dtype symbol table for the option type
+                # constructor
                 return coretypes.DataShape(option(ds))
         else:
             return self.parse_datashape_nooption()

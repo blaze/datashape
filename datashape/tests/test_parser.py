@@ -8,9 +8,9 @@ import unittest
 import pytest
 
 import datashape
+from datashape import coretypes as ct, DataShapeSyntaxError
 from datashape.parser import parse
-from datashape import coretypes as ct
-from datashape import DataShapeSyntaxError
+from datashape.util.testing import assert_dshape_equal
 
 
 @pytest.fixture
@@ -97,24 +97,28 @@ class TestDataShapeParseBasicDType(unittest.TestCase):
                          parse('complex[float64]', self.sym))
 
     def test_option(self):
-        self.assertEqual(parse('option[int32]', self.sym),
-                         ct.DataShape(ct.Option(ct.int32)))
-        self.assertEqual(parse('?int32', self.sym),
-                         ct.DataShape(ct.Option(ct.int32)))
-        self.assertEqual(parse('2 * 3 * option[int32]', self.sym),
-                         ct.DataShape(ct.Fixed(2), ct.Fixed(3),
-                                      ct.Option(ct.int32)))
-        self.assertEqual(parse('2 * 3 * ?int32', self.sym),
-                         ct.DataShape(ct.Fixed(2), ct.Fixed(3),
-                                      ct.Option(ct.int32)))
-        self.assertEqual(parse('2 * option[3 * int32]', self.sym),
-                         ct.DataShape(ct.Fixed(2),
-                                      ct.Option(ct.DataShape(ct.Fixed(3),
-                                                             ct.int32))))
-        self.assertEqual(parse('2 * ?3 * int32', self.sym),
-                         ct.DataShape(ct.Fixed(2),
-                                      ct.Option(ct.DataShape(ct.Fixed(3),
-                                                             ct.int32))))
+        assert_dshape_equal(parse('option[int32]', self.sym),
+                            ct.DataShape(ct.Option(ct.int32)))
+        assert_dshape_equal(parse('?int32', self.sym),
+                            ct.DataShape(ct.Option(ct.int32)))
+        assert_dshape_equal(parse('2 * 3 * option[int32]', self.sym),
+                            ct.DataShape(ct.Fixed(2), ct.Fixed(3),
+                                         ct.Option(ct.int32)))
+        assert_dshape_equal(parse('2 * 3 * ?int32', self.sym),
+                            ct.DataShape(ct.Fixed(2), ct.Fixed(3),
+                                         ct.Option(ct.int32)))
+        assert_dshape_equal(parse('2 * option[3 * int32]', self.sym),
+                            ct.DataShape(ct.Fixed(2),
+                                         ct.Option(ct.DataShape(ct.Fixed(3),
+                                                                ct.int32))))
+        assert_dshape_equal(parse('2 * ?3 * int32', self.sym),
+                            ct.DataShape(ct.Fixed(2),
+                                         ct.Option(ct.DataShape(ct.Fixed(3),
+                                                                ct.int32))))
+        assert_dshape_equal(
+            parse('??int32', self.sym),
+            ct.DataShape(ct.Option(ct.Option(ct.int32))),
+        )
 
     def test_raise(self):
         self.assertRaises(datashape.DataShapeSyntaxError,
