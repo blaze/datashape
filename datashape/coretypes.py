@@ -16,7 +16,6 @@ from math import ceil
 import datashape
 
 import numpy as np
-from toolz import identity
 
 from .py2help import (
     OrderedDict,
@@ -1001,7 +1000,7 @@ if sys.version_info[:2] == (2, 7):
             return names
         return list(map(unicode if unicode in types else str, names))
 else:
-    unify_name_types = identity
+    unify_name_types = lambda x: x
 
 
 class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
