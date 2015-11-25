@@ -998,11 +998,7 @@ def unify_name_types(names):
     types = set(map(type, names))
     if 0 <= len(types) <= 1:
         return names
-
-    # assume that there are no str subclasses in play XXX: too strong?
-    assert unicode in types and len(types) == 2, \
-        'more than 2 string types found: %s' % types
-    return list(map(unicode, names))
+    return list(map(unicode if unicode in types else str, names))
 
 
 class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
@@ -1038,20 +1034,19 @@ class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
         """
         if isinstance(fields, OrderedDict):
             fields = fields.items()
-        names = list(map(itemgetter(0), fields))
-        types = list(map(itemgetter(1), fields))
+        fields = list(fields)
         names = unify_name_types([
             str(name) if not isinstance(name, _strtypes) else name
-            for name in names
+            for name, _ in fields
         ])
-        types = list(map(_launder, types))
-        fields = tuple(map(tuple, zip(names, types)))
+        types = [_launder(v) for _, v in fields]
 
         if len(set(names)) != len(names):
             for name in set(names):
                 names.remove(name)
             raise ValueError("duplicate field names found: %s" % names)
-        self._parameters = fields,
+
+        self._parameters = tuple(zip(names, types)),
 
     @property
     def fields(self):
