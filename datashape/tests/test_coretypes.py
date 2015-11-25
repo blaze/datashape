@@ -96,7 +96,7 @@ class TestToNumpyDtype(object):
             to_numpy_dtype(dshape('decimal[21]'))
 
 
-def test_timedelta_repr():
+def test_timedelta_eval_repr():
     assert eval(repr(dshape('timedelta'))) == dshape('timedelta')
     assert eval(repr(dshape('timedelta[unit="ms"]'))) == \
         dshape('timedelta[unit="ms"]')
@@ -277,7 +277,10 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
         assert str(ds1) == str(ds2)
 
     def test_multi_quotes_01(self):
-        quotes_dshape = """{ 'field \\' with \\' quotes' : string, 'doublequote \" field \"' : int64 }"""
+        quotes_dshape = """{
+            'field \\' with \\' quotes' : string,
+            'doublequote \" field \"' : int64
+        }"""
 
         ds1 = dshape(quotes_dshape)
         ds2 = dshape(str(ds1))
@@ -285,7 +288,10 @@ Latitude : ?float64, Longitude : ?float64, Location : string }"""
         assert str(ds1) == str(ds2)
 
     def test_mixed_quotes_01(self):
-        quotes_dshape = """{ 'field \" with \\' quotes' : string, 'doublequote \" field \\'' : int64 }"""
+        quotes_dshape = """{
+            'field \" with \\' quotes' : string,
+            'doublequote \" field \\'' : int64
+        }"""
 
         ds1 = dshape(quotes_dshape)
         ds2 = dshape(str(ds1))
@@ -362,8 +368,10 @@ def test_categorical(data):
     assert str(c) == 'categorical[[%s], type=%s, ordered=False]' % (
         ', '.join(map(repr, c.categories)), c.type
     )
-    assert repr(c) == 'Categorical(categories=[%s], type=%r, ordered=False)' % (
-        ', '.join(map(repr, c.categories)), c.type
+    assert (
+        repr(c) == 'Categorical(categories=[%s], type=%r, ordered=False)' % (
+            ', '.join(map(repr, c.categories)), c.type
+        )
     )
     assert (
         dshape("categorical[[%s], type=%s, ordered=False]" % (
@@ -399,7 +407,7 @@ def test_duplicate_field_names_fails():
                           '{a: int32, b: ?string}',
                           'var * {a: int32, b: ?string}',
                           '10 * {a: ?int32, b: var * {c: string[30]}}',
-                          '{"weird name": 3 * var * 2 * ?{a: int8, b: ?uint8}}',
+                          '{"weird col": 3 * var * 2 * ?{a: int8, b: ?uint8}}',
                           'var * {"func-y": (A) -> var * {a: 10 * float64}}',
                           'decimal[18]',
                           'var * {amount: ?decimal[9,2]}'])
@@ -595,12 +603,12 @@ def test_map_parse():
 def test_decimal_attributes():
     d1 = Decimal(18)
     assert d1.precision == 18 and d1.scale == 0
-    d2 = Decimal(4,0)
+    d2 = Decimal(4, 0)
     assert d2.precision == 4 and d2.scale == 0
-    d3 = Decimal(11,2)
+    d3 = Decimal(11, 2)
     assert d3.precision == 11 and d3.scale == 2
     with pytest.raises(TypeError):
-        d4 = Decimal()
+        Decimal()
 
 
 def test_record_literal():
@@ -624,3 +632,20 @@ def test_record_literal():
 ))
 def test_invalid_record_literal(invalid):
     assert pytest.raises(TypeError, getitem, R, invalid)
+
+
+@pytest.mark.parametrize(
+    ['names', 'typ'],
+    [
+        (['foo', b'\xc4\x87'.decode('utf8')], unicode),
+        (['foo', 'bar'], str),
+        (list(u'ab'), unicode)
+    ]
+)
+def test_unicode_record_names(names, typ):
+    types = [int64, float64]
+    record = Record(list(zip(names, types)))
+    string_type, = set(map(type, record.names))
+    assert record.names == names
+    assert record.types == types
+    assert all(isinstance(s, string_type) for s in record.names)

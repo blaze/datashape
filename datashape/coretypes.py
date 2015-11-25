@@ -7,6 +7,7 @@ This defines the DataShape type system, with unified
 shape and data type.
 """
 
+import sys
 import ctypes
 import operator
 
@@ -968,7 +969,38 @@ class RecordMeta(Type):
         if not isinstance(types, tuple):
             types = types,
 
-        return self(map(self._unpack_slice, types, range(len(types))))
+        return self(list(map(self._unpack_slice, types, range(len(types)))))
+
+
+if sys.version_info[:2] == (2, 7):
+    def unify_name_types(names):
+        """ Construct the names of fields in a Record datashape to have a single
+        string type
+
+        Parameters
+        ----------
+        names : list[str|unicode]
+            List of field names for a Record datashape
+
+        Returns
+        -------
+        list[str|unicode]
+            A list of strings of a *single* type: either str (Python 2 and 3)
+            or unicode (Python 2 only)
+
+        Examples
+        --------
+        >>> unify_name_types([u'a', 'b']) == list(u'ab')
+        True
+        >>> unify_name_types(list('ab')) == list('ab')
+        True
+        """
+        types = set(map(type, names))
+        if 0 <= len(types) <= 1:
+            return names
+        return list(map(unicode if unicode in types else str, names))
+else:
+    unify_name_types = lambda x: x
 
 
 class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
@@ -1004,13 +1036,19 @@ class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
         """
         if isinstance(fields, OrderedDict):
             fields = fields.items()
-        fields = tuple((str(k), _launder(v)) for k, v in fields)
-        names = [k for k, _ in fields]
+        fields = list(fields)
+        names = unify_name_types([
+            str(name) if not isinstance(name, _strtypes) else name
+            for name, _ in fields
+        ])
+        types = [_launder(v) for _, v in fields]
+
         if len(set(names)) != len(names):
             for name in set(names):
                 names.remove(name)
             raise ValueError("duplicate field names found: %s" % names)
-        self._parameters = (tuple(map(tuple, fields)),)
+
+        self._parameters = tuple(zip(names, types)),
 
     @property
     def fields(self):
@@ -1311,13 +1349,17 @@ def print_unicode_string(s):
 
 
 def pprint(ds, width=80):
-    """ Pretty print a datashape
+    ''' Pretty print a datashape
 
     >>> from datashape import dshape, pprint
     >>> print(pprint(dshape('5 * 3 * int32')))
     5 * 3 * int32
 
-    >>> ds = dshape('5000000000 * {a: (int, float32, real, string, datetime), b: {c: 5 * int, d: var * 100 * float32}}')
+    >>> ds = dshape("""
+    ... 5000000000 * {
+    ...     a: (int, float32, real, string, datetime),
+    ...     b: {c: 5 * int, d: var * 100 * float32}
+    ... }""")
     >>> print(pprint(ds))
     5000000000 * {
       a: (int32, float32, float64, string, datetime),
@@ -1356,7 +1398,7 @@ def pprint(ds, width=80):
         }
       }
     >>>
-    """
+    '''
     result = ''
 
     if isinstance(ds, DataShape):
