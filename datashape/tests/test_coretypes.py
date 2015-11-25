@@ -632,3 +632,12 @@ def test_record_literal():
 ))
 def test_invalid_record_literal(invalid):
     assert pytest.raises(TypeError, getitem, R, invalid)
+
+
+def test_unicode_record_names():
+    names = ['foo', '\xc4\x87'.decode('utf8')]
+    types = [int64, float64]
+    fields = list(zip(names, types))
+    record = Record(fields)
+    assert record.names == names
+    assert record.types == types
