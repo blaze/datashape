@@ -1307,13 +1307,17 @@ def print_unicode_string(s):
 
 
 def pprint(ds, width=80):
-    """ Pretty print a datashape
+    ''' Pretty print a datashape
 
     >>> from datashape import dshape, pprint
     >>> print(pprint(dshape('5 * 3 * int32')))
     5 * 3 * int32
 
-    >>> ds = dshape('5000000000 * {a: (int, float32, real, string, datetime), b: {c: 5 * int, d: var * 100 * float32}}')
+    >>> ds = dshape("""
+    ... 5000000000 * {
+    ...     a: (int, float32, real, string, datetime),
+    ...     b: {c: 5 * int, d: var * 100 * float32}
+    ... }""")
     >>> print(pprint(ds))
     5000000000 * {
       a: (int32, float32, float64, string, datetime),
@@ -1352,7 +1356,7 @@ def pprint(ds, width=80):
         }
       }
     >>>
-    """
+    '''
     result = ''
 
     if isinstance(ds, DataShape):
