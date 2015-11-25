@@ -9,7 +9,8 @@ syntax_error = """
 {error}: {msg}
 """
 
-class DataShapeSyntaxError(SyntaxError):
+
+class DataShapeSyntaxError(Exception):
     """
     Makes datashape parse errors look like Python SyntaxError.
     """
