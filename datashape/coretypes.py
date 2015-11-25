@@ -7,6 +7,7 @@ This defines the DataShape type system, with unified
 shape and data type.
 """
 
+import sys
 import ctypes
 import operator
 
@@ -15,6 +16,7 @@ from math import ceil
 import datashape
 
 import numpy as np
+from toolz import identity
 
 from .py2help import (
     OrderedDict,
@@ -971,32 +973,35 @@ class RecordMeta(Type):
         return self(list(map(self._unpack_slice, types, range(len(types)))))
 
 
-def unify_name_types(names):
-    """ Construct the names of fields in a Record datashape to have a single
-    string type
+if sys.version_info[:2] == (2, 7):
+    def unify_name_types(names):
+        """ Construct the names of fields in a Record datashape to have a single
+        string type
 
-    Parameters
-    ----------
-    names : list[str|unicode]
-        List of field names for a Record datashape
+        Parameters
+        ----------
+        names : list[str|unicode]
+            List of field names for a Record datashape
 
-    Returns
-    -------
-    list[str|unicode]
-        A list of strings of a *single* type: either str (Python 2 and 3) or
-        unicode (Python 2 only)
+        Returns
+        -------
+        list[str|unicode]
+            A list of strings of a *single* type: either str (Python 2 and 3)
+            or unicode (Python 2 only)
 
-    Examples
-    --------
-    >>> unify_name_types([u'a', 'b']) == list(u'ab')
-    True
-    >>> unify_name_types(list('ab')) == list('ab')
-    True
-    """
-    types = set(map(type, names))
-    if 0 <= len(types) <= 1:
-        return names
-    return list(map(unicode if unicode in types else str, names))
+        Examples
+        --------
+        >>> unify_name_types([u'a', 'b']) == list(u'ab')
+        True
+        >>> unify_name_types(list('ab')) == list('ab')
+        True
+        """
+        types = set(map(type, names))
+        if 0 <= len(types) <= 1:
+            return names
+        return list(map(unicode if unicode in types else str, names))
+else:
+    unify_name_types = identity
 
 
 class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
