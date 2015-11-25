@@ -10,6 +10,8 @@ shape and data type.
 import ctypes
 import operator
 
+from operator import itemgetter
+
 from math import ceil
 
 import datashape
@@ -964,7 +966,39 @@ class RecordMeta(type):
         if not isinstance(types, tuple):
             types = types,
 
-        return self(map(self._unpack_slice, types, range(len(types))))
+        return self(list(map(self._unpack_slice, types, range(len(types)))))
+
+
+def unify_name_types(names):
+    """ Construct the names of fields in a Record datashape to have a single
+    string type
+
+    Parameters
+    ----------
+    names : list[str|unicode]
+        List of field names for a Record datashape
+
+    Returns
+    -------
+    list[str|unicode]
+        A list of strings of a *single* type: either str (Python 2 and 3) or
+        unicode (Python 2 only)
+
+    Examples
+    --------
+    >>> unify_name_types([u'a', 'b']) == list(u'ab')
+    True
+    >>> unify_name_types(list('ab')) == list('ab')
+    True
+    """
+    types = set(map(type, names))
+    if 0 <= len(types) <= 1:
+        return names
+
+    # assume that there are no str subclasses in play XXX: too strong?
+    assert unicode in types and len(types) == 2, \
+        'more than 2 string types found: %s' % types
+    return list(map(unicode, names))
 
 
 class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
@@ -1000,13 +1034,20 @@ class Record(with_metaclass(RecordMeta, CollectionPrinter, Mono)):
         """
         if isinstance(fields, OrderedDict):
             fields = fields.items()
-        fields = tuple((str(k), _launder(v)) for k, v in fields)
-        names = [k for k, _ in fields]
+        names = list(map(itemgetter(0), fields))
+        types = list(map(itemgetter(1), fields))
+        names = unify_name_types([
+            str(name) if not isinstance(name, _strtypes) else name
+            for name in names
+        ])
+        types = list(map(_launder, types))
+        fields = tuple(map(tuple, zip(names, types)))
+
         if len(set(names)) != len(names):
             for name in set(names):
                 names.remove(name)
             raise ValueError("duplicate field names found: %s" % names)
-        self._parameters = (tuple(map(tuple, fields)),)
+        self._parameters = fields,
 
     @property
     def fields(self):
