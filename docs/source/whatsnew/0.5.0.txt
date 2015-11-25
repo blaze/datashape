@@ -52,6 +52,8 @@ API Changes
      Decimal(precision=11, scale=2)
 * Fields are now always constructed with ``str`` in Record datashapes
   (:issue:`197`).
+* Allow options of options with the syntax: ``??A``. This can be further
+  chained (:issue:`199`).
 
 Bug Fixes
 ---------
@@ -62,6 +64,9 @@ Bug Fixes
 * Fix discovery of strings that start with things that look like numbers
   (:issue:`190`).
 * Makes the parser recognize ``object`` (:issue:`193`).
+* Make :class:`datashape.error.DataShapeSyntaxError` no longer a subclass
+  of ``SyntaxError``. This caused the repl and IPython to display the errors
+  incorrectly (:issue:`199`).
 
 Miscellaneous
 -------------

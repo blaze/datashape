@@ -53,7 +53,10 @@ class Type(type):
 
     @classmethod
     def lookup_type(cls, name):
-        return cls._registry[name]
+        try:
+            return cls._registry[name]
+        except KeyError:
+            raise KeyError('Unknown type %r' % name)
 
 
 class Mono(object):
@@ -917,7 +920,7 @@ def _launder(x):
     if isinstance(x, _inttypes):
         x = Fixed(x)
     if isinstance(x, _strtypes):
-        return Type.lookup_type(x)
+        x = datashape.dshape(x)
     if isinstance(x, DataShape) and len(x) == 1:
         return x[0]
     return x
