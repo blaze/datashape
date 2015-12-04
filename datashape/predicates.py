@@ -150,9 +150,15 @@ def istabular(ds):
     False
     >>> istabular('10 * var * int')
     False
+    >>> istabular('var * (int64, string, ?float64)')
+    False
     """
     ds = dshape(ds)
-    return _dimensions(ds) == 2 and isfixed(ds.subarray(1))
+    return (
+        _dimensions(ds) == 2 and
+        isfixed(ds.subarray(1)) and
+        not isinstance(ds.subarray(1).measure, Tuple)
+    )
 
 
 def iscollection(ds):
