@@ -195,8 +195,8 @@ def maxtype(measure):
 
     if measure == bool_:
         result = bool_
-    elif not isinstance(measure, Decimal):
-        result = max(supertype(measure).types, key=lambda x: x.itemsize)
-    else:
+    elif isinstance(measure, Decimal):
         result = measure
+    else:
+        result = max(supertype(measure).types, key=lambda x: x.itemsize)
     return Option(result) if isoption else result
