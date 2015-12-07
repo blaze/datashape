@@ -6,7 +6,7 @@ from itertools import chain
 
 from .coretypes import (Unit, int8, int16, int32, int64, uint8, uint16, uint32,
                         uint64, float16, float32, float64, complex64,
-                        complex128, bool_)
+                        complex128, bool_, Decimal)
 from .coretypes import Option
 
 
@@ -179,15 +179,24 @@ def maxtype(measure):
 
     >>> maxtype(bool_)
     ctype("bool")
+
+    >>> maxtype(Decimal(11, 2))
+    Decimal(precision=11, scale=2)
+
+    >>> maxtype(Option(Decimal(11, 2)))
+    Option(ty=Decimal(precision=11, scale=2))
     """
     measure = measure.measure
     isoption = isinstance(measure, Option)
     if isoption:
         measure = measure.ty
-    assert matches_typeset(measure, scalar), 'measure must be numeric'
+    if not matches_typeset(measure, scalar) and not isinstance(measure, Decimal):
+        raise TypeError('measure must be numeric')
 
     if measure == bool_:
         result = bool_
+    elif isinstance(measure, Decimal):
+        result = measure
     else:
         result = max(supertype(measure).types, key=lambda x: x.itemsize)
     return Option(result) if isoption else result
