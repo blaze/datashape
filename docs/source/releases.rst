@@ -3,4 +3,4 @@ Release Notes
 =============
 
 
-.. include:: whatsnew/0.4.7.txt
+.. include:: whatsnew/0.5.0.txt
