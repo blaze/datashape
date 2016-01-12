@@ -1,0 +1,42 @@
+Release |version|
+-----------------
+
+:Release: |version|
+:Date: TBD
+
+New Features
+------------
+
+None
+
+New Types
+---------
+
+None
+
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+None
+
+API Changes
+-----------
+
+* Function parse now accepts functions with no arguments like: ``() -> A``
+  (:issue:`198`).
+* Tuple parse now accepts the unit ``()`` (:issue:`198`).
+
+
+Bug Fixes
+---------
+
+None
+
+Miscellaneous
+-------------
+
+None

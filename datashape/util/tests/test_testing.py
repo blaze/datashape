@@ -190,3 +190,35 @@ def test_nested():
         )
     assert "'int32' != 'float32'" in str(e.value)
     assert "_.measure['a'].measure['b'].name" in str(e.value)
+
+
+@pytest.mark.parametrize(
+    'dshape_,contains', (
+        (
+            '(string, int64) -> int64', (
+                'string != int32',
+                '_.measure.argtypes[0].measure',
+            ),
+        ),
+        (
+            '(int32, int32) -> int64', (
+                "'int32' != 'int64'",
+                '_.measure.argtypes[1].measure.name',
+            ),
+        ),
+        (
+            '(int32, int64) -> int32', (
+                "'int32' != 'int64'",
+                '_.measure.restype.measure.name',
+            ),
+        ),
+    ),
+)
+def test_function(dshape_, contains):
+    base = dshape('(int32, int64) -> int64')
+    assert_dshape_equal(base, base)
+
+    with pytest.raises(AssertionError) as e:
+        assert_dshape_equal(dshape(dshape_), base)
+    for c in contains:
+        assert c in str(e.value)

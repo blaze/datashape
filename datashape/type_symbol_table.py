@@ -4,6 +4,8 @@ A symbol table object to hold types for the parser.
 
 from __future__ import absolute_import, division, print_function
 import ctypes
+from itertools import chain
+
 from . import coretypes as ct
 
 __all__ = ['TypeSymbolTable', 'sym']
@@ -30,7 +32,7 @@ def _struct(names, dshapes):
 
 def _funcproto(args, ret):
     """Simple temporary type constructor for funcproto"""
-    return ct.Function(*(args + [ret]))
+    return ct.Function(*chain(args, (ret,)))
 
 
 def _typevar_dim(name):
