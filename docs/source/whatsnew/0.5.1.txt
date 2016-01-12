@@ -34,7 +34,8 @@ API Changes
 Bug Fixes
 ---------
 
-None
+* Correctly return the input for :func:`~datashape.typesets.maxtype` when a
+  :class:`~datashape.core.TimeDelta` is passed (:issue:`207`).
 
 Miscellaneous
 -------------
