@@ -4,7 +4,7 @@ from .util import collect, dshape
 from .internal_utils import remove
 from .coretypes import (DataShape, Fixed, Var, Ellipsis, Record, Tuple, Unit,
                         date_, datetime_, TypeVar, to_numpy_dtype, Map,
-                        Option)
+                        Option, Categorical)
 from .typesets import floating, boolean
 
 # https://github.com/blaze/datashape/blob/master/docs/source/types.rst
@@ -30,7 +30,7 @@ def isscalar(ds):
         ds = dshape(ds)
     if isinstance(ds, DataShape) and len(ds) == 1:
         ds = ds[0]
-    return isinstance(getattr(ds, 'ty', ds), Unit)
+    return isinstance(getattr(ds, 'ty', ds), (Unit, Categorical))
 
 
 def isrecord(ds):
