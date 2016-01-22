@@ -35,7 +35,9 @@ Bug Fixes
 ---------
 
 * Correctly return the input for :func:`~datashape.typesets.maxtype` when a
-  :class:`~datashape.core.TimeDelta` is passed (:issue:`207`).
+  :class:`~datashape.coretypes.TimeDelta` is passed (:issue:`207`).
+* :func:`~datashape.predicates.isscalar` now returns True for
+  :class:`~datashape.coretypes.Categorical` types.
 
 Miscellaneous
 -------------
