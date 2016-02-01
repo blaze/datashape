@@ -107,8 +107,7 @@ For example, an integer array of size three is::
     3 * int
 
 In this type, 3 is is a ``fixed`` dimension, which means it is a dimension
-whose size is always as given. Other dimension types include ``strided``
-and ``var``.
+whose size is always as given. Other dimension types include ``var``.
 
 Comparing with NumPy, the array created by
 ``np.empty((2, 3), 'int32')`` has datashape ``2 * 3 * int32``.
