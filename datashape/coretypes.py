@@ -355,6 +355,7 @@ _canonical_string_encodings = {
     u'utf-8': u'U8',
     u'utf_8': u'U8',
     u'utf8': u'U8',
+    u'utf8_bin':u'U8', 
     u'U16': u'U16',
     u'utf-16': u'U16',
     u'utf_16': u'U16',
