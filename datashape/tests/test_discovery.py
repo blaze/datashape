@@ -1,7 +1,9 @@
-import pytest
-import numpy as np
+from itertools import starmap
 import sys
 from warnings import catch_warnings, simplefilter
+
+import numpy as np
+import pytest
 
 from datashape.discovery import (discover, null, unite_identical, unite_base,
                                  unite_merge_dimensions, do_one,
@@ -9,8 +11,9 @@ from datashape.discovery import (discover, null, unite_identical, unite_base,
 from datashape.coretypes import (int64, float64, complex128, string, bool_,
                                  Tuple, Record, date_, datetime_, time_,
                                  timedelta_, int32, var, Option, real, Null,
-                                 TimeDelta, String)
-from itertools import starmap
+                                 TimeDelta, String, float32, R)
+from datashape.py2help import PY2, CPYTHON, mappingproxy, OrderedDict
+from datashape.util.testing import assert_dshape_equal
 from datashape import dshape
 from datetime import date, time, datetime, timedelta
 
@@ -57,6 +60,25 @@ def test_record():
     assert (discover({'name': 'Alice', 'amount': 100}) ==
             Record([['amount', discover(100)],
                     ['name', discover('Alice')]]))
+
+
+@pytest.mark.skipif(
+    PY2 and not CPYTHON,
+    reason='We cannot create mapping proxies in python 2 when not in CPython')
+def test_mappingproxy():
+    d = {'a': np.int64(1), 'b': 'cs', 'c': np.float32(1.0)}
+    assert_dshape_equal(
+        discover(mappingproxy(d)),
+        discover(d),
+    )
+
+
+def test_ordereddict():
+    od = OrderedDict((('c', np.int64(1)), ('b', 'cs'), ('a', np.float32(1.0))))
+    assert_dshape_equal(
+        discover(od),
+        R['c': int64, 'b': string, 'a': float32],
+    )
 
 
 def test_datetime():

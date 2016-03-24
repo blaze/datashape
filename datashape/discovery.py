@@ -1,21 +1,22 @@
 from __future__ import print_function, division, absolute_import
 
 from datetime import datetime, date, time, timedelta
+from itertools import chain
 import re
 import sys
 from textwrap import dedent
 from warnings import warn
 
-import numpy as np
 from dateutil.parser import parse as dateparse
+import numpy as np
+
 from .dispatch import dispatch
-from itertools import chain
 from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
                         Unit, timedelta_, TimeDelta, object_, String)
 from .predicates import isdimension, isrecord
-from .py2help import _strtypes, _inttypes
+from .py2help import _strtypes, _inttypes, MappingProxyType, OrderedDict
 from .internal_utils import _toposort, groupby
 from .util import subclasses
 
@@ -362,9 +363,15 @@ def unpack(ds):
         return ds
 
 
-@dispatch(dict)
-def discover(d):
-    return Record([[k, discover(d[k])] for k in sorted(d)])
+@discover.register(dict)
+@discover.register(MappingProxyType)
+def _mapping_discover(m):
+    return Record((k, discover(m[k])) for k in sorted(m))
+
+
+@dispatch(OrderedDict)
+def discover(od):
+    return Record((k, discover(v)) for k, v in od.items())
 
 
 @dispatch(np.number)
