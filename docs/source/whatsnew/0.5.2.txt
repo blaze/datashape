@@ -1,0 +1,43 @@
+Release |version|
+-----------------
+
+:Release: |version|
+:Date: TBD
+
+New Features
+------------
+
+* Adds :func:`~datashape.discover` support for :class:`types.MappingProxyType`
+  objects in python 3 and :class:`types.DictProxyType` in python 2
+  (:issue:`212`).
+* Adds :func:`~datashape.discover` support for :class:`collections.OrderedDict`
+  objects (:issue:`212`).
+
+New Types
+---------
+
+None
+
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+None
+
+API Changes
+-----------
+
+None
+
+Bug Fixes
+---------
+
+None
+
+Miscellaneous
+-------------
+
+None
