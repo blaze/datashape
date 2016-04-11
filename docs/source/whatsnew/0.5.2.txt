@@ -35,7 +35,8 @@ None
 Bug Fixes
 ---------
 
-None
+* Fixes :func:`~datashape.promote` to handle :class:`~datashape.string` types
+  correctly when mixing with :class:`~datashape.Option` types (:issue:`213`).
 
 Miscellaneous
 -------------
