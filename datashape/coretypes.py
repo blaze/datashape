@@ -87,7 +87,9 @@ class Mono(with_metaclass(Type, object)):
         return type(self), self.parameters
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.info() == other.info()
+        return (issubclass(type(other), Mono) and
+                self.shape == other.shape and
+                self.measure.info() == other.measure.info())
 
     def __ne__(self, other):
         return not self.__eq__(other)
