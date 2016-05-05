@@ -1,0 +1,42 @@
+Release |version|
+-----------------
+
+:Release: |version|
+:Date: TBD
+
+New Features
+------------
+
+None
+
+New Types
+---------
+
+None
+
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+None
+
+API Changes
+-----------
+
+None
+
+Bug Fixes
+---------
+
+* Fixes :func:`~coretypes.Mono.__eq__` to ensure equality among
+  :class:`~coretypes.Mono` subclasses compare equal when it makes sense to do so.
+  For instance ``dshape("?string") == Option(string)`` now holds true
+  (:issue:`214`).
+
+Miscellaneous
+-------------
+
+None
