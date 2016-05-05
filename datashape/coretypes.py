@@ -87,7 +87,7 @@ class Mono(with_metaclass(Type, object)):
         return type(self), self.parameters
 
     def __eq__(self, other):
-        return (issubclass(type(other), Mono) and
+        return (isinstance(other, Mono) and
                 self.shape == other.shape and
                 self.measure.info() == other.measure.info())
 
@@ -98,7 +98,7 @@ class Mono(with_metaclass(Type, object)):
         try:
             h = self._hash
         except AttributeError:
-            h = self._hash = hash(self.info())
+            h = self._hash = hash(self.shape) ^ hash(self.measure.info())
         return h
 
     @property
