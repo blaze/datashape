@@ -33,7 +33,7 @@ from datashape.coretypes import (
 )
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
-                       float64, Tuple, to_numpy)
+                       float64, Tuple, to_numpy, string)
 from datashape.py2help import unicode, OrderedDict
 
 
@@ -649,3 +649,17 @@ def test_unicode_record_names(names, typ):
     assert record.names == names
     assert record.types == types
     assert all(isinstance(s, string_type) for s in record.names)
+
+
+equiv_dshape_pairs = [(dshape('?string'), Option('string')),
+                      (dshape('string'), string),
+                      (dshape('datetime'), datetime_),
+                      (dshape('?datetime'), Option(datetime_)),
+                      (dshape('10 * int32'), 10 * int32),
+                      (dshape('var * ?int32'), var * Option(int32)),
+                      (dshape('10 * ?float64'), Fixed(10) * Option(float64))]
+
+@pytest.mark.parametrize('a,b', equiv_dshape_pairs)
+def test_hash_and_eq_consistency(a, b):
+    assert a == b
+    assert hash(a) == hash(b)

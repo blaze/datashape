@@ -1,7 +1,8 @@
 import pytest
 
 from datashape import (promote, Option, float64, int64, float32, optionify,
-                       string, datetime_ as datetime)
+                       string, datetime_ as datetime, dshape)
+
 
 def test_simple():
     x = int64
@@ -53,6 +54,26 @@ def test_option_in_parent():
                           [Option(string),
                            string,
                            False,
+                           string],
+
+                          [Option(string),
+                           dshape('?string'),
+                           True,
+                           Option(string)],
+
+                          [dshape('?string'),
+                           Option(string),
+                           False,
+                           Option(string)],
+
+                          [dshape('string'),
+                           Option(string),
+                           True,
+                           Option(string)],
+
+                          [dshape('string'),
+                           Option(string),
+                           False,
                            string]])
 def test_promote_string_with_option(x, y, p, r):
     assert (promote(x, y, promote_option=p) ==
@@ -81,6 +102,26 @@ def test_promote_string_with_option(x, y, p, r):
 
                           [Option(datetime),
                            datetime,
+                           False,
+                           datetime],
+
+                          [Option(datetime),
+                           dshape('?datetime'),
+                           True,
+                           Option(datetime)],
+
+                          [dshape('?datetime'),
+                           Option(datetime),
+                           False,
+                           Option(datetime)],
+
+                          [dshape('datetime'),
+                           Option(datetime),
+                           True,
+                           Option(datetime)],
+
+                          [dshape('datetime'),
+                           Option(datetime),
                            False,
                            datetime]])
 def test_promote_datetime_with_option(x, y, p, r):
