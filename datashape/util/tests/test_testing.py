@@ -6,7 +6,7 @@ import pytest
 
 from datashape.coretypes import (
     DateTime,
-    Record,
+    R,
     String,
     Time,
     TimeDelta,
@@ -68,35 +68,35 @@ def test_dim():
 
 def test_record():
     assert_dshape_equal(
-        Record((('a', int32), ('b', float32))),
-        Record((('a', int32), ('b', float32))),
+        R['a': int32, 'b': float32],
+        R['a': int32, 'b': float32],
     )
 
     with pytest.raises(AssertionError) as e:
         assert_dshape_equal(
-            Record((('a', int32), ('b', float32))),
-            Record((('a', int32), ('b', int32))),
+            R['a': int32, 'b': float32],
+            R['a': int32, 'b': int32],
         )
     assert "'float32' != 'int32'" in str(e)
     assert "_['b'].name" in str(e.value)
 
     with pytest.raises(AssertionError) as e:
         assert_dshape_equal(
-            Record((('a', int32), ('b', float32))),
-            Record((('a', int32), ('c', float32))),
+            R['a': int32, 'b': float32],
+            R['a': int32, 'c': float32],
         )
     assert "'b' != 'c'" in str(e.value)
 
     assert_dshape_equal(
-        Record((('b', float32), ('a', int32))),
-        Record((('a', int32), ('b', float32))),
+        R['b': float32, 'a': int32],
+        R['a': int32, 'b': float32],
         check_record_order=False,
     )
 
     with pytest.raises(AssertionError) as e:
         assert_dshape_equal(
-            Record((('b', float32), ('a', float32))),
-            Record((('a', int32), ('b', float32))),
+            R['b': float32, 'a': float32],
+            R['a': int32, 'b': float32],
             check_record_order=False,
         )
     assert "'float32' != 'int32'" in str(e.value)
