@@ -87,12 +87,6 @@ def test_record():
         )
     assert "'b' != 'c'" in str(e.value)
 
-    assert_dshape_equal(
-        R['b': float32, 'a': int32],
-        R['a': int32, 'b': float32],
-        check_record_order=False,
-    )
-
     with pytest.raises(AssertionError) as e:
         assert_dshape_equal(
             R['b': float32, 'a': float32],
@@ -100,6 +94,28 @@ def test_record():
             check_record_order=False,
         )
     assert "'float32' != 'int32'" in str(e.value)
+    assert "_['a']" in str(e.value)
+
+    assert_dshape_equal(
+        R['b': float32, 'a': int32],
+        R['a': int32, 'b': float32],
+        check_record_order=False,
+    )
+
+    # check a nested record with and without ordering
+    assert_dshape_equal(
+        R['a': R['b': float32, 'a': int32]],
+        R['a': R['a': int32, 'b': float32]],
+        check_record_order=False,
+    )
+
+    with pytest.raises(AssertionError) as e:
+        assert_dshape_equal(
+            R['a': R['a': int32, 'b': float32]],
+            R['a': R['b': float32, 'a': int32]],
+        )
+
+    assert "'a' != 'b'" in str(e.value)
     assert "_['a']" in str(e.value)
 
 

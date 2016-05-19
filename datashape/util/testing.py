@@ -195,7 +195,7 @@ def assert_dshape_equal(a, b, check_record_order=True, path=None, **kwargs):
 
     assert len(afields) == len(bfields), \
         'records have mismatched field counts: %d != %d\n%r != %r\n%s' % (
-            len(afields), len(bfields), a, b, _fmt_path(path),
+            len(afields), len(bfields), a.names, b.names, _fmt_path(path),
         )
 
     if not check_record_order:
@@ -216,6 +216,7 @@ def assert_dshape_equal(a, b, check_record_order=True, path=None, **kwargs):
             afield,
             bfield,
             path=path + ('[%s]' % repr(aname),),
+            check_record_order=check_record_order,
             **kwargs
         )
 
