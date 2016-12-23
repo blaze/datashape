@@ -80,39 +80,9 @@ def ishomogeneous(ds):
 
 
 def _dimensions(ds):
-    """ Number of dimensions of datashape
-
-    Interprets records as dimensional
-
-    >>> from datashape import int32
-    >>> _dimensions(int32)
-    0
-    >>> _dimensions(10 * int32)
-    1
-    >>> _dimensions('var * 10 * int')
-    2
-    >>> _dimensions('var * {name: string, amount: int}')
-    2
-    >>> _dimensions('var * {name: map[int32, {a: int32}]}')
-    2
+    """Number of dimensions of datashape
     """
-    ds = dshape(ds)
-    if isinstance(ds, DataShape) and len(ds) == 1:
-        ds = ds[0]
-    if isinstance(ds, Option):
-        return _dimensions(ds.ty)
-    if isinstance(ds, Map):
-        return max(map(_dimensions, ds.key))
-    if isinstance(ds, Record):
-        return 1 + max(map(_dimensions, ds.types))
-    if isinstance(ds, Tuple):
-        return 1 + max(map(_dimensions, ds.dshapes))
-    if isinstance(ds, DataShape) and isdimension(ds[0]):
-        return 1 + _dimensions(ds.subshape[0])
-    if isscalar(ds):
-        return 0
-    raise TypeError('Cannot count dimensions of dshape %s which is a %r' %
-                    (ds, type(ds).__name__))
+    return len(dshape(ds).shape)
 
 
 def isfixed(ds):
@@ -140,10 +110,8 @@ def isfixed(ds):
 
 
 def istabular(ds):
-    """ Can be represented by a two dimensional with fixed columns
+    """ A collection of records
 
-    >>> istabular('var * 3 * int')
-    True
     >>> istabular('var * {name: string, amount: int}')
     True
     >>> istabular('var * 10 * 3 * int')
@@ -154,11 +122,7 @@ def istabular(ds):
     False
     """
     ds = dshape(ds)
-    return (
-        _dimensions(ds) == 2 and
-        isfixed(ds.subarray(1)) and
-        not isinstance(ds.subarray(1).measure, Tuple)
-    )
+    return _dimensions(ds) == 1 and isrecord(ds.measure)
 
 
 def iscollection(ds):
