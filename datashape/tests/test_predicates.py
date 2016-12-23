@@ -22,16 +22,5 @@ def test_option():
     assert _dimensions('3 * ?int') == _dimensions('3 * int')
 
 
-def test_tuple():
-    assert _dimensions('1 * (int, string)') == 2
-    assert _dimensions('3 * (int, string)') == 2
-    assert _dimensions('(int, string)') == 1
-
-
-def test_dimensions_fails():
-    with pytest.raises(TypeError):
-        _dimensions(dshape('(T, U) -> U'))
-
-
 def test_time():
     assert not isnumeric('time')
