@@ -1,0 +1,39 @@
+Release 0.5.4
+-------------
+
+:Release: 0.5.4
+:Date: December 28, 2016
+
+New Features
+------------
+
+None
+
+New Types
+---------
+
+None
+
+Experimental Types
+------------------
+
+.. warning::
+
+   Experimental types are subject to change.
+
+None
+
+API Changes
+-----------
+
+None
+
+Bug Fixes
+---------
+
+* Python-3.6 compatibility for tests.
+
+Miscellaneous
+-------------
+
+None
