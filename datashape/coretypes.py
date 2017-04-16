@@ -692,7 +692,7 @@ class DataShape(Mono):
                 else:
                     count = var
 
-            if count != var and index.step is not None:
+            if not isinstance(count, Var) and index.step is not None:
                 count = int(ceil(count / index.step))
 
             return count * self.subarray(1)
