@@ -741,6 +741,8 @@ class Option(Mono):
     def to_numpy_dtype(self):
         if type(self.ty) in numpy_provides_missing:
             return self.ty.to_numpy_dtype()
+        if isinstance(self.ty, CType) and (self.ty.name == 'bool'):
+            return self.ty.to_numpy_dtype()
         raise TypeError('DataShape measure %s is not NumPy-compatible' % self)
 
 
