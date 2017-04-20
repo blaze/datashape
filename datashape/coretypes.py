@@ -364,7 +364,7 @@ _canonical_string_encodings = {
     u'U32': u'U32',
     u'utf-32': u'U32',
     u'utf_32': u'U32',
-    u'utf32': u'U32'
+    u'utf32': u'U32',
 }
 
 
@@ -907,6 +907,9 @@ class Map(Mono):
                                self.key,
                                self.value)
 
+    def to_numpy_dtype(self):
+        return to_numpy_dtype(self)
+
 
 def _launder(x):
     """ Clean up types prior to insertion into DataShape
@@ -1276,6 +1279,8 @@ var = Var()
 def to_numpy_dtype(ds):
     """ Throw away the shape information and just return the
     measure as NumPy dtype instance."""
+    if isinstance(ds.measure, datashape.coretypes.Map):
+        ds = ds.measure.key
     return to_numpy(ds.measure)[1]
 
 

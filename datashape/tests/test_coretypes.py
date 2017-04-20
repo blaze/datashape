@@ -590,8 +590,7 @@ def test_map():
     assert fk.value == Record([('a', int32)])
     assert fk.value.dict == {'a': int32}
     assert fk.value.fields == (('a', int32),)
-    with pytest.raises(TypeError):
-        fk.to_numpy_dtype()
+    assert fk.to_numpy_dtype() == np.dtype('int32')
 
 
 def test_map_parse():
