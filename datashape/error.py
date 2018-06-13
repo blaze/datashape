@@ -45,3 +45,13 @@ class DataShapeSyntaxError(SyntaxError):
 
     def __repr__(self):
         return str(self)
+
+
+class UnsupportedTypeError(Exception):
+    """Error indicating that `Record` was passed an unsupported type."""
+
+    def __init__(self, ty):
+        self.ty = ty
+
+    def __str__(self):
+        return "Received unsupported type {}".format(self.ty)
