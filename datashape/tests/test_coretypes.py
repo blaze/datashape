@@ -33,18 +33,22 @@ from datashape.coretypes import (
 )
 from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
                        uint32, Bytes, var, timedelta_, datetime_, date_,
-                       float64, Tuple, to_numpy, string)
+                       float64, Tuple, to_numpy, string, UnsupportedTypeError)
 from datashape.py2help import unicode, OrderedDict
 
 
 @pytest.fixture
 def a():
-    return Record([('x', int), ('y', int)])
+    return Record([('x', 'int'), ('y', 'int')])
 
 
 @pytest.fixture
 def b():
-    return Record([('y', int), ('x', int)])
+    return Record([('y', 'int'), ('x', 'int')])
+
+@pytest.fixture
+def c():
+    return Record([('y', '?int'), ('x', '?int')])
 
 
 def test_respects_order(a, b):
@@ -662,3 +666,21 @@ equiv_dshape_pairs = [(dshape('?string'), Option('string')),
 def test_hash_and_eq_consistency(a, b):
     assert a == b
     assert hash(a) == hash(b)
+
+
+def test_record_parse_optional(b, c):
+
+    assert all(isinstance(ty, Option) for ty in c.types)
+
+    assert (
+        [ty for ty in b.types] ==
+        [oty.ty for oty in c.types]
+    )
+
+
+def test_launder_raises():
+
+    with pytest.raises(UnsupportedTypeError) as exc:
+        Record([('y', int)])
+
+    assert str(exc.value) == "Received unsupported type <class 'int'>"
