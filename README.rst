@@ -29,8 +29,8 @@ DataShape development is sponsored by Continuum Analytics.
 Released under BSD license. See LICENSE for details.
 
 
-.. |Build Status| image:: https://travis-ci.org/blaze/datashape.svg?branch=master
-   :target: https://travis-ci.org/blaze/datashape
+.. |Build Status| image:: https://travis-ci.org/plures/datashape.svg?branch=master
+   :target: https://travis-ci.org/plures/datashape
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/datashape.svg
    :target: https://pypi.python.org/pypi/DataShape
