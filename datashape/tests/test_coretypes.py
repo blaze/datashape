@@ -683,4 +683,9 @@ def test_launder_raises():
     with pytest.raises(UnsupportedTypeError) as exc:
         Record([('y', int)])
 
-    assert str(exc.value) == "Received unsupported type <class 'int'>"
+    returned_err = str(exc.value)
+
+    # Py 2/3 differences mean that 2 will error with <type 'int'> and 3 will
+    # error with <class 'int'>
+    assert "Received unsupported type" in returned_err
+    assert "int" in returned_err
