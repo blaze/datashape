@@ -2,8 +2,6 @@
 
 from __future__ import print_function, division, absolute_import
 
-from datashape.error import UnsupportedTypeError
-
 """
 This defines the DataShape type system, with unified
 shape and data type.
@@ -935,7 +933,7 @@ def _launder(x):
     if isinstance(x, Mono):
         return x
 
-    raise UnsupportedTypeError(x)
+    raise TypeError("Received unsupported type {}".format(x))
 
 
 class CollectionPrinter(object):
