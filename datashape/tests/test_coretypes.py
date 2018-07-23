@@ -31,9 +31,23 @@ from datashape.coretypes import (
     null,
     real,
 )
-from datashape import (dshape, to_numpy_dtype, from_numpy, error, Units,
-                       uint32, Bytes, var, timedelta_, datetime_, date_,
-                       float64, Tuple, to_numpy, string, UnsupportedTypeError)
+from datashape import (
+    Bytes,
+    datetime_,
+    date_,
+    dshape,
+    error,
+    float64,
+    from_numpy,
+    string,
+    timedelta_,
+    to_numpy,
+    to_numpy_dtype,
+    Tuple,
+    Units,
+    uint32,
+    var,
+)
 from datashape.py2help import unicode, OrderedDict
 
 
@@ -680,10 +694,10 @@ def test_record_parse_optional(b, c):
 
 def test_launder_raises():
 
-    with pytest.raises(UnsupportedTypeError) as exc:
+    with pytest.raises(TypeError) as exc:
         Record([('y', int)])
 
-    returned_err = str(exc.value)
+    returned_err = str(exc)
 
     # Py 2/3 differences mean that 2 will error with <type 'int'> and 3 will
     # error with <class 'int'>
