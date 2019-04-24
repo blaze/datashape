@@ -710,7 +710,9 @@ class DataShape(Mono):
                         (index, type(index).__name__))
 
     def __setstate__(self, state):
-        self.__init__(*state)
+        self._parameters = state
+        self.composite = True
+        self.name = None
 
 
 numpy_provides_missing = frozenset((Date, DateTime, TimeDelta))
