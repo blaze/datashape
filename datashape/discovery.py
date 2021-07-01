@@ -11,10 +11,10 @@ from dateutil.parser import parse as dateparse
 import numpy as np
 
 from .dispatch import dispatch
-from .coretypes import (int32, int64, float64, bool_, complex128, datetime_,
+from .coretypes import (int32, int64, float64, bool_, bytes_, complex128, datetime_,
                         Option, var, from_numpy, Tuple, null,
                         Record, string, Null, DataShape, real, date_, time_,
-                        Unit, timedelta_, TimeDelta, object_, String)
+                        Unit, timedelta_, TimeDelta, object_)
 from .predicates import isdimension, isrecord
 from .py2help import _strtypes, _inttypes, MappingProxyType, OrderedDict
 from .internal_utils import _toposort, groupby
@@ -81,7 +81,7 @@ npinttypes = tuple(chain.from_iterable((x for x in subclasses(icls)
 if sys.version_info[0] == 3:
     @dispatch(bytes)
     def discover(b):
-        return String('A')
+        return bytes_
 
 
 @dispatch(npinttypes)
