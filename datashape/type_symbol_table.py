@@ -72,6 +72,7 @@ no_constructor_types = [
     ('real', ct.float64),
     ('complex', ct.complex_float64),
     ('string', ct.string),
+    ('bytes', ct.bytes_),
     ('json', ct.json),
     ('date', ct.date_),
     ('time', ct.time_),
