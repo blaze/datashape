@@ -24,6 +24,10 @@ setup(
     license='BSD-2-Clause',
     keywords='data language',
     url='http://datashape.readthedocs.org/en/latest/',
+    project_urls = {
+        "Source Code": "https://github.com/blaze/datashape",
+        "Bug Tracker": "https://github.com/blaze/datashape/issues",
+    },
     packages=['datashape', 'datashape.util', 'datashape.tests'],
     install_requires=read('requirements.txt').strip().split('\n'),
     long_description=read('README.rst'),
