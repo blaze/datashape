@@ -1,3 +1,11 @@
 [build-system]
-requires = ["setuptools>=42.2", "versioneer"]
+requires = ["setuptools>=42.2", "versioneer[toml]"]
 build-backend = "setuptools.build_meta"
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "datashape/_version.py"
+versionfile_build = "datashape/_version.py"
+tag_prefix = ""
+parentdir_prefix = "datashape-"
