@@ -21,7 +21,7 @@ setup(
     author='Continuum Analytics',
     author_email='blaze-dev@continuum.io',
     description='A data description language.',
-    license='BSD',
+    license='BSD-2-Clause',
     keywords='data language',
     url='http://datashape.readthedocs.org/en/latest/',
     packages=['datashape', 'datashape.util', 'datashape.tests'],
