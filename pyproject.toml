@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.2", "versioneer[toml]"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "datashape"
+authors = [{name = "Continuum Analytics", email = "blaze-dev@continuum.io"}]
+license = {text = "BSD-2-Clause"}
+description = "A data description language."
+keywords = ["data", "language"]
+readme = "README.rst"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development",
+    "License :: OSI Approved :: BSD License",
+]
+dependencies = [
+    "numpy >= 1.7",
+    "multipledispatch >= 0.4.7",
+    "python-dateutil",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/blaze/datashape"
+"Source Code" = "https://github.com/blaze/datashape"
+"Bug Tracker" = "https://github.com/blaze/datashape/issues"
+Documentation = "https://datashape.readthedocs.io/en/latest/"
+
+[tool.setuptools]
+packages = [
+    "datashape",
+    "datashape.util",
+    "datashape.tests",
+]
+zip-safe = false
+include-package-data = false
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "datashape/_version.py"
+versionfile_build = "datashape/_version.py"
+tag_prefix = ""
+parentdir_prefix = "datashape-"
